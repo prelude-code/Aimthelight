@@ -573,126 +573,117 @@ That’s the new common sense.
   document.getElementById('y').textContent = new Date().getFullYear();
 
   /* === Mini Markdown to HTML for #essay (headings, paragraphs, quotes, hr) === */
-  (function(){
-    const src = document.getElementById('essay-src');
-    const out = document.getElementById('essay');
-    if(!src || !out) return;
+(function(){
+  const src = document.getElementById('essay-src');
+  const out = document.getElementById('essay');
+  if(!src || !out) return;
 
-    const lines = src.textContent.replace(/\r\n/g,'\n').split('\n');
-    const html = [];
-    let para = [];
+  const lines = src.textContent.replace(/\r\n/g,'\n').split('\n');
+  const html = [];
+  let para = [];
 
-    function flushPara() {
-      if (!para.length) return;
+  // Allow simple inline formatting: * _ ** __ and safe HTML tags (<em>,<strong>, etc.)
+  function escapeHtml(s){
+    return s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  }
+  function unescapeAllowedTags(s){
+    // whitelist a few safe inline tags
+    return s.replace(/&lt;(\/?)(em|strong|i|b|u|a|br|code|sup|sub|span)&gt;/gi, '<$1$2>');
+  }
+  function mdInline(s){
+    // Markdown emphasis → HTML tags
+    let t = s
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // **bold**
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')             // *italic*
+      .replace(/__(.+?)__/g, '<strong>$1</strong>')     // __bold__
+      .replace(/_(.+?)_/g, '<em>$1</em>');              // _italic_
+    // Escape everything, then unescape allowed tags
+    t = escapeHtml(t);
+    t = unescapeAllowedTags(t);
+    return t;
+  }
+  function slug(str){
+    return str.toLowerCase().trim()
+      .replace(/[^\w\s-]/g,'')
+      .replace(/\s+/g,'-');
+  }
+  function flushPara() {
+    if (!para.length) return;
+    const text = mdInline(para.join(' ').trim());
+    if (text) html.push('<p class="reveal">' + text + '</p>');
+    para = [];
+  }
 
-      // 1) Build raw paragraph text
-      let text = para.join(' ').trim();
+  for (let i=0; i<lines.length; i++) {
+    const raw = lines[i];
+    const line = raw.trim();
 
-      // 2) Markdown inline emphasis -> HTML tags
-      //    (do this BEFORE escaping)
-      text = text
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')  // **bold**
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')               // *italic*
-        .replace(/__(.+?)__/g, '<strong>$1</strong>')       // __bold__
-        .replace(/_(.+?)_/g, '<em>$1</em>');                // _italic_
+    // blank line => paragraph break
+    if (!line) { flushPara(); continue; }
 
-      // 3) Escape everything for safety
-      text = escapeHtml(text);
-
-      // 4) Whitelist <em> and <strong> (unescape just those)
-      text = text.replace(/&lt;(\/?)(em|strong)&gt;/g, '<$1$2>');
-
-      if (text) html.push('<p class="reveal">' + text + '</p>');
-      para = [];
+    // Headings: "## Title"
+    const h2 = line.match(/^##\s+(.*)$/);
+    if (h2) {
+      flushPara();
+      const text = h2[1].trim();
+      const id = slug(text);
+      html.push(`<h2 id="${id}" class="reveal">${escapeHtml(text)}</h2>`);
+      continue;
     }
 
-    function escapeHtml(s){
-      return s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+    // Blockquotes: "> text"
+    const bq = line.match(/^>\s?(.*)$/);
+    if (bq) {
+      flushPara();
+      const qt = mdInline(bq[1]);
+      html.push(`<blockquote class="reveal">${qt}</blockquote>`);
+      continue;
     }
 
-    function slug(str){
-      return str.toLowerCase().trim()
-        .replace(/[^\w\s-]/g,'')
-        .replace(/\s+/g,'-');
+    // Horizontal rule: "---"
+    if (/^---+$/.test(line)) {
+      flushPara();
+      html.push('<hr class="reveal" />');
+      continue;
     }
 
-    for (let i=0; i<lines.length; i++) {
-      const raw = lines[i];
-      const line = raw.trim();
-
-      // blank line => paragraph break
-      if (!line) { flushPara(); continue; }
-
-      // headings like "## Title"
-      const h2 = line.match(/^##\s+(.*)$/);
-      if (h2) {
-        flushPara();
-        const text = h2[1].trim();
-        const id = slug(text);
-        html.push(`<h2 id="${id}" class="reveal">${escapeHtml(text)}</h2>`);
-        continue;
-      }
-
-      // blockquote line: "> Quote text"
-      const bq = line.match(/^>\s?(.*)$/);
-      if (bq) {
-        flushPara();
-        // allow *italic* inside quotes too
-        let qt = bq[1]
-          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.+?)\*/g, '<em>$1</em>')
-          .replace(/__(.+?)__/g, '<strong>$1</strong>')
-          .replace(/_(.+?)_/g, '<em>$1</em>');
-        qt = escapeHtml(qt).replace(/&lt;(\/?)(em|strong)&gt;/g, '<$1$2>');
-        html.push(`<blockquote class="reveal">${qt}</blockquote>`);
-        continue;
-      }
-
-      // horizontal rule line: "---"
-      if (/^---+$/.test(line)) {
-        flushPara();
-        html.push('<hr class="reveal" />');
-        continue;
-      }
-
-      // *Lead.* style emphasis at start of paragraph (kept)
-      const emStart = line.match(/^\*(.+?)\*\.\s*(.*)$/);
-      if (emStart) {
-        flushPara();
-        const lead = `<em>${escapeHtml(emStart[1])}.</em>`;
-        const rest = emStart[2] ? ' ' + escapeHtml(emStart[2]) : '';
-        html.push(`<p class="reveal">${lead}${rest}</p>`);
-        continue;
-      }
-
-      // accumulate normal paragraph lines (stanza style)
-      para.push(line);
-    }
-    flushPara();
-
-    out.innerHTML = html.join('\n');
-
-    // Rebuild TOC from generated <h2> nodes
-    const tocEl = document.getElementById('toc');
-    if (tocEl) {
-      const headings = Array.from(out.querySelectorAll('h2'));
-      tocEl.innerHTML = '';
-      headings.forEach(h=>{
-        const a = document.createElement('a');
-        a.href = '#'+h.id;
-        a.textContent = h.textContent;
-        tocEl.appendChild(a);
-      });
+    // Special lead: "*Lead.* rest"  (kept, but allow inline formatting in rest)
+    const emStart = line.match(/^\*(.+?)\*\.\s*(.*)$/);
+    if (emStart) {
+      flushPara();
+      const lead = `<em>${escapeHtml(emStart[1])}.</em>`;
+      const rest = emStart[2] ? ' ' + mdInline(emStart[2]) : '';
+      html.push(`<p class="reveal">${lead}${rest}</p>`);
+      continue;
     }
 
-    // Reveal animations for newly inserted nodes
-    const rev = document.querySelectorAll('.reveal');
-    const io2 = new IntersectionObserver((ents)=>{
-      ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('visible'); io2.unobserve(en.target);} });
-    }, { threshold: 0.12 });
-    rev.forEach(el=>io2.observe(el));
-  })();
-</script>
+    // accumulate normal paragraph lines
+    para.push(line);
+  }
+  flushPara();
+
+  out.innerHTML = html.join('\n');
+
+  // Rebuild TOC from generated <h2> nodes
+  const tocEl = document.getElementById('toc');
+  if (tocEl) {
+    const headings = Array.from(out.querySelectorAll('h2'));
+    tocEl.innerHTML = '';
+    headings.forEach(h=>{
+      const a = document.createElement('a');
+      a.href = '#'+h.id;
+      a.textContent = h.textContent;
+      tocEl.appendChild(a);
+    });
+  }
+
+  // Reveal animations for newly inserted nodes
+  const rev = document.querySelectorAll('.reveal');
+  const io2 = new IntersectionObserver((ents)=>{
+    ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('visible'); io2.unobserve(en.target);} });
+  }, { threshold: 0.12 });
+  rev.forEach(el=>io2.observe(el));
+})();
 
     // Reading time (approx 225 wpm) — run AFTER conversion
     (function(){
