@@ -740,16 +740,11 @@ That’s the new common sense.
     window.addEventListener('resize', setOffsets);
   })();
 
-  // Smooth scroll using computed offset
+  <!-- Smooth scroll using CSS scroll-padding-top -->
+  <script>
   (function(){
     const toc = document.getElementById('toc');
     if (!toc) return;
-
-    function anchorOffsetPx(){
-      const v = getComputedStyle(document.documentElement).getPropertyValue('--anchor-offset').trim();
-      const n = parseFloat(v);
-      return Number.isFinite(n) ? n : 120;
-    }
 
     toc.addEventListener('click', (e)=>{
       const link = e.target.closest('a[href^="#"]');
@@ -757,11 +752,14 @@ That’s the new common sense.
       const id = link.getAttribute('href').slice(1);
       const target = document.getElementById(id);
       if (!target) return;
-      e.preventDefault();
 
-      const y = target.getBoundingClientRect().top + window.pageYOffset - anchorOffsetPx();
-      window.scrollTo({ top: y, behavior: 'smooth' });
+      e.preventDefault();
+      // Let CSS handle the header spacing
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + id); // keep URL hash in sync
     });
+  })();
+  </script>
   })();
 </script>
 </body>
