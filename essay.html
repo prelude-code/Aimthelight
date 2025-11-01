@@ -79,7 +79,7 @@
 
     footer{padding:48px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
 
-    /* Reveal (same system as home) */
+    /* Reveal animations */
     .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease, transform .6s ease;transition-delay:var(--d,0s)}
     .reveal.visible{opacity:1;transform:none}
     @media (prefers-reduced-motion: reduce){ .reveal{transition:none;opacity:1;transform:none} }
@@ -118,46 +118,49 @@
         <nav id="toc"></nav>
       </aside>
 
-      <!-- Essay body -->
-      <article id="essay" class="prose">
-        <!-- ✍️ PASTE YOUR ESSAY BELOW.
-             Use H2 for section headings (## in Markdown translates to <h2>).
-             The TOC auto-detects all <h2> and builds links. -->
+      <!-- Essay body (auto-render target) -->
+      <article id="essay" class="prose"></article>
 
-        <p class="reveal" style="--d:.04s"><em>Author’s Note: Why We Need a New Common Sense</em> Two and a half centuries ago, Common Sense helped a young republic find its voice. It didn’t teach Americans what to think; it reminded them that they already knew. That pamphlet wasn’t polished philosophy—it was moral oxygen. It spoke the simple truth that freedom and decency require courage, and that silence, when everything feels broken, is a form of consent.</p>
+      <!-- Paste your raw essay here (no HTML needed). Use blank lines for paragraphs, '## ' for H2, '> ' for quotes, and '---' for dividers. -->
+      <script type="text/plain" id="essay-src">
+*Author’s Note.*
+Two and a half centuries ago, Common Sense helped a young republic find its voice. It didn’t teach Americans what to think; it reminded them that they already knew. That pamphlet wasn’t polished philosophy—it was moral oxygen. It spoke the simple truth that freedom and decency require courage, and that silence, when everything feels broken, is a form of consent.
 
-        <p> Today we stand in a different kind of crisis, not of kings and colonies, but of overload and confusion. Our republic is still free, but it no longer feels coherent. We know more than any generation before us and understand one another less. Technology has given every citizen a megaphone and taken away our ability to hear. We have traded privacy for visibility, nuance for certainty, empathy for exhaustion. The result is an overexposed republic—brilliantly lit, endlessly analyzed, and somehow dimmer in spirit. </p>
+Today we stand in a different kind of crisis, not of kings and colonies, but of overload and confusion. Our republic is still free, but it no longer feels coherent. We know more than any generation before us and understand one another less. Technology has given every citizen a megaphone and taken away our ability to hear. We have traded privacy for visibility, nuance for certainty, empathy for exhaustion. The result is an overexposed republic—brilliantly lit, endlessly analyzed, and somehow dimmer in spirit.
 
-        <p> This essay was written as a plea for a new common sense. Not the easy kind that flatters our tribes, but the humble kind that admits we’ve all lost balance in the glare. We need a vocabulary of patience again; a rhythm that allows both justice and grace to breathe in the same sentence. We need to remember that disagreement is not disloyalty, that progress cannot exist without forgiveness, and that truth must be carried in human hands, not hurled like stones. </p>
+This essay was written as a plea for a new common sense. Not the easy kind that flatters our tribes, but the humble kind that admits we’ve all lost balance in the glare. We need a vocabulary of patience again; a rhythm that allows both justice and grace to breathe in the same sentence. We need to remember that disagreement is not disloyalty, that progress cannot exist without forgiveness, and that truth must be carried in human hands, not hurled like stones.
 
-        <p> If Thomas Paine lit a fire to begin a nation, perhaps what we need now is a smaller flame, one that warms instead of burns. The Overexposed Republic is my attempt to hold that light steady for a moment, to see whether we can still recognize each other in its glow. </p>
+If Thomas Paine lit a fire to begin a nation, perhaps what we need now is a smaller flame, one that warms instead of burns. The Overexposed Republic is my attempt to hold that light steady for a moment, to see whether we can still recognize each other in its glow.
 
-        <h2 id="preface" class="reveal" style="--d:.08s">Preface: Why This, Why Now</h2>
-        <p class="reveal" style="--d:.12s">[Replace this paragraph with your Preface / Author’s Note content, or keep it as a short framing statement.]</p>
+## Overexposure Isn’t Understanding
+We were cleaning the house of history.
+We were making progress.
+But someone kept opening every door, shouting, “Look what you missed!”
 
-        <h2 id="overexposure" class="reveal" style="--d:.16s">Overexposure Isn’t Understanding</h2>
-        <p class="reveal" style="--d:.2s">[Paste your essay here. You can keep writing in normal paragraphs; the page styles handle readability. Use additional H2s to create sections—each one will appear in the table of contents on the left.]</p>
+We became curators of shame, archivists of error.
+And the brighter the light, the less we could see the person standing in it.
 
-        <h2 id="smartphones" class="reveal" style="--d:.24s">When Every Moment Is Televised</h2>
-        <p class="reveal" style="--d:.28s">[Your section text…]</p>
+> It wasn’t the light that failed us, but how we turned it inward—blinding each other when we were meant to find the way forward together.
 
-        <blockquote class="reveal" style="--d:.32s">It wasn’t the light that failed us, but how we turned it inward—blinding each other when we were meant to find the way forward together.</blockquote>
+## When Every Moment Is Televised
+A phone in every hand.
+A broadcast from every room.
+Receipts for every human moment, without the human context that makes mercy possible.
 
-        <h2 id="aim" class="reveal" style="--d:.36s">Aim the Light</h2>
-        <p class="reveal" style="--d:.4s">[Your section text…]</p>
+## Aim the Light
+Aim it at problems, not people.
+Aim it at systems, not souls.
+Aim it at the future we could build, not only the past we can’t change.
 
-        <h2 id="now" class="reveal" style="--d:.44s">What Now: From Outrage to Understanding</h2>
-        <p class="reveal" style="--d:.48s">[Your closing section / call to action…]</p>
+## What Now: From Outrage to Understanding
+Start small.
+Listen longer.
+Forgive faster than the feed does.
+Build something that outlasts your anger.
 
-        <hr class="reveal" style="--d:.52s" />
-
-        <!-- Share row -->
-        <div class="share reveal" style="--d:.56s">
-          <a class="chip" id="copyLink" href="#" onclick="return false;">📋 Copy link</a>
-          <a class="chip" id="shareX" target="_blank" rel="noopener">𝕏 Share</a>
-          <a class="chip" id="shareFb" target="_blank" rel="noopener">f Share</a>
-        </div>
-      </article>
+---
+(Replace the above with your full essay whenever you’re ready. Keep using blank lines, '##', '>', and '---' as you prefer.)
+      </script>
     </div>
   </main>
 
@@ -171,55 +174,147 @@
     // Year
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // Build TOC from H2 headings
-    const tocEl = document.getElementById('toc');
-    const headings = Array.from(document.querySelectorAll('#essay h2'));
-    headings.forEach(h => {
-      if (!h.id) h.id = h.textContent.trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'');
-      const a = document.createElement('a');
-      a.href = '#'+h.id;
-      a.textContent = h.textContent;
-      tocEl.appendChild(a);
-    });
+    /* === Mini Markdown to HTML for #essay (headings, paragraphs, quotes, hr) === */
+    (function(){
+      const src = document.getElementById('essay-src');
+      const out = document.getElementById('essay');
+      if(!src || !out) return;
 
-    // Active TOC highlight
-    const io = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{
-        const link = tocEl.querySelector(`a[href="#${e.target.id}"]`);
-        if (e.isIntersecting) {
-          tocEl.querySelectorAll('a').forEach(a=>a.classList.remove('active'));
-          link && link.classList.add('active');
+      const lines = src.textContent.replace(/\r\n/g,'\n').split('\n');
+      const html = [];
+      let para = [];
+
+      function flushPara() {
+        if (para.length) {
+          const text = para.join(' ').trim();
+          if (text) html.push('<p class="reveal">' + escapeHtml(text) + '</p>');
+          para = [];
         }
-      });
-    }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
-    headings.forEach(h=>io.observe(h));
+      }
+      function escapeHtml(s){
+        return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      }
+      function slug(str){
+        return str.toLowerCase().trim()
+          .replace(/[^\w\s-]/g,'')
+          .replace(/\s+/g,'-');
+      }
 
-    // Reading time (approx 225 wpm)
-    const text = document.getElementById('essay').innerText || '';
-    const minutes = Math.max(1, Math.round(text.trim().split(/\s+/).length / 225));
-    document.getElementById('readtime').textContent = minutes + ' min read';
+      for (let i=0; i<lines.length; i++) {
+        const raw = lines[i];
+        const line = raw.trim();
+
+        // blank line => paragraph break
+        if (!line) { flushPara(); continue; }
+
+        // headings like "## Title"
+        const h2 = line.match(/^##\s+(.*)$/);
+        if (h2) {
+          flushPara();
+          const text = h2[1].trim();
+          const id = slug(text);
+          html.push(`<h2 id="${id}" class="reveal">${escapeHtml(text)}</h2>`);
+          continue;
+        }
+
+        // blockquote line: "> Quote text"
+        const bq = line.match(/^>\s?(.*)$/);
+        if (bq) {
+          flushPara();
+          html.push(`<blockquote class="reveal">${escapeHtml(bq[1])}</blockquote>`);
+          continue;
+        }
+
+        // horizontal rule line: "---"
+        if (/^---+$/.test(line)) {
+          flushPara();
+          html.push('<hr class="reveal" />');
+          continue;
+        }
+
+        // *Lead.* style emphasis at start of paragraph
+        const emStart = line.match(/^\*(.+?)\*\.\s*(.*)$/);
+        if (emStart) {
+          flushPara();
+          const lead = `<em>${escapeHtml(emStart[1])}.</em>`;
+          const rest = emStart[2] ? ' ' + escapeHtml(emStart[2]) : '';
+          html.push(`<p class="reveal">${lead}${rest}</p>`);
+          continue;
+        }
+
+        // accumulate normal paragraph lines (stanza style)
+        para.push(line);
+      }
+      flushPara();
+
+      out.innerHTML = html.join('\n');
+
+      // Build TOC from generated <h2> nodes
+      const tocEl = document.getElementById('toc');
+      if (tocEl) {
+        const headings = Array.from(out.querySelectorAll('h2'));
+        tocEl.innerHTML = '';
+        headings.forEach(h=>{
+          const a = document.createElement('a');
+          a.href = '#'+h.id;
+          a.textContent = h.textContent;
+          tocEl.appendChild(a);
+        });
+      }
+
+      // Reveal animations for newly inserted nodes
+      const rev = document.querySelectorAll('.reveal');
+      const io2 = new IntersectionObserver((ents)=>{
+        ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('visible'); io2.unobserve(en.target);} });
+      }, { threshold: 0.12 });
+      rev.forEach(el=>io2.observe(el));
+    })();
+
+    // Reading time (approx 225 wpm) — run AFTER conversion
+    (function(){
+      const text = document.getElementById('essay').innerText || '';
+      const minutes = Math.max(1, Math.round(text.trim().split(/\s+/).length / 225));
+      document.getElementById('readtime').textContent = minutes + ' min read';
+    })();
 
     // Share links + copy
-    const url = location.href;
-    document.getElementById('shareX').href  = `https://twitter.com/intent/tweet?text=${encodeURIComponent('The Overexposed Republic — Aim the Light')}&url=${encodeURIComponent(url)}`;
-    document.getElementById('shareFb').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-    document.getElementById('copyLink').addEventListener('click', async ()=>{
-      try { await navigator.clipboard.writeText(url); const c=document.getElementById('copyLink'); c.textContent='✓ Copied'; setTimeout(()=>c.textContent='📋 Copy link',1400); } catch(e){}
-    });
-
-    // Reveal animations
-    const rev = document.querySelectorAll('.reveal');
-    const io2 = new IntersectionObserver((ents)=>{
-      ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('visible'); io2.unobserve(en.target);} });
-    }, { threshold: 0.12 });
-    rev.forEach(el=>io2.observe(el));
+    (function(){
+      const url = location.href;
+      const x = document.getElementById('shareX');
+      const fb = document.getElementById('shareFb');
+      const cp = document.getElementById('copyLink');
+      if (x)  x.href  = `https://twitter.com/intent/tweet?text=${encodeURIComponent('The Overexposed Republic — Aim the Light')}&url=${encodeURIComponent(url)}`;
+      if (fb) fb.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+      if (cp) cp.addEventListener('click', async ()=>{
+        try { await navigator.clipboard.writeText(url); cp.textContent='✓ Copied'; setTimeout(()=>cp.textContent='📋 Copy link',1400); } catch(e){}
+      });
+    })();
 
     // Mobile TOC toggle
-    const tocBtn = document.getElementById('tocBtn');
-    const tocBox = document.querySelector('.toc');
-    if (tocBtn && tocBox) {
-      tocBtn.addEventListener('click', ()=> tocBox.classList.toggle('open'));
-    }
+    (function(){
+      const tocBtn = document.getElementById('tocBtn');
+      const tocBox = document.querySelector('.toc');
+      if (tocBtn && tocBox) {
+        tocBtn.addEventListener('click', ()=> tocBox.classList.toggle('open'));
+      }
+    })();
+
+    // Active TOC highlight while scrolling
+    (function(){
+      const tocEl = document.getElementById('toc');
+      if (!tocEl) return;
+      const headings = Array.from(document.querySelectorAll('#essay h2'));
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{
+          const link = tocEl.querySelector(`a[href="#${e.target.id}"]`);
+          if (e.isIntersecting) {
+            tocEl.querySelectorAll('a').forEach(a=>a.classList.remove('active'));
+            link && link.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+      headings.forEach(h=>io.observe(h));
+    })();
   </script>
 </body>
 </html>
