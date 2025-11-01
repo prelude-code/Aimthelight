@@ -162,7 +162,9 @@ If Thomas Paine lit a fire to begin a nation, perhaps what we need now is a smal
 
 ## Part I – The Quiet Climb We Once Believed In
 
-<p class="dropcap">We used to believe the road bent upward.
+
+::dropcap::
+We used to believe the road bent upward.
 Not perfectly, not quickly, but enough to make us trust that tomorrow would be a little fairer than yesterday.</p>
 
 Through the long dusk of the twentieth century, we stitched together a fragile consensus:
@@ -768,6 +770,35 @@ That’s the new common sense.
       history.replaceState(null, '', '#' + id);
     });
   })();
+
+
+let dropcapUsed = false;
+
+function flushPara() {
+  if (!para.length) return;
+  const text = para.join(' ').trim();
+
+  // if this paragraph starts with ::dropcap:: marker
+  let cls = '';
+  let content = text;
+  if (text.startsWith('::dropcap::')) {
+    cls = 'dropcap';
+    content = text.replace('::dropcap::', '').trim();
+    dropcapUsed = true;
+  }
+
+  if (text && !dropcapUsed && nextIsDropcap) {
+    cls = 'dropcap';
+    nextIsDropcap = false;
+    dropcapUsed = true;
+  }
+
+  html.push(`<p class="reveal${cls ? ' ' + cls : ''}">${escapeHtml(content)}</p>`);
+  para = [];
+}
+
+
+
 </script>
 </body>
 </html>
