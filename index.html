@@ -8,6 +8,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
   <style>
+    /* Scroll-reveal base */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity .6s ease,
+    transform .6s ease;
+  transition-delay: var(--d, 0s);
+  will-change: opacity, transform;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Optional: different directions if you ever want them */
+.reveal[data-anim="left"]  { transform: translateX(-24px); }
+.reveal[data-anim="right"] { transform: translateX(24px);  }
+.reveal[data-anim="left"].visible,
+.reveal[data-anim="right"].visible { transform: none; } you
     :root{
       --bg:#0f172a;          /* deep slate */
       --ink:#f8fafc;         /* near-white text */
@@ -157,9 +177,76 @@
       </div>
     </section>
 
-    <!-- Join / Mailing -->
+!-- Join / Mailing -->
     <section id="join">
       <div class="container">
         <h2>Stay Connected</h2>
         <p class="lead">Be first to know when new essays and projects go live. We’ll never share your info.</p>
-        <p><a
+        <p><a class="ghost" href="https://forms.gle/" target="_blank" rel="noopener">Join the Mailing List</a></p>
+      </div>
+    </section>
+
+    <!-- Placeholder for your future interactive wall -->
+    <section id="wall" class="alt">
+      <div class="container">
+        <h2>What does “light” mean to you right now?</h2>
+        <p class="lead">We’re building a living wall of short reflections from readers. Coming soon.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // set copyright year
+    document.getElementById('y').textContent = new Date().getFullYear();
+    // smooth anchor scroll (accessibility-friendly)
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click',e=>{
+        const id=a.getAttribute('href').slice(1);
+        const el=document.getElementById(id);
+        if(el){ e.preventDefault(); el.scrollIntoView({behavior:'smooth',block:'start'}); }
+      });
+    });
+  </script>
+  <script>
+/* Auto-tag common elements for reveal so you don't have to edit lots of HTML */
+const groups = [
+  '.hero h1, .hero p.sub, .cta a',
+  '#mission .lead',
+  '#approach .lead, #approach .card',
+  '#essay .lead, #essay .primary',
+  '#values .card',
+  '#volunteer .lead, #volunteer a',
+  '#join .lead, #join a',
+  'footer p'
+];
+
+// Assign .reveal and stagger delays inside each group
+groups.forEach(sel => {
+  const els = Array.from(document.querySelectorAll(sel));
+  els.forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.setProperty('--d', (i * 0.08) + 's'); // 80ms stagger
+  });
+});
+
+// IntersectionObserver to toggle visibility once per element
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      io.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  </script>
+</body>
+</html>
+
