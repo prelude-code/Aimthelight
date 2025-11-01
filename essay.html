@@ -83,6 +83,17 @@
     .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease, transform .6s ease;transition-delay:var(--d,0s)}
     .reveal.visible{opacity:1;transform:none}
     @media (prefers-reduced-motion: reduce){ .reveal{transition:none;opacity:1;transform:none} }
+
+/* Offset anchors so section titles aren't hidden under sticky header */
+#essay h2 {
+  scroll-margin-top: 96px;        /* desktop offset */
+}
+
+@media (max-width: 768px) {
+  #essay h2 {
+    scroll-margin-top: 72px;      /* mobile offset */
+  }
+}
   </style>
 </head>
 <body>
@@ -648,16 +659,7 @@ That’s the new common sense.
         });
       }
 
-/* Offset anchors so section titles aren't hidden under sticky header */
-#essay h2 {
-  scroll-margin-top: 96px;        /* desktop offset */
-}
 
-@media (max-width: 768px) {
-  #essay h2 {
-    scroll-margin-top: 72px;      /* mobile offset */
-  }
-}
       // Reveal animations for newly inserted nodes
       const rev = document.querySelectorAll('.reveal');
       const io2 = new IntersectionObserver((ents)=>{
