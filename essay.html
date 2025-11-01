@@ -94,6 +94,11 @@
     scroll-margin-top: 72px;      /* mobile offset */
   }
 }
+
+/* Reserve space for sticky header on any #anchor jump */
+html {
+  scroll-padding-top: var(--header-offset, 96px);
+}
   </style>
 </head>
 <body>
@@ -729,6 +734,41 @@ That’s the new common sense.
     // Different offset for desktop vs mobile
     const headerOffset = window.innerWidth < 768 ? 72 : 96;
     const y = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  });
+})();
+
+// Compute sticky header height → expose as CSS var
+(function(){
+  const header = document.querySelector('header');
+  function setHeaderOffset(){
+    const h = header ? Math.round(header.getBoundingClientRect().height) : 96;
+    document.documentElement.style.setProperty('--header-offset', h + 'px');
+  }
+  setHeaderOffset();
+  window.addEventListener('resize', setHeaderOffset);
+})();
+
+// Smooth scroll using the same computed header offset
+(function(){
+  const toc = document.getElementById('toc');
+  if (!toc) return;
+
+  function headerOffsetPx(){
+    const v = getComputedStyle(document.documentElement).getPropertyValue('--header-offset').trim();
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : 96;
+  }
+
+  toc.addEventListener('click', (e)=>{
+    const link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+    const id = link.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+
+    const y = target.getBoundingClientRect().top + window.pageYOffset - headerOffsetPx();
     window.scrollTo({ top: y, behavior: 'smooth' });
   });
 })();
