@@ -572,7 +572,7 @@ That’s the new common sense.
   // Year
   document.getElementById('y').textContent = new Date().getFullYear();
 
-  /* === Mini Markdown to HTML for #essay (headings, paragraphs, quotes, hr) === */
+/* === Mini Markdown to HTML for #essay (headings, paragraphs, quotes, hr) === */
 (function(){
   const src = document.getElementById('essay-src');
   const out = document.getElementById('essay');
@@ -582,22 +582,22 @@ That’s the new common sense.
   const html = [];
   let para = [];
 
-  // Allow simple inline formatting: * _ ** __ and safe HTML tags (<em>,<strong>, etc.)
+  // --- helpers ---
   function escapeHtml(s){
     return s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
   }
   function unescapeAllowedTags(s){
-    // whitelist a few safe inline tags
+    // allow safe inline tags only
     return s.replace(/&lt;(\/?)(em|strong|i|b|u|a|br|code|sup|sub|span)&gt;/gi, '<$1$2>');
   }
   function mdInline(s){
-    // Markdown emphasis → HTML tags
+    // markdown-style emphasis -> html
     let t = s
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // **bold**
       .replace(/\*(.+?)\*/g, '<em>$1</em>')             // *italic*
       .replace(/__(.+?)__/g, '<strong>$1</strong>')     // __bold__
       .replace(/_(.+?)_/g, '<em>$1</em>');              // _italic_
-    // Escape everything, then unescape allowed tags
+    // escape everything then unescape allowed tags
     t = escapeHtml(t);
     t = unescapeAllowedTags(t);
     return t;
@@ -614,6 +614,7 @@ That’s the new common sense.
     para = [];
   }
 
+  // --- line-by-line parse ---
   for (let i=0; i<lines.length; i++) {
     const raw = lines[i];
     const line = raw.trim();
@@ -621,7 +622,7 @@ That’s the new common sense.
     // blank line => paragraph break
     if (!line) { flushPara(); continue; }
 
-    // Headings: "## Title"
+    // H2 headings: "## Title"
     const h2 = line.match(/^##\s+(.*)$/);
     if (h2) {
       flushPara();
@@ -631,7 +632,7 @@ That’s the new common sense.
       continue;
     }
 
-    // Blockquotes: "> text"
+    // Blockquote line: "> text"
     const bq = line.match(/^>\s?(.*)$/);
     if (bq) {
       flushPara();
@@ -640,14 +641,14 @@ That’s the new common sense.
       continue;
     }
 
-    // Horizontal rule: "---"
+    // Horizontal rule line: "---"
     if (/^---+$/.test(line)) {
       flushPara();
       html.push('<hr class="reveal" />');
       continue;
     }
 
-    // Special lead: "*Lead.* rest"  (kept, but allow inline formatting in rest)
+    // *Lead.* style emphasis at start of paragraph (keep lead italic; allow md in rest)
     const emStart = line.match(/^\*(.+?)\*\.\s*(.*)$/);
     if (emStart) {
       flushPara();
@@ -657,14 +658,15 @@ That’s the new common sense.
       continue;
     }
 
-    // accumulate normal paragraph lines
+    // accumulate normal paragraph lines (stanza style)
     para.push(line);
   }
   flushPara();
 
+  // inject HTML
   out.innerHTML = html.join('\n');
 
-  // Rebuild TOC from generated <h2> nodes
+  // Build TOC from generated <h2> nodes
   const tocEl = document.getElementById('toc');
   if (tocEl) {
     const headings = Array.from(out.querySelectorAll('h2'));
