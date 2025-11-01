@@ -732,7 +732,7 @@ That’s the new common sense.
     const header = document.querySelector('header');
     function setOffsets(){
       const h = header ? Math.round(header.getBoundingClientRect().height) : 96;
-      const cushion = 24; // tweak if headings feel too close/far
+      const cushion = 20; // tweak if headings feel too close/far
       const anchor = h + cushion;
       document.documentElement.style.setProperty('--anchor-offset', anchor + 'px');
     }
