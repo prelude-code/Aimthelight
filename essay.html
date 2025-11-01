@@ -732,7 +732,7 @@ That’s the new common sense.
     const header = document.querySelector('header');
     function setOffsets(){
       const h = header ? Math.round(header.getBoundingClientRect().height) : 96;
-      const cushion = 36; // adjust if titles still clip
+      const cushion = 36; // tweak if headings feel too close/far
       const anchor = h + cushion;
       document.documentElement.style.setProperty('--anchor-offset', anchor + 'px');
     }
@@ -740,8 +740,7 @@ That’s the new common sense.
     window.addEventListener('resize', setOffsets);
   })();
 
-  <!-- Smooth scroll using CSS scroll-padding-top -->
-  <script>
+  // Smooth scroll using CSS scroll-padding-top (no manual math)
   (function(){
     const toc = document.getElementById('toc');
     if (!toc) return;
@@ -754,12 +753,9 @@ That’s the new common sense.
       if (!target) return;
 
       e.preventDefault();
-      // Let CSS handle the header spacing
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      history.replaceState(null, '', '#' + id); // keep URL hash in sync
+      history.replaceState(null, '', '#' + id);
     });
-  })();
-  </script>
   })();
 </script>
 </body>
