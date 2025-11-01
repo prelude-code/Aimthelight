@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Volunteer — Aim the Light</title>
+  <meta name="description" content="Volunteer with Aim the Light — a civic initiative to restore empathy, reason, and common sense." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f172a; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24; --card:#111827; --soft:#1f2937; --max:1100px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:#0b1020;color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.7}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
+
+    header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
+    .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+    .brand{font-weight:800;letter-spacing:.3px}
+    .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
+
+    /* Hero */
+    .hero{min-height:46vh;display:grid;place-items:center;position:relative;isolation:isolate;text-align:center;border-bottom:1px solid #1f2737}
+    .hero::before{
+      content:"";position:absolute;inset:0;z-index:-2;
+      background: linear-gradient(180deg, rgba(11,16,32,.68), rgba(11,16,32,.82)),
+        url("https://images.unsplash.com/photo-1523246191561-8b6788526920?q=80&w=2000&auto=format&fit=crop");
+      background-size:cover;background-position:center;
+    }
+    .hero h1{font-size:clamp(2rem, 1.4rem + 2vw, 3rem);margin:.2rem 0 .3rem;font-weight:800}
+    .meta{color:var(--muted);font-size:1rem}
+
+    main{padding:44px 0}
+    section{padding:40px 0;border-top:1px solid #1f2737;background:linear-gradient(180deg,#0b1020 0%, #0d1324 100%)}
+    section.alt{background:linear-gradient(180deg,#0c1222 0%, #0b1020 100%)}
+    h2{font-size:clamp(1.4rem, 1.2rem + 1.2vw, 2rem);margin:.2rem 0 .6rem}
+    p.lead{color:var(--muted);max-width:820px}
+
+    .grid-3{display:grid;gap:1rem;margin-top:1rem}
+    @media (min-width:900px){ .grid-3{grid-template-columns:repeat(3,1fr);} }
+    .card{background:linear-gradient(180deg,var(--card),var(--soft));border:1px solid #1f2937;border-radius:16px;padding:18px;box-shadow:0 1px 0 #1f2937 inset, 0 8px 30px rgba(251,191,36,.06)}
+    .pill{display:inline-block;background:rgba(251,191,36,.14);color:#ffe8a6;border:1px solid rgba(251,191,36,.35);padding:.2rem .55rem;border-radius:999px;font-size:.8rem;font-weight:600;letter-spacing:.3px}
+
+    .cta-row{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:1rem}
+    .btn{display:inline-block;border-radius:12px;padding:.7rem 1rem;font-weight:600;border:1px solid #3b4255;color:var(--ink);background:rgba(17,24,39,.4)}
+    .btn.primary{background:var(--accent);color:#0b0b0b;border:0}
+
+    footer{padding:48px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
+    .muted{color:var(--muted)}
+
+    /* Reveal (matches home) */
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease, transform .6s ease;transition-delay:var(--d,0s)}
+    .reveal.visible{opacity:1;transform:none}
+    @media (prefers-reduced-motion: reduce){ .reveal{transition:none;opacity:1;transform:none} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav container">
+      <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Aim the Light</a></div>
+      <nav class="links" aria-label="Primary">
+        <a class="muted" href="index.html#mission">Mission</a>
+        &nbsp;·&nbsp;<a class="muted" href="index.html#approach">Approach</a>
+        &nbsp;·&nbsp;<a class="muted" href="essay.html">Essay</a>
+      </nav>
+      <a class="btn" href="index.html#join">Join</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="reveal">Volunteer With Aim the Light</h1>
+      <p class="meta reveal" style="--d:.08s">Help us turn reflection into action — alongside educators, journalists, and community builders.</p>
+    </div>
+  </section>
+
+  <main>
+    <!-- Why volunteer -->
+    <section class="alt">
+      <div class="container">
+        <h2 class="reveal">Why Your Effort Matters</h2>
+        <p class="lead reveal" style="--d:.08s">
+          We’re a young civic initiative built on a simple belief: clarity, empathy, and reason still have a place in public life — and they’re worth building together.
+          Whether you’re a <strong>student</strong> gaining experience, a <strong>seasoned professional</strong> lending skills, or simply someone who cares, there’s a place for you here.
+        </p>
+      </div>
+    </section>
+
+    <!-- Ways to help -->
+    <section>
+      <div class="container">
+        <h2 class="reveal">Ways You Can Help</h2>
+        <div class="grid-3">
+          <div class="card reveal"><span class="pill">Outreach</span>
+            <p>Connect with schools, libraries, and local newsrooms. Help us spark thoughtful conversations where people already gather.</p>
+          </div>
+          <div class="card reveal" style="--d:.06s"><span class="pill">Writing & Design</span>
+            <p>Draft short reflections, edit essays, or shape visuals for social posts and PDFs educators can use tomorrow.</p>
+          </div>
+          <div class="card reveal" style="--d:.12s"><span class="pill">Research</span>
+            <p>Find examples of bridge-building, media literacy resources, and practical frameworks we can share widely.</p>
+          </div>
+          <div class="card reveal"><span class="pill">Community</span>
+            <p>Help moderate the “What does light mean to you?” wall and keep the tone kind, human, and on-mission.</p>
+          </div>
+          <div class="card reveal" style="--d:.06s"><span class="pill">Partnerships</span>
+            <p>Identify collaborators — teachers, journalists, podcasters — and help us organize small pilots and events.</p>
+          </div>
+          <div class="card reveal" style="--d:.12s"><span class="pill">Web</span>
+            <p>Support the site: content updates, accessibility checks, and new interactive features as we grow.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Time & commitment -->
+    <section class="alt">
+      <div class="container">
+        <h2 class="reveal">Time & Commitment</h2>
+        <p class="lead reveal" style="--d:.08s">
+          Flexible and remote-friendly. Some volunteers give an hour a month; others take on small projects for a few weeks.
+          Tell us what you can commit — we’ll match you to something meaningful.
+        </p>
+      </div>
+    </section>
+
+    <!-- How to apply -->
+    <section>
+      <div class="container">
+        <h2 class="reveal">How to Join</h2>
+        <p class="lead reveal" style="--d:.08s">
+          Send a short note about your interests and background. If you have a résumé or portfolio, feel free to include it.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary reveal" href="mailto:volunteer@aimthelight.org?subject=Volunteer%20Interest%20—%20Aim%20the%20Light">Email volunteer@aimthelight.org</a>
+          <a class="btn reveal" style="--d:.06s" href="https://forms.gle/" target="_blank" rel="noopener">Or fill out the quick form</a>
+        </div>
+        <p class="muted reveal" style="--d:.12s;margin-top:.6rem;">All volunteer roles are flexible and remote-friendly. Be kind. No spam. We read every message.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Reveal animations (same pattern as other pages)
+    const rev = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((ents)=>{
+      ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('visible'); io.unobserve(en.target);} });
+    }, { threshold: 0.12 });
+    rev.forEach(el=>io.observe(el));
+  </script>
+</body>
+</html>
