@@ -1,29 +1,165 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Aim the Light</title>
+  <meta name="description" content="A call to rebuild empathy, reason, and common sense." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f9fafb;
-      color: #222;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-      flex-direction: column;
+    :root{
+      --bg:#0f172a;          /* deep slate */
+      --ink:#f8fafc;         /* near-white text */
+      --muted:#94a3b8;       /* slate-300 */
+      --accent:#fbbf24;      /* warm amber */
+      --card:#111827;
+      --soft:#1f2937;
+      --max:1100px;
     }
-    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    p { font-size: 1.2rem; color: #555; }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:#0b1020;color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
+    /* Header (optional simple nav) */
+    header{position:fixed;top:0;left:0;right:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
+    .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+    .brand{font-weight:800;letter-spacing:.3px}
+    .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
+    /* Hero */
+    .hero{min-height:88vh;display:grid;place-items:center;position:relative;isolation:isolate;text-align:center}
+    .hero::before{
+      content:"";
+      position:absolute;inset:0;z-index:-2;
+      background:
+        linear-gradient(180deg, rgba(11,16,32,.6), rgba(11,16,32,.7)),
+        url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2000&auto=format&fit=crop");
+      background-size:cover;background-position:center;
+      filter:contrast(1.02) saturate(1.02);
+    }
+    .hero h1{font-size:clamp(2rem, 3.6vw + 1rem, 4rem);margin:0 0 .3rem;font-weight:800;letter-spacing:.2px}
+    .hero p.sub{font-size:clamp(1rem, 1.1vw + .6rem, 1.35rem);color:var(--muted);margin:.25rem 0 1.1rem}
+    .cta{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center}
+    .cta a{display:inline-block;border-radius:12px;padding:.7rem 1rem;font-weight:600}
+    .cta .primary{background:var(--accent);color:#0b0b0b}
+    .cta .ghost{border:1px solid #3b4255;color:var(--ink);background:rgba(17,24,39,.4)}
+    /* Sections */
+    section{padding:64px 0;border-top:1px solid #1f2737;background:linear-gradient(180deg,#0b1020 0%, #0d1324 100%)}
+    section.alt{background:linear-gradient(180deg,#0c1222 0%, #0b1020 100%)}
+    h2{font-size:clamp(1.4rem, 1.2rem + 1.2vw, 2rem);margin:.2rem 0 .6rem}
+    p.lead{color:var(--muted);max-width:800px}
+    .grid-3{display:grid;gap:1rem;margin-top:1rem}
+    @media (min-width:800px){ .grid-3{grid-template-columns:repeat(3,1fr);} }
+    .card{background:linear-gradient(180deg,var(--card),var(--soft));border:1px solid #1f2937;border-radius:16px;padding:18px;box-shadow:0 1px 0 #1f2937 inset, 0 8px 30px rgba(251,191,36,.06)}
+    .pill{display:inline-block;background:rgba(251,191,36,.14);color:#ffe8a6;border:1px solid rgba(251,191,36,.35);padding:.2rem .55rem;border-radius:999px;font-size:.8rem;font-weight:600;letter-spacing:.3px}
+    /* Footer */
+    footer{padding:48px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
+    .muted{color:var(--muted)}
   </style>
 </head>
 <body>
-  <h1>Welcome to Aim the Light</h1>
-  <p>Our official website is under construction — but we’re already building something bright.</p>
-</body>
-</html>
+  <header>
+    <div class="nav container">
+      <div class="brand">Aim the Light</div>
+      <nav class="links" aria-label="Primary">
+        <a class="muted" href="#mission">Mission</a>
+        &nbsp;·&nbsp;<a class="muted" href="#approach">Approach</a>
+        &nbsp;·&nbsp;<a class="muted" href="#essay">Essay</a>
+        &nbsp;·&nbsp;<a class="muted" href="#volunteer">Volunteer</a>
+      </nav>
+      <a class="btn" href="#join">Join</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero" role="region" aria-label="Intro">
+      <div class="container">
+        <h1>Aim the Light</h1>
+        <p class="sub">A call to rebuild empathy, reason, and common sense.</p>
+        <div class="cta">
+          <a class="primary" href="#essay">Read the Essay</a>
+          <a class="ghost" href="#wall">Share Your Words</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission -->
+    <section id="mission" class="alt">
+      <div class="container">
+        <h2>Mission</h2>
+        <p class="lead">
+          In a world saturated by noise and outrage, we’ve mistaken exposure for understanding.
+          <strong>Aim the Light</strong> invites a different way: slow down, listen, and look again—so we can rebuild empathy, reason, and common sense in how we see one another and ourselves.
+        </p>
+      </div>
+    </section>
+
+    <!-- Our Approach -->
+    <section id="approach">
+      <div class="container">
+        <h2>Our Approach</h2>
+        <p class="lead">We don’t shout louder—we help people see clearer. We support those who shape understanding: educators, journalists, and community builders. Through collaboration, dialogue, and accessible storytelling, we move culture from glare to guidance.</p>
+        <div class="grid-3" role="list">
+          <div class="card" role="listitem">
+            <span class="pill">Educators</span>
+            <p>Classroom-ready prompts and discussion guides that build empathy and media literacy.</p>
+          </div>
+          <div class="card" role="listitem">
+            <span class="pill">Journalists</span>
+            <p>Partnerships to surface stories of nuance and understanding—beyond the outrage loop.</p>
+          </div>
+          <div class="card" role="listitem">
+            <span class="pill">Community</span>
+            <p>Tools and challenges that turn reflection into action—online and in real life.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- The Essay / Story -->
+    <section id="essay" class="alt">
+      <div class="container">
+        <h2>The Overexposed Republic</h2>
+        <p class="lead">It began as a reflection on how a nation flooded with light could still lose sight of itself. Read the essay that sparked Aim the Light, and share it if it moves you.</p>
+        <p><a class="primary" href="essay.html">Read the Essay →</a></p>
+      </div>
+    </section>
+
+    <!-- Core Values -->
+    <section id="values">
+      <div class="container">
+        <h2>Core Values</h2>
+        <div class="grid-3">
+          <div class="card">
+            <span class="pill">Empathy</span>
+            <p>We listen before we speak. People over points.</p>
+          </div>
+          <div class="card">
+            <span class="pill">Reason</span>
+            <p>We value truth over tribal victory. Slow thinking beats hot takes.</p>
+          </div>
+          <div class="card">
+            <span class="pill">Common Sense</span>
+            <p>We keep humanity at the center of every debate.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Volunteer -->
+    <section id="volunteer" class="alt">
+      <div class="container">
+        <h2>Volunteer</h2>
+        <p class="lead">We’re a young initiative and we’re growing. Whether you’re a student, a seasoned professional, or simply someone who cares, there’s a place for you here.</p>
+        <p><a class="ghost" href="mailto:volunteer@aimthelight.org">Email volunteer@aimthelight.org</a></p>
+      </div>
+    </section>
+
+    <!-- Join / Mailing -->
+    <section id="join">
+      <div class="container">
+        <h2>Stay Connected</h2>
+        <p class="lead">Be first to know when new essays and projects go live. We’ll never share your info.</p>
+        <p><a
