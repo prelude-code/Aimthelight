@@ -588,10 +588,12 @@ That’s the new common sense.
           if (text) html.push('<p class="reveal">' + escapeHtml(text) + '</p>');
           para = [];
         }
-      }
-      function escapeHtml(s){
-        return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-      }
+     function escapeHtml(s){
+  // Allow <em>, </em>, <strong>, </strong>
+  return s.replace(/&(?![a-z]+;)|<(?!\/?(em|strong)>)/gi, (m) => {
+    return m === '&' ? '&amp;' : '&lt;';
+  });
+}
       function slug(str){
         return str.toLowerCase().trim()
           .replace(/[^\w\s-]/g,'')
