@@ -11,4 +11,178 @@
   <meta property="og:type" content="article" />
   <meta property="og:url" content="" />
   <meta property="og:image" content="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop" />
-  <link rel="preconnect" href="https
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f172a; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24; --card:#111827; --soft:#1f2937;
+      --max:1100px; --prose:#e5e7eb; --prose-muted:#cbd5e1;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:#0b1020;color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.7}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
+    header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
+    .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+    .brand{font-weight:800;letter-spacing:.3px}
+    .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
+    /* Hero */
+    .hero{min-height:46vh;display:grid;place-items:center;position:relative;isolation:isolate;text-align:center;border-bottom:1px solid #1f2737}
+    .hero::before{
+      content:"";position:absolute;inset:0;z-index:-2;
+      background: linear-gradient(180deg, rgba(11,16,32,.68), rgba(11,16,32,.82)),
+        url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2000&auto=format&fit=crop");
+      background-size:cover;background-position:center;
+    }
+    .hero h1{font-size:clamp(2rem, 1.4rem + 2vw, 3rem);margin:.2rem 0 .3rem;font-weight:800}
+    .meta{color:var(--muted);font-size:.95rem}
+    .badge{display:inline-block;background:rgba(251,191,36,.15);color:#ffe8a6;border:1px solid rgba(251,191,36,.4);
+           padding:.18rem .5rem;border-radius:999px;font-size:.8rem;margin-left:.5rem}
+    /* Layout */
+    main{padding:40px 0}
+    .layout{display:grid;gap:1.5rem;grid-template-columns: 1fr; align-items:start}
+    @media (min-width:980px){ .layout{grid-template-columns: 220px 1fr} }
+    /* TOC */
+    .toc{position:sticky;top:76px;border:1px solid #1f2937;background:linear-gradient(180deg,var(--card),var(--soft));border-radius:14px;padding:14px}
+    .toc h3{margin:.2rem 0 .4rem;font-size:1rem}
+    .toc a{display:block;color:var(--muted);padding:.25rem 0;font-size:.95rem;text-decoration:none}
+    .toc a.active{color:var(--ink)}
+    /* Prose */
+    .prose{color:var(--prose);font-size:1.05rem}
+    .prose h2{color:var(--ink);font-size:1.6rem;line-height:1.3;margin:2.2rem 0 .6rem}
+    .prose p{margin:1rem 0}
+    .prose blockquote{margin:1.2rem 0;padding:.8rem 1rem;border-left:3px solid var(--accent);background:#0c1322;border-radius:6px;color:var(--prose)}
+    .prose hr{border:0;border-top:1px solid #1f2737;margin:2rem 0}
+    .share{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
+    .chip{display:inline-flex;align-items:center;gap:.4rem;border:1px solid #344155;background:rgba(17,24,39,.5);padding:.45rem .7rem;border-radius:999px;color:var(--ink);font-weight:600}
+    footer{padding:48px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
+    /* Reveal (same system as home) */
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease, transform .6s ease;transition-delay:var(--d,0s)}
+    .reveal.visible{opacity:1;transform:none}
+    @media (prefers-reduced-motion: reduce){ .reveal{transition:none;opacity:1;transform:none} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav container">
+      <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Aim the Light</a></div>
+      <nav class="links" aria-label="Primary">
+        <a class="muted" href="index.html#mission">Mission</a>
+        &nbsp;·&nbsp;<a class="muted" href="index.html#approach">Approach</a>
+        &nbsp;·&nbsp;<a class="muted" href="index.html#volunteer">Volunteer</a>
+      </nav>
+      <a class="btn" href="index.html#join">Join</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="reveal">The Overexposed Republic</h1>
+      <p class="meta reveal" style="--d:.08s">
+        A modern call to rebuild empathy, reason, and common sense.
+        <span class="badge" id="readtime">… min read</span>
+      </p>
+    </div>
+  </section>
+
+  <main>
+    <div class="container layout">
+      <!-- TOC (auto-filled) -->
+      <aside class="toc reveal">
+        <h3>On this page</h3>
+        <nav id="toc"></nav>
+      </aside>
+
+      <!-- Essay body -->
+      <article id="essay" class="prose">
+        <!-- ✍️ PASTE YOUR ESSAY BELOW.
+             Use H2 for section headings (## in Markdown translates to <h2>).
+             The TOC auto-detects all <h2> and builds links. -->
+
+        <p class="reveal" style="--d:.04s"><em>Author’s Note.</em> We’re living in an age of constant exposure—where everything is illuminated, argued, and archived. This essay asks a simple question: what if the problem isn’t the light, but how we aim it?</p>
+
+        <h2 id="preface" class="reveal" style="--d:.08s">Preface: Why This, Why Now</h2>
+        <p class="reveal" style="--d:.12s">[Replace this paragraph with your Preface / Author’s Note content, or keep it as a short framing statement.]</p>
+
+        <h2 id="overexposure" class="reveal" style="--d:.16s">Overexposure Isn’t Understanding</h2>
+        <p class="reveal" style="--d:.2s">[Paste your essay here. You can keep writing in normal paragraphs; the page styles handle readability. Use additional H2s to create sections—each one will appear in the table of contents on the left.]</p>
+
+        <h2 id="smartphones" class="reveal" style="--d:.24s">When Every Moment Is Televised</h2>
+        <p class="reveal" style="--d:.28s">[Your section text…]</p>
+
+        <blockquote class="reveal" style="--d:.32s">It wasn’t the light that failed us, but how we turned it inward—blinding each other when we were meant to find the way forward together.</blockquote>
+
+        <h2 id="aim" class="reveal" style="--d:.36s">Aim the Light</h2>
+        <p class="reveal" style="--d:.4s">[Your section text…]</p>
+
+        <h2 id="now" class="reveal" style="--d:.44s">What Now: From Outrage to Understanding</h2>
+        <p class="reveal" style="--d:.48s">[Your closing section / call to action…]</p>
+
+        <hr class="reveal" style="--d:.52s" />
+
+        <!-- Share row -->
+        <div class="share reveal" style="--d:.56s">
+          <a class="chip" id="copyLink" href="#" onclick="return false;">📋 Copy link</a>
+          <a class="chip" id="shareX" target="_blank" rel="noopener">𝕏 Share</a>
+          <a class="chip" id="shareFb" target="_blank" rel="noopener">f Share</a>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Build TOC from H2 headings
+    const tocEl = document.getElementById('toc');
+    const headings = Array.from(document.querySelectorAll('#essay h2'));
+    headings.forEach(h => {
+      if (!h.id) h.id = h.textContent.trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'');
+      const a = document.createElement('a');
+      a.href = '#'+h.id;
+      a.textContent = h.textContent;
+      tocEl.appendChild(a);
+    });
+
+    // Active TOC highlight
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        const link = tocEl.querySelector(`a[href="#${e.target.id}"]`);
+        if (e.isIntersecting) {
+          tocEl.querySelectorAll('a').forEach(a=>a.classList.remove('active'));
+          link && link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+    headings.forEach(h=>io.observe(h));
+
+    // Reading time (approx 225 wpm)
+    const text = document.getElementById('essay').innerText || '';
+    const minutes = Math.max(1, Math.round(text.trim().split(/\s+/).length / 225));
+    document.getElementById('readtime').textContent = minutes + ' min read';
+
+    // Share links + copy
+    const url = location.href;
+    document.getElementById('shareX').href  = `https://twitter.com/intent/tweet?text=${encodeURIComponent('The Overexposed Republic — Aim the Light')}&url=${encodeURIComponent(url)}`;
+    document.getElementById('shareFb').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    document.getElementById('copyLink').addEventListener('click', async ()=>{
+      try { await navigator.clipboard.writeText(url); const c=document.getElementById('copyLink'); c.textContent='✓ Copied'; setTimeout(()=>c.textContent='📋 Copy link',1400); } catch(e){}
+    });
+
+    // Reveal animations
+    const rev = document.querySelectorAll('.reveal');
+    const io2 = new IntersectionObserver((ents)=>{
+      ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('visible'); io2.unobserve(en.target);} });
+    }, { threshold: 0.12 });
+    rev.forEach(el=>io2.observe(el));
+  </script>
+</body>
+</html>
