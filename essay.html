@@ -1232,236 +1232,187 @@ That’s the new common sense.
   </footer>
 
   <script>
-    // Year
-    document.getElementById('y').textContent = new Date().getFullYear();
+  // Year
+  document.getElementById('y').textContent = new Date().getFullYear();
 
-    /* === Mini Markdown to HTML for #essay (headings, paragraphs, quotes, hr) === */
-    (function(){
-      const src = document.getElementById('essay-src');
-      const out = document.getElementById('essay');
-      if(!src || !out) return;
+  /* === Mini Markdown to HTML for #essay (headings, paragraphs, quotes, hr) === */
+  (function(){
+    const src = document.getElementById('essay-src');
+    const out = document.getElementById('essay');
+    if(!src || !out) return;
 
-      const lines = src.textContent.replace(/\r\n/g,'\n').split('\n');
-      const html = [];
-      let para = [];
+    const lines = src.textContent.replace(/\r\n/g,'\n').split('\n');
+    const html = [];
+    let para = [];
 
-      function flushPara() {
-        if (para.length) {
-          const text = para.join(' ').trim();
-          if (text) html.push('<p class="reveal">' + escapeHtml(text) + '</p>');
-          para = [];
-        }
+    function flushPara() {
+      if (para.length) {
+        const text = para.join(' ').trim();
+        if (text) html.push('<p class="reveal">' + escapeHtml(text) + '</p>');
+        para = [];
       }
-      function escapeHtml(s){
-        return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-      }
-      function slug(str){
-        return str.toLowerCase().trim()
-          .replace(/[^\w\s-]/g,'')
-          .replace(/\s+/g,'-');
-      }
+    }
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function slug(str){
+      return str.toLowerCase().trim()
+        .replace(/[^\w\s-]/g,'')
+        .replace(/\s+/g,'-');
+    }
 
-      for (let i=0; i<lines.length; i++) {
-        const raw = lines[i];
-        const line = raw.trim();
+    for (let i=0; i<lines.length; i++) {
+      const raw = lines[i];
+      const line = raw.trim();
 
-        // blank line => paragraph break
-        if (!line) { flushPara(); continue; }
+      // blank line => paragraph break
+      if (!line) { flushPara(); continue; }
 
-        // headings like "## Title"
-        const h2 = line.match(/^##\s+(.*)$/);
-        if (h2) {
-          flushPara();
-          const text = h2[1].trim();
-          const id = slug(text);
-          html.push(`<h2 id="${id}" class="reveal">${escapeHtml(text)}</h2>`);
-          continue;
-        }
-
-        // blockquote line: "> Quote text"
-        const bq = line.match(/^>\s?(.*)$/);
-        if (bq) {
-          flushPara();
-          html.push(`<blockquote class="reveal">${escapeHtml(bq[1])}</blockquote>`);
-          continue;
-        }
-
-        // horizontal rule line: "---"
-        if (/^---+$/.test(line)) {
-          flushPara();
-          html.push('<hr class="reveal" />');
-          continue;
-        }
-
-        // *Lead.* style emphasis at start of paragraph
-        const emStart = line.match(/^\*(.+?)\*\.\s*(.*)$/);
-        if (emStart) {
-          flushPara();
-          const lead = `<em>${escapeHtml(emStart[1])}.</em>`;
-          const rest = emStart[2] ? ' ' + escapeHtml(emStart[2]) : '';
-          html.push(`<p class="reveal">${lead}${rest}</p>`);
-          continue;
-        }
-
-        // accumulate normal paragraph lines (stanza style)
-        para.push(line);
-      }
-      flushPara();
-
-      out.innerHTML = html.join('\n');
-
-      // Build TOC from generated <h2> nodes
-      const tocEl = document.getElementById('toc');
-      if (tocEl) {
-        const headings = Array.from(out.querySelectorAll('h2'));
-        tocEl.innerHTML = '';
-        headings.forEach(h=>{
-          const a = document.createElement('a');
-          a.href = '#'+h.id;
-          a.textContent = h.textContent;
-          tocEl.appendChild(a);
-        });
+      // headings like "## Title"
+      const h2 = line.match(/^##\s+(.*)$/);
+      if (h2) {
+        flushPara();
+        const text = h2[1].trim();
+        const id = slug(text);
+        html.push(`<h2 id="${id}" class="reveal">${escapeHtml(text)}</h2>`);
+        continue;
       }
 
+      // blockquote line: "> Quote text"
+      const bq = line.match(/^>\s?(.*)$/);
+      if (bq) {
+        flushPara();
+        html.push(`<blockquote class="reveal">${escapeHtml(bq[1])}</blockquote>`);
+        continue;
+      }
 
-      // Reveal animations for newly inserted nodes
-      const rev = document.querySelectorAll('.reveal');
-      const io2 = new IntersectionObserver((ents)=>{
-        ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('visible'); io2.unobserve(en.target);} });
-      }, { threshold: 0.12 });
-      rev.forEach(el=>io2.observe(el));
-    })();
+      // horizontal rule line: "---"
+      if (/^---+$/.test(line)) {
+        flushPara();
+        html.push('<hr class="reveal" />');
+        continue;
+      }
 
-    // Reading time (approx 225 wpm) — run AFTER conversion
-    (function(){
-      const text = document.getElementById('essay').innerText || '';
-      const minutes = Math.max(1, Math.round(text.trim().split(/\s+/).length / 225));
-      document.getElementById('readtime').textContent = minutes + ' min read';
-    })();
+      // *Lead.* style emphasis at start of paragraph
+      const emStart = line.match(/^\*(.+?)\*\.\s*(.*)$/);
+      if (emStart) {
+        flushPara();
+        const lead = `<em>${escapeHtml(emStart[1])}.</em>`;
+        const rest = emStart[2] ? ' ' + escapeHtml(emStart[2]) : '';
+        html.push(`<p class="reveal">${lead}${rest}</p>`);
+        continue;
+      }
 
-    // Share links + copy
-    (function(){
-      const url = location.href;
-      const x = document.getElementById('shareX');
-      const fb = document.getElementById('shareFb');
-      const cp = document.getElementById('copyLink');
-      if (x)  x.href  = `https://twitter.com/intent/tweet?text=${encodeURIComponent('The Overexposed Republic — Aim the Light')}&url=${encodeURIComponent(url)}`;
-      if (fb) fb.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-      if (cp) cp.addEventListener('click', async ()=>{
-        try { await navigator.clipboard.writeText(url); cp.textContent='✓ Copied'; setTimeout(()=>cp.textContent='📋 Copy link',1400); } catch(e){}
+      // accumulate normal paragraph lines (stanza style)
+      para.push(line);
+    }
+    flushPara();
+
+    out.innerHTML = html.join('\n');
+
+    // Rebuild TOC from generated <h2> nodes
+    const tocEl = document.getElementById('toc');
+    if (tocEl) {
+      const headings = Array.from(out.querySelectorAll('h2'));
+      tocEl.innerHTML = '';
+      headings.forEach(h=>{
+        const a = document.createElement('a');
+        a.href = '#'+h.id;
+        a.textContent = h.textContent;
+        tocEl.appendChild(a);
       });
-    })();
+    }
 
-    // Mobile TOC toggle
-    (function(){
-      const tocBtn = document.getElementById('tocBtn');
-      const tocBox = document.querySelector('.toc');
-      if (tocBtn && tocBox) {
-        tocBtn.addEventListener('click', ()=> tocBox.classList.toggle('open'));
-      }
-    })();
+    // Reveal animations for newly inserted nodes
+    const rev = document.querySelectorAll('.reveal');
+    const io2 = new IntersectionObserver((ents)=>{
+      ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('visible'); io2.unobserve(en.target);} });
+    }, { threshold: 0.12 });
+    rev.forEach(el=>io2.observe(el));
+  })();
 
-    // Active TOC highlight while scrolling
-    (function(){
-      const tocEl = document.getElementById('toc');
-      if (!tocEl) return;
-      const headings = Array.from(document.querySelectorAll('#essay h2'));
-      const io = new IntersectionObserver((entries)=>{
-        entries.forEach(e=>{
-          const link = tocEl.querySelector(`a[href="#${e.target.id}"]`);
-          if (e.isIntersecting) {
-            tocEl.querySelectorAll('a').forEach(a=>a.classList.remove('active'));
-            link && link.classList.add('active');
-          }
-        });
-      }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
-      headings.forEach(h=>io.observe(h));
-    })();
+  // Reading time (approx 225 wpm) — run AFTER conversion
+  (function(){
+    const text = document.getElementById('essay').innerText || '';
+    const minutes = Math.max(1, Math.round(text.trim().split(/\s+/).length / 225));
+    const rt = document.getElementById('readtime');
+    if (rt) rt.textContent = minutes + ' min read';
+  })();
 
-// Smooth scroll using the computed anchor offset
-(function(){
-  const toc = document.getElementById('toc');
-  if (!toc) return;
+  // Share links + copy
+  (function(){
+    const url = location.href;
+    const x = document.getElementById('shareX');
+    const fb = document.getElementById('shareFb');
+    const cp = document.getElementById('copyLink');
+    if (x)  x.href  = `https://twitter.com/intent/tweet?text=${encodeURIComponent('The Overexposed Republic — Aim the Light')}&url=${encodeURIComponent(url)}`;
+    if (fb) fb.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    if (cp) cp.addEventListener('click', async ()=>{
+      try { await navigator.clipboard.writeText(url); cp.textContent='✓ Copied'; setTimeout(()=>cp.textContent='📋 Copy link',1400); } catch(e){}
+    });
+  })();
 
-  function anchorOffsetPx(){
-    const v = getComputedStyle(document.documentElement).getPropertyValue('--anchor-offset').trim();
-    const n = parseFloat(v);
-    return Number.isFinite(n) ? n : 120; // fallback
-  }
+  // Mobile TOC toggle
+  (function(){
+    const tocBtn = document.getElementById('tocBtn');
+    const tocBox = document.querySelector('.toc');
+    if (tocBtn && tocBox) {
+      tocBtn.addEventListener('click', ()=> tocBox.classList.toggle('open'));
+    }
+  })();
 
-  toc.addEventListener('click', (e)=>{
-    const link = e.target.closest('a[href^="#"]');
-    if (!link) return;
-    const id = link.getAttribute('href').slice(1);
-    const target = document.getElementById(id);
-    if (!target) return;
-    e.preventDefault();
+  // Active TOC highlight while scrolling
+  (function(){
+    const tocEl = document.getElementById('toc');
+    if (!tocEl) return;
+    const headings = Array.from(document.querySelectorAll('#essay h2'));
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        const link = tocEl.querySelector(`a[href="#${e.target.id}"]`);
+        if (e.isIntersecting) {
+          tocEl.querySelectorAll('a').forEach(a=>a.classList.remove('active'));
+          link && link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+    headings.forEach(h=>io.observe(h));
+  })();
 
-    const y = target.getBoundingClientRect().top + window.pageYOffset - anchorOffsetPx();
-    window.scrollTo({ top: y, behavior: 'smooth' });
-  });
-})();
+  // Compute sticky header height → expose CSS vars (with cushion for wrapped H2)
+  (function(){
+    const header = document.querySelector('header');
+    function setOffsets(){
+      const h = header ? Math.round(header.getBoundingClientRect().height) : 96;
+      const cushion = 36; // bump to 40 if titles still touch the blur
+      const anchor = h + cushion;
+      document.documentElement.style.setProperty('--header-offset', h + 'px');
+      document.documentElement.style.setProperty('--anchor-offset', anchor + 'px');
+    }
+    setOffsets();
+    window.addEventListener('resize', setOffsets);
+  })();
 
-// Compute sticky header height and expose CSS vars
-(function(){
-  const header = document.querySelector('header');
+  // Smooth scroll using the computed anchor offset
+  (function(){
+    const toc = document.getElementById('toc');
+    if (!toc) return;
 
-  function setOffsets(){
-    // Measure header and add a cushion so multi-line H2s clear the blur
-    const h = header ? Math.round(header.getBoundingClientRect().height) : 96;
-    const cushion = 28; // tweak to 32–40 if you still see clipping
-    const anchor = h + cushion;
+    function anchorOffsetPx(){
+      const v = getComputedStyle(document.documentElement).getPropertyValue('--anchor-offset').trim();
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : 120;
+    }
 
-    // Set both variables for CSS and JS use
-    document.documentElement.style.setProperty('--header-offset', h + 'px');
-    document.documentElement.style.setProperty('--anchor-offset', anchor + 'px');
-  }
+    toc.addEventListener('click', (e)=>{
+      const link = e.target.closest('a[href^="#"]');
+      if (!link) return;
+      const id = link.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
 
-  setOffsets();
-  window.addEventListener('resize', setOffsets);
-})();
-
-    // Different offset for desktop vs mobile
-    const headerOffset = window.innerWidth < 768 ? 72 : 96;
-    const y = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
-    window.scrollTo({ top: y, behavior: 'smooth' });
-  });
-})();
-
-// Compute sticky header height → expose as CSS var
-(function(){
-  const header = document.querySelector('header');
-  function setHeaderOffset(){
-    const h = header ? Math.round(header.getBoundingClientRect().height) : 96;
-    document.documentElement.style.setProperty('--header-offset', h + 'px');
-  }
-  setHeaderOffset();
-  window.addEventListener('resize', setHeaderOffset);
-})();
-
-// Smooth scroll using the same computed header offset
-(function(){
-  const toc = document.getElementById('toc');
-  if (!toc) return;
-
-  function headerOffsetPx(){
-    const v = getComputedStyle(document.documentElement).getPropertyValue('--header-offset').trim();
-    const n = parseFloat(v);
-    return Number.isFinite(n) ? n : 96;
-  }
-
-  toc.addEventListener('click', (e)=>{
-    const link = e.target.closest('a[href^="#"]');
-    if (!link) return;
-    const id = link.getAttribute('href').slice(1);
-    const target = document.getElementById(id);
-    if (!target) return;
-    e.preventDefault();
-
-    const y = target.getBoundingClientRect().top + window.pageYOffset - headerOffsetPx();
-    window.scrollTo({ top: y, behavior: 'smooth' });
-  });
-})();
-  </script>
-</body>
-</html>
+      const y = target.getBoundingClientRect().top + window.pageYOffset - anchorOffsetPx();
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    });
+  })();
+</script>
