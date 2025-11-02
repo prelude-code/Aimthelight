@@ -22,6 +22,46 @@
     a:hover{text-decoration:underline}
     .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
 
+/* Unified header styling (same for all pages) */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));
+  backdrop-filter: saturate(120%) blur(6px);
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: .3px;
+}
+
+nav.links a {
+  margin-left: 1rem;
+  color: var(--accent); /* orange links */
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+nav.links a:hover {
+  color: #ffe8a6; /* lighter orange on hover */
+}
+
+
+
+
+
+
+
+
     /* Header */
     header{
       position:sticky; top:0; z-index:50;
