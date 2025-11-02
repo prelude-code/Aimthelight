@@ -22,23 +22,26 @@
     a:hover{text-decoration:underline}
     .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
 
-/* === Make index header match essay header (without touching essay.html) === */
+/* === Final unified header (identical to essay) === */
 header {
   border-bottom: 1px solid rgba(31,39,55,.35);
   background: linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));
   backdrop-filter: saturate(120%) blur(6px);
 }
 
+/* Nav bar core layout */
 .nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px !important;  /* tighten */
-  min-height: 56px !important;   /* prevent tall bar */
+  padding: 8px 24px !important;   /* match essay’s inner margin (wider than before) */
+  min-height: 56px !important;
   gap: 0 !important;
+  max-width: 1100px;              /* essay’s content container width */
+  margin: 0 auto;                 /* center the bar horizontally */
 }
 
-header .container {              /* nuke theme padding on index */
+header .container {
   margin: 0 !important;
   padding: 0 !important;
 }
@@ -46,9 +49,9 @@ header .container {              /* nuke theme padding on index */
 .brand a {
   white-space: nowrap;
   display: inline-block;
-  line-height: 1;                /* remove tall line box */
+  line-height: 1;
   font-weight: 800;
-  font-size: 1.15rem;
+  font-size: 1.05rem !important;
   color: inherit;
   text-decoration: none;
   margin: 0 !important;
@@ -58,38 +61,35 @@ header .container {              /* nuke theme padding on index */
 nav.links {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;             /* keep one line */
+  flex-wrap: nowrap;
   gap: 0.9rem;
   margin: 0 !important;
   padding: 0 !important;
 }
 
 nav.links a {
-  color: var(--accent);          /* same orange as essay */
+  color: var(--accent);
+  font-size: 0.95rem !important;
   font-weight: 500;
-  line-height: 1;                /* match essay’s tight line box */
+  line-height: 1;
   margin: 0 !important;
   padding: 0 !important;
+  text-decoration: none;
+  transition: color .25s ease;
 }
 
+nav.links a:hover {
+  color: #ffe8a6;
+}
+
+/* Keep consistent proportions on mobile */
 @media (max-width: 600px) {
-  .nav { padding: 8px 12px !important; min-height: 52px !important; }
+  .nav { padding: 8px 18px !important; min-height: 52px !important; }
   nav.links a { font-size: .9rem; }
 }
 
-/* If the hero is pushing the header visually, zero it out on index only */
+/* Ensure hero doesn’t push below header */
 .hero { margin-top: 0 !important; }
-
-/* === Match header font sizing to essay === */
-.brand a {
-  font-size: 1.05rem !important;   /* essay’s tighter text scale */
-  font-weight: 800;
-}
-
-nav.links a {
-  font-size: 0.95rem !important;   /* same size as essay’s orange links */
-  font-weight: 500;
-}
 
 
 
