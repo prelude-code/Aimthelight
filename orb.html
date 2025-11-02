@@ -32,10 +32,13 @@
   .hero p{color:var(--muted);max-width:760px;margin:.2rem auto}
 
   .scene-wrap{position:relative}
+  /* Deeper backdrop; Upgrade Pack A */
   #scene2d {
     display:block; width:100vw;
-    /* Height will be set via JS to avoid mobile calc bugs */
-    background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913);
+    background:
+      radial-gradient(1000px 500px at 60% -10%, rgba(251,191,36,.16), transparent 60%),
+      radial-gradient(800px 420px at 10% 30%, rgba(96,165,250,.10), transparent 60%),
+      #060913;
   }
 
   /* Floating composer HUD */
@@ -96,6 +99,14 @@
     transition: opacity .2s ease, transform .2s ease;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+  /* Tiny top-right HUD (Upgrade Pack C) */
+  #hudTop {
+    position:fixed; right:12px; top:62px; z-index:9;
+    background:rgba(17,24,39,.75); border:1px solid #243044; border-radius:12px;
+    padding:10px 12px; font-weight:600; color:#f8fafc; backdrop-filter:blur(4px);
+  }
+  #moodNow{ font-size:.9rem; color:#94a3b8 }
 </style>
 </head>
 <body>
@@ -118,6 +129,12 @@
 
 <div class="scene-wrap">
   <canvas id="scene2d"></canvas>
+</div>
+
+<!-- Tiny live HUD -->
+<div id="hudTop">
+  <div id="countTotal">0 lights</div>
+  <div id="moodNow">mood: —</div>
 </div>
 
 <!-- Floating composer -->
@@ -149,6 +166,7 @@
 <script>
 /* ====== UTIL + STORAGE ====== */
 document.getElementById('y').textContent = new Date().getFullYear();
+
 const STORE_KEY = 'atl_orb_posts_v1';
 const RATE_KEY  = 'atl_orb_last_ms';
 const TONES = {
@@ -166,6 +184,28 @@ function esc(s){
   return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))
                  .replace(/'/g,'&#39;');
 }
+
+/* ====== SEED (Upgrade Pack B) ====== */
+const SHOW_SEED = true;
+const SEED = [
+  {text:'Light is listening before judging.', tone:'Clarity', name:'Ava'},
+  {text:'Light is courage in public and humility in private.', tone:'Resolve', name:'D.'},
+  {text:'Light is the pause that prevents a scar.', tone:'Hope'},
+  {text:'Light is what we owe each other on our worst day.', tone:'Gratitude'},
+  {text:'Light is choosing curiosity over certainty.', tone:'Action'}
+];
+(function seed(){
+  if (!SHOW_SEED) return;
+  const have = loadPosts();
+  if (have && have.length) return;
+  const now = Date.now();
+  const seeded = SEED.map((s,i)=>({
+    id: 'seed_'+i, text: s.text, name: s.name||'',
+    tone: s.tone||'', col: (TONES[s.tone]?.col || DEFAULT_COL),
+    ts: now - (SEED.length - i) * 60000
+  }));
+  savePosts(seeded);
+})();
 
 /* ====== 2D ORB SCENE ====== */
 const canvas = document.getElementById('scene2d');
@@ -188,8 +228,17 @@ function sizeCanvas(){
 sizeCanvas();
 window.addEventListener('resize', sizeCanvas);
 
-/* orbiting items */
+// orbits & particles
 let orbits = [];
+let particles = [];        // Upgrade Pack A
+let starDrift = 0;         // drifting stars
+let lastMouse = {x:0.5, y:0.3}; // parallax glow
+
+canvas.addEventListener('pointermove', (e)=>{
+  lastMouse.x = e.clientX / Math.max(1, window.innerWidth);
+  lastMouse.y = e.clientY / Math.max(1, canvas.getBoundingClientRect().height);
+});
+
 function addOrbit(p){
   const rad   = 120 + Math.random()*70;
   const angle = Math.random()*Math.PI*2;
@@ -200,8 +249,8 @@ function rebuild(){
   orbits = [];
   loadPosts().sort((a,b)=>a.ts-b.ts).forEach(addOrbit);
 }
+rebuild();
 
-/* mood blend (affects glow color) */
 function moodColor(){
   const list = loadPosts();
   if (!list.length) return '#fbbf24';
@@ -216,7 +265,6 @@ function moodColor(){
     {c:'#a78bfa', w:counts.Action/total},
     {c:'#ffcc88', w:(counts.Unknown/total)*0.5},
   ];
-  // simple average in RGB
   let r=0,g=0,b=0;
   function hex2rgb(hex){ const n=parseInt(hex.slice(1),16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
   weights.forEach(({c,w})=>{ const {r:rr,g:gg,b:bb}=hex2rgb(c); r+=rr*w; g+=gg*w; b+=bb*w; });
@@ -224,44 +272,52 @@ function moodColor(){
   return `rgb(${r},${g},${b})`;
 }
 
-/* draw loop */
+/* Upgrade Pack A: particles + fancy tick */
 let last = performance.now();
 function tick(t){
   const dpr = Math.min(devicePixelRatio || 1, 2);
   const dt = t - last; last = t;
   const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
 
-  // clear
+  // subtle trails
   ctx.setTransform(1,0,0,1,0,0);
-  ctx.clearRect(0,0,w,h);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = 'rgba(6,9,19,0.18)';
+  ctx.fillRect(0,0,w,h);
 
-  // stars
+  // drifting stars
+  starDrift += dt * 0.00005;
   ctx.save();
-  ctx.globalAlpha = 0.9;
+  ctx.globalAlpha = 0.85;
   ctx.fillStyle = '#ffffff';
-  for(let i=0;i<80;i++){
-    const sx = Math.random()*w, sy = Math.random()*h, s = Math.random()*1.8;
+  for(let i=0;i<120;i++){
+    const sx = (Math.sin(i*12.33 + starDrift)*0.5+0.5) * w;
+    const sy = (Math.cos(i*7.71  + starDrift)*0.5+0.5) * h;
+    const s  = (Math.sin(i*3.1 + starDrift*6)*0.5+0.5) * 1.6 + 0.2;
     ctx.fillRect(sx, sy, s, s);
   }
   ctx.restore();
 
-  // glow ring
+  // mood glow with parallax
   const mood = moodColor();
-  const grad = ctx.createRadialGradient(cx, cy, 10*dpr, cx, cy, 160*dpr);
-  grad.addColorStop(0, mood.replace('rgb','rgba').replace(')', ',0.22)'));
+  const gx = cx + (lastMouse.x-0.5) * 140*dpr;
+  const gy = cy + (lastMouse.y-0.5) * 120*dpr;
+  const grad = ctx.createRadialGradient(gx, gy, 10*dpr, cx, cy, 200*dpr);
+  grad.addColorStop(0, mood.replace('rgb','rgba').replace(')', ',0.25)'));
   grad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.arc(cx, cy, 160*dpr, 0, Math.PI*2);
+  ctx.arc(cx, cy, 200*dpr, 0, Math.PI*2);
   ctx.fill();
 
-  // orb body
-  const orbGrad = ctx.createRadialGradient(cx-40*dpr, cy-50*dpr, 10*dpr, cx, cy, 120*dpr);
+  // orb body + emissive pulse
+  const pulse = (Math.sin(t*0.0018)+1)/2; // 0..1
+  const orbGrad = ctx.createRadialGradient(cx-50*dpr, cy-60*dpr, 10*dpr, cx, cy, (120+12*pulse)*dpr);
   orbGrad.addColorStop(0, '#223157');
   orbGrad.addColorStop(1, '#0b1020');
   ctx.fillStyle = orbGrad;
   ctx.beginPath();
-  ctx.arc(cx, cy, 100*dpr, 0, Math.PI*2);
+  ctx.arc(cx, cy, (100+3*pulse)*dpr, 0, Math.PI*2);
   ctx.fill();
 
   // posts
@@ -271,6 +327,14 @@ function tick(t){
     const x = cx + Math.cos(o.angle) * o.rad*dpr * 0.6;
     const y = cy + Math.sin(o.angle*0.6) * 18*dpr + Math.sin(o.angle) * o.rad*dpr * 0.22;
 
+    // connection line to orb
+    ctx.save();
+    ctx.globalAlpha = 0.10;
+    ctx.strokeStyle = mood;
+    ctx.lineWidth = 1*dpr;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke();
+    ctx.restore();
+
     // dot
     ctx.fillStyle = '#ffe8a6';
     ctx.beginPath(); ctx.arc(x, y, 3*dpr, 0, Math.PI*2); ctx.fill();
@@ -278,22 +342,27 @@ function tick(t){
     // label
     const label = (o.p.name ? `${o.p.name}: ` : '') + o.p.text;
     const pad = 8*dpr;
-    const textW = Math.min(260*dpr, Math.max(120*dpr, ctx.measureText(label).width));
+    const textW = Math.min(280*dpr, Math.max(120*dpr, ctx.measureText(label).width));
     const boxW  = textW + pad*2, boxH = 30*dpr;
     const bx = x + 12*dpr, by = y - boxH - 6*dpr;
 
     // card
     ctx.fillStyle = '#ffe8a6';
     roundRect(ctx, bx, by, boxW, boxH, 10*dpr); ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 1*dpr; ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 1*dpr; ctx.stroke();
 
     // text
     ctx.fillStyle = '#0b0b0b';
-    ctx.fillText(label, bx + pad, by + 18*dpr - 10*dpr, textW);
+    ctx.fillText(label, bx + pad, by + 19*dpr - 10*dpr, textW);
   });
+
+  // particles
+  updateParticles(dt);
+  drawParticles(ctx, dpr);
 
   requestAnimationFrame(tick);
 }
+
 function roundRect(ctx, x,y,w,h,r){
   ctx.beginPath();
   ctx.moveTo(x+r, y);
@@ -303,8 +372,41 @@ function roundRect(ctx, x,y,w,h,r){
   ctx.arcTo(x, y, x+w, y, r);
   ctx.closePath();
 }
-rebuild();
-requestAnimationFrame(tick);
+
+/* particles helpers */
+function updateParticles(dt){
+  for (let i = particles.length-1; i>=0; i--){
+    const p = particles[i];
+    p.life -= dt;
+    if (p.life <= 0) { particles.splice(i,1); continue; }
+    p.x += p.vx * (dt/16);
+    p.y += p.vy * (dt/16);
+    p.vy += 0.0008 * dt;
+  }
+}
+function drawParticles(ctx, dpr){
+  particles.forEach(p=>{
+    const a = Math.max(0, Math.min(1, p.life / p.max));
+    ctx.save();
+    ctx.globalAlpha = 0.3 * a;
+    ctx.fillStyle = p.col;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * dpr, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+function spawnBurst(x, y, col){
+  for(let i=0;i<22;i++){
+    particles.push({
+      x, y,
+      vx: (Math.random()*2-1)*0.15,
+      vy: (Math.random()*2-1)*0.18,
+      r: Math.random()*2+1,
+      life: 800 + Math.random()*500,
+      max: 1300,
+      col
+    });
+  }
+}
 
 /* ====== FEED + COMPOSER ====== */
 const feedEl = document.getElementById('feed');
@@ -350,6 +452,26 @@ function toast(text){
   setTimeout(()=> el.classList.remove('show'), 1200);
 }
 
+/* HUD (Upgrade Pack C) */
+function moodName(){
+  const list = loadPosts();
+  if (!list.length) return 'warm';
+  const tally = {Hope:0,Resolve:0,Gratitude:0,Clarity:0,Action:0};
+  list.forEach(p=>{ if (tally[p.tone]!=null) tally[p.tone]++; });
+  const best = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0];
+  return best && best[1]>0 ? best[0].toLowerCase() : 'mixed';
+}
+function refreshHUD(){
+  const ct = document.getElementById('countTotal');
+  const md = document.getElementById('moodNow');
+  const n = (loadPosts()||[]).length;
+  if (ct) ct.textContent = `${n} ${n===1?'light':'lights'}`;
+  if (md) md.textContent = `mood: ${moodName()}`;
+}
+setInterval(refreshHUD, 1000);
+refreshHUD();
+
+/* Post handler */
 postB.addEventListener('click', ()=>{
   const text = (msg.value || '').trim();
   if (!text || !clean(text)) { updateCounter(); return; }
@@ -371,9 +493,17 @@ postB.addEventListener('click', ()=>{
 
   msg.value=''; nameI.value=''; tone.value=''; updateCounter();
   appendFeed(p);
-  addOrbit(p);      // make it orbit visually
+  addOrbit(p);      // join the orbit
+  refreshHUD();
   toast('Added to the Light ✨');
+
+  // particle burst at orb center
+  const cx = canvas.width/2, cy = canvas.height/2;
+  spawnBurst(cx, cy, col);
 });
+
+/* Start render loop */
+requestAnimationFrame(tick);
 </script>
 </body>
 </html>
