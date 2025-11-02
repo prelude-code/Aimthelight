@@ -628,7 +628,44 @@ That’s the new common sense.
 </script> <!-- end #essay-src -->
 
 
+<style>
+/* TOC: sticky on desktop; hidden on mobile unless opened */
+aside.toc { position: sticky; top: 76px; }           /* desktop scrolls nicely */
+@media (max-width: 900px){
+  aside.toc { position: static; display: none; }     /* mobile hidden by default */
+  aside.toc.open { display: block !important; }      /* show only when toggled */
+}
 
+/* (Optional) keep your button looking like your theme.
+   If your button got “ugly,” you can remove this block or tweak it. */
+@media (max-width: 900px){
+  button#tocBtn.toc-toggle{
+    /* comment these out if you prefer your original look */
+    /* display:inline-flex; align-items:center; gap:.5rem; */
+    /* padding:.5rem .75rem; border-radius:10px; border:1px solid #344155; */
+    /* background: rgba(17,24,39,.5); color: #f8fafc; font-weight:600; */
+    cursor: pointer;
+  }
+}
+</style>
+
+<script>
+(function(){
+  const btn = document.getElementById('tocBtn');
+  const toc = document.querySelector('aside.toc');
+  if (!btn || !toc) return;
+
+  // Only toggles the "open" class + aria. No styling changes.
+  btn.setAttribute('aria-controls', 'toc');
+  btn.setAttribute('aria-expanded', 'false');
+
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    const isOpen = toc.classList.toggle('open');
+    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+})();
+</script>
 
   </div>
 </main>
