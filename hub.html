@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aim the Light — Hub</title>
+<meta name="description" content="Switch between the Living Wall, Star Constellation, and Echo Index." />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1020; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24; --soft:#1f2937; --card:#111827;
+    --max:1200px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent);text-decoration:none}
+  .container{max-width:var(--max);margin:0 auto;padding:0 1rem}
+
+  /* Header to match your site */
+  header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+  .brand{font-weight:800}
+  .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
+
+  /* Hero */
+  .hero{display:grid;place-items:center;text-align:center;min-height:28vh;position:relative;isolation:isolate;border-bottom:1px solid #1f2737}
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:-2;
+    background:
+      radial-gradient(900px 420px at 70% 0%, rgba(251,191,36,.22), transparent 60%),
+      radial-gradient(700px 400px at 10% 30%, rgba(96,165,250,.18), transparent 60%),
+      url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2000&auto=format&fit=crop");
+    background-size:cover;background-position:center;filter:saturate(1.05)
+  }
+  .hero h1{font-size:clamp(2rem,1.3rem + 2vw,3rem);margin:.2rem 0 .3rem;font-weight:800}
+  .hero p{color:var(--muted);max-width:760px;margin:0 auto}
+
+  /* Mode switcher */
+  .modes{display:flex;gap:10px;justify-content:center;margin:16px 0 0}
+  .tab{display:inline-flex;align-items:center;gap:.5rem;border:1px solid #344155;background:rgba(17,24,39,.5);
+       padding:.5rem .75rem;border-radius:999px;color:var(--ink);font-weight:700;cursor:pointer;user-select:none}
+  .tab.active{border-color:var(--accent);box-shadow:0 0 0 1px rgba(251,191,36,.3) inset}
+
+  /* Stage */
+  main{padding:26px 0 80px}
+  .stage{perspective:1200px}
+  .panel{
+    border:1px solid #243044;border-radius:18px;min-height:60vh;
+    background:linear-gradient(180deg,#111827,#0f172a);
+    box-shadow:0 18px 60px rgba(0,0,0,.35);
+    transform-style:preserve-3d;
+    transition:transform .5s cubic-bezier(.2,.7,.2,1), opacity .5s ease;
+    overflow:hidden; position:relative;
+  }
+  .panel.hidden{opacity:0;pointer-events:none;transform:rotateX(12deg) translateY(12px)}
+
+  /* Composer (shared for Wall) */
+  .composer{display:grid;gap:10px;grid-template-columns:1fr 220px;align-items:start;padding:14px;border-bottom:1px solid #1f2737}
+  @media (max-width:800px){ .composer{grid-template-columns:1fr} }
+  input[type="text"], textarea, select{
+    width:100%; border:1px solid #2b3a52; border-radius:12px; background:#0c1322;
+    color:#e5e7eb; padding:10px 12px; font-size:1rem; outline:none;
+  }
+  textarea{min-height:90px;resize:vertical}
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .muted{color:var(--muted);font-size:.9rem}
+  .btn{background:var(--accent);color:#0b0b0b;padding:.55rem .95rem;border-radius:12px;border:none;font-weight:800;cursor:pointer}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .chip{display:inline-flex;align-items:center;gap:.35rem;border:1px solid #344155;background:rgba(17,24,39,.5);padding:.4rem .65rem;border-radius:999px;color:var(--ink);font-weight:600}
+  .counter{font-variant-numeric:tabular-nums}
+
+  /* WALL (board) */
+  .wall{padding:14px; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:14px}
+  .tile{
+    position:relative; padding:12px 12px 10px; border-radius:14px; color:#0b0b0b;
+    background:var(--col, #ffe8a6);
+    box-shadow:0 12px 24px rgba(0,0,0,.28), 0 0 0 1px rgba(255,255,255,.04) inset;
+    transform: rotate(var(--rot,0deg));
+  }
+  .tile .text{white-space:pre-wrap; line-height:1.25}
+  .tile .meta{margin-top:8px; display:flex; justify-content:space-between; align-items:center; font-size:.82rem;
+              border-top:1px solid rgba(0,0,0,.12); padding-top:8px; color:#1f2937}
+  .name{font-weight:700}
+  .tag{border:1px solid rgba(0,0,0,.18); background:rgba(255,255,255,.5); padding:.06rem .45rem; border-radius:999px; font-size:.78rem}
+  .actions{display:flex; gap:8px; align-items:center}
+  .heart{cursor:pointer; user-select:none}
+  .age{position:absolute; inset:auto 8px 8px auto; font-size:.78rem; color:#0b0b0b; opacity:.7}
+
+  /* Aging effect (older → faded & curled) */
+  .aged-1{filter:saturate(.95)}
+  .aged-2{filter:saturate(.85) brightness(.98)}
+  .aged-3{filter:saturate(.7) brightness(.95)}
+  .aged-4{filter:saturate(.55) brightness(.92) contrast(.96)}
+  .aged-5{filter:grayscale(.15) saturate(.5) brightness(.9)}
+
+  .tile:before{
+    content:""; position:absolute; left:50%; top:-8px; transform:translateX(-50%) rotate(-1deg);
+    width:46px; height:14px; border-radius:4px;
+    background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.06));
+    border:1px solid rgba(0,0,0,.15);
+    box-shadow:0 2px 6px rgba(0,0,0,.3);
+  }
+
+  /* STARS (keywords) */
+  #starsCanvas{display:block; width:100%; height:60vh; background:radial-gradient(800px 400px at 50% 0%, rgba(251,191,36,.12), transparent 60%), #0b1020}
+  .stars-legend{position:absolute; right:10px; top:10px; background:rgba(17,24,39,.6); border:1px solid #243044; padding:6px 10px; border-radius:999px; font-size:.85rem}
+
+  /* ECHO (leaderboard) */
+  .echo{display:grid; grid-template-columns:1fr 340px; gap:16px; padding:14px}
+  @media (max-width:900px){ .echo{grid-template-columns:1fr} }
+  .panelcard{border:1px solid #243044;background:linear-gradient(180deg,#121a2e,#0f172a);border-radius:14px;padding:12px}
+  .panelcard h3{margin:.2rem 0 .6rem}
+  .list{display:grid; gap:10px}
+  .row{border:1px solid #243044; border-radius:10px; padding:10px; background:#0c1322}
+  .row .small{color:var(--muted); font-size:.88rem}
+
+  footer{padding:42px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav container">
+    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Aim the Light</a></div>
+    <nav class="links" aria-label="Primary">
+      <a class="muted" href="index.html#mission">Mission</a>
+      &nbsp;·&nbsp;<a class="muted" href="essay.html">Essay</a>
+      &nbsp;·&nbsp;<a class="muted" href="wall.html">Light Wall</a>
+      &nbsp;·&nbsp;<a class="muted" href="hub.html" aria-current="page">Hub</a>
+    </nav>
+    <a class="btn" href="index.html#join">Join</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <h1>One idea — three worlds</h1>
+    <p>Switch between the Living Wall (board), the Star Constellation (keywords), and the Echo Index (impact). Post once; it lives across views.</p>
+    <div class="modes">
+      <button class="tab active" data-mode="board">🧱 Board</button>
+      <button class="tab" data-mode="stars">✨ Stars</button>
+      <button class="tab" data-mode="echo">🌍 Echo</button>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+  <!-- BOARD -->
+  <section id="view-board" class="panel">
+    <!-- Composer -->
+    <div class="composer">
+      <textarea id="msg" placeholder="Light is... (160 max)" maxlength="160"></textarea>
+      <div>
+        <input id="name" type="text" placeholder="Name (optional)" />
+        <select id="tone" style="margin-top:10px">
+          <option value="">Tag (optional)</option>
+          <option>Hope</option><option>Resolve</option><option>Gratitude</option>
+          <option>Clarity</option><option>Action</option>
+        </select>
+      </div>
+      <div class="controls" style="grid-column:1/-1">
+        <span class="chip counter" id="count">0/160</span>
+        <label class="muted"><input type="checkbox" id="consent"> I agree to public display</label>
+        <span class="muted" id="hint"></span>
+        <div style="flex:1"></div>
+        <button class="btn" id="postBtn" disabled>Pin to Wall</button>
+      </div>
+    </div>
+    <div id="wall" class="wall"></div>
+  </section>
+
+  <!-- STARS -->
+  <section id="view-stars" class="panel hidden" aria-hidden="true" style="position:relative">
+    <div class="stars-legend">tap a star to read posts</div>
+    <canvas id="starsCanvas"></canvas>
+  </section>
+
+  <!-- ECHO -->
+  <section id="view-echo" class="panel hidden" aria-hidden="true">
+    <div class="echo">
+      <div class="panelcard">
+        <h3>Most Echoed Reflections (last 30 days)</h3>
+        <div id="echoTop" class="list"></div>
+      </div>
+      <div class="panelcard">
+        <h3>Your Echo</h3>
+        <div id="echoMine" class="list"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
+  </div>
+</footer>
+
+<script>
+/* ====== UTIL / STORAGE ====== */
+document.getElementById('y').textContent = new Date().getFullYear();
+
+const STORE_KEY = 'atl_posts_v1';
+const RATE_KEY  = 'atl_last_ms';
+const COLORS    = ['#ffe8a6','#ffd2cc','#d9f99d','#bae6fd','#c7d2fe','#fecaca','#a7f3d0','#fde68a','#fbcfe8','#bbf7d0'];
+const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot']; // demo
+
+function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
+function save(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
+const clean = t => !BADWORDS.some(w => t.toLowerCase().includes(w));
+
+/* post shape:
+  { id, text, name, tone, col, ts, hearts:0, echoes:[timestamp,...] }
+*/
+function addPost(p){
+  const list = load(); list.push(p); save(list);
+}
+function addHeart(id){
+  const list = load(); const i = list.findIndex(x=>x.id===id);
+  if (i>=0){ list[i].hearts=(list[i].hearts||0)+1; list[i].echoes=[...(list[i].echoes||[]), Date.now()]; save(list); }
+}
+
+/* ====== MODE SWITCHER ====== */
+const panels = {
+  board: document.getElementById('view-board'),
+  stars: document.getElementById('view-stars'),
+  echo:  document.getElementById('view-echo')
+};
+const tabs = Array.from(document.querySelectorAll('.tab'));
+let mode = 'board';
+tabs.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const m = btn.dataset.mode;
+    if (mode===m) return;
+    tabs.forEach(b=>b.classList.toggle('active', b===btn));
+    Object.entries(panels).forEach(([k,el])=>{
+      const show = (k===m);
+      el.classList.toggle('hidden', !show);
+      el.setAttribute('aria-hidden', show ? 'false' : 'true');
+    });
+    mode = m;
+    if (m==='stars') drawStars();
+    if (m==='echo')  renderEcho();
+  });
+});
+
+/* ====== BOARD (Living Wall) ====== */
+const wall  = document.getElementById('wall');
+const msg   = document.getElementById('msg');
+const nameI = document.getElementById('name');
+const tone  = document.getElementById('tone');
+const count = document.getElementById('count');
+const ok    = document.getElementById('consent');
+const hint  = document.getElementById('hint');
+const post  = document.getElementById('postBtn');
+
+function updateCounter(){
+  const len = msg.value.trim().length;
+  count.textContent = len + '/160';
+  post.disabled = !(len>0 && len<=160 && ok.checked && clean(msg.value));
+  hint.textContent = post.disabled ? (!ok.checked ? 'Consent required.' : (!clean(msg.value)?'Please keep it respectful.':'')) : '';
+}
+msg.addEventListener('input', updateCounter);
+ok.addEventListener('change', updateCounter);
+updateCounter();
+
+function ageClass(ts){
+  const days = Math.max(0, (Date.now() - ts) / (1000*60*60*24));
+  if (days > 30) return 'aged-5';
+  if (days > 21) return 'aged-4';
+  if (days > 14) return 'aged-3';
+  if (days > 7)  return 'aged-2';
+  return 'aged-1';
+}
+
+function tileEl(p){
+  const el = document.createElement('article');
+  el.className = `tile ${ageClass(p.ts)}`;
+  el.style.setProperty('--col', p.col || COLORS[Math.floor(Math.random()*COLORS.length)]);
+  el.style.setProperty('--rot', (Math.random()*4-2).toFixed(2) + 'deg');
+
+  const text = document.createElement('div');
+  text.className = 'text';
+  text.textContent = p.text;
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const left = document.createElement('span');
+  left.innerHTML = `<span class="name">${p.name ? escapeHtml(p.name) : 'Anonymous'}</span>`;
+  const right = document.createElement('span');
+  right.className = 'tag';
+  right.textContent = p.tone || 'Reflection';
+
+  const actions = document.createElement('span');
+  actions.className = 'actions';
+  const heart = document.createElement('span');
+  heart.className = 'heart'; heart.title = 'Send a little echo';
+  const hearts = document.createElement('span');
+  hearts.textContent = p.hearts || 0;
+  heart.textContent = '❤️';
+  heart.addEventListener('click', ()=>{
+    addHeart(p.id);
+    hearts.textContent = (Number(hearts.textContent)||0)+1;
+    // bloom on reaction
+    el.style.filter = 'none';
+    setTimeout(()=>{ el.style.filter=''; }, 1600);
+  });
+  actions.append(heart, hearts);
+
+  const age = document.createElement('span');
+  age.className = 'age';
+  age.textContent = new Date(p.ts).toLocaleDateString();
+
+  meta.append(left, right, actions);
+  el.append(text, meta, age);
+  return el;
+}
+function renderWall(){
+  const list = load().sort((a,b)=>b.ts - a.ts);
+  wall.innerHTML = '';
+  list.forEach(p => wall.appendChild(tileEl(p)));
+}
+renderWall();
+
+post.addEventListener('click', ()=>{
+  const text = msg.value.trim();
+  if (!text) return;
+  const now = Date.now();
+  const last = Number(localStorage.getItem(RATE_KEY)||0);
+  const wait = 45*1000 - (now - last);
+  if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s before posting again.`; return; }
+  if (!clean(text)){ hint.textContent = 'Please keep it respectful.'; return; }
+
+  const p = {
+    id: crypto.randomUUID(),
+    text,
+    name: nameI.value.trim(),
+    tone: tone.value || '',
+    col: COLORS[Math.floor(Math.random()*COLORS.length)],
+    ts: now,
+    hearts: 0,
+    echoes: []
+  };
+  addPost(p); localStorage.setItem(RATE_KEY, String(now));
+
+  msg.value=''; nameI.value=''; tone.value=''; ok.checked=false; updateCounter();
+  renderWall();
+});
+
+function escapeHtml(s){return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+
+/* ====== STARS (Keyword Constellation MVP) ====== */
+const starsCanvas = document.getElementById('starsCanvas');
+let starsCtx, stars, starPosts;
+
+function buildKeywords(){
+  const list = load();
+  const freq = new Map();
+  const mapPosts = new Map(); // word -> posts[]
+  list.forEach(p=>{
+    const words = (p.text.toLowerCase().match(/[a-z]+/g) || []).filter(w=>w.length>2);
+    const uniq = Array.from(new Set(words));
+    uniq.forEach(w=>{
+      freq.set(w, (freq.get(w)||0)+1);
+      if(!mapPosts.has(w)) mapPosts.set(w, []);
+      mapPosts.get(w).push(p);
+    });
+  });
+  // keep top ~60 words
+  const top = Array.from(freq.entries()).sort((a,b)=>b[1]-a[1]).slice(0,60);
+  return { words: top, posts: mapPosts };
+}
+
+function resizeStars(){
+  const rect = starsCanvas.getBoundingClientRect();
+  starsCanvas.width = rect.width * devicePixelRatio;
+  starsCanvas.height = rect.height * devicePixelRatio;
+  starsCtx = starsCanvas.getContext('2d');
+  starsCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+
+function layoutStars(){
+  const { width:w, height:h } = starsCanvas.getBoundingClientRect();
+  stars = [];
+  starPosts = {};
+  const { words, posts } = buildKeywords();
+  words.forEach(([word,count], i)=>{
+    const size = 12 + Math.min(26, Math.log2(2+count)*8);
+    const x = (Math.random()*0.8+0.1)*w;
+    const y = (Math.random()*0.7+0.15)*h;
+    stars.push({ word, count, x, y, size, dx:(Math.random()-.5)*0.2, dy:(Math.random()-.5)*0.2 });
+    starPosts[word] = posts.get(word) || [];
+  });
+}
+
+function drawStars(){
+  if (!starsCtx) resizeStars();
+  layoutStars();
+  cancelAnimationFrame(drawStars._af);
+  function tick(){
+    const { width:w, height:h } = starsCanvas.getBoundingClientRect();
+    starsCtx.clearRect(0,0,w,h);
+    // soft starfield
+    stars.forEach(s=>{
+      s.x+=s.dx; s.y+=s.dy;
+      if (s.x<40||s.x>w-40) s.dx*=-1;
+      if (s.y<40||s.y<h-40) s.dy*=-1;
+      starsCtx.fillStyle = 'rgba(255,255,255,.15)';
+      starsCtx.beginPath(); starsCtx.arc(s.x, s.y, 2.2, 0, Math.PI*2); starsCtx.fill();
+      starsCtx.font = `${s.size}px Inter, system-ui, sans-serif`;
+      starsCtx.fillStyle = 'rgba(255,255,255,.9)';
+      starsCtx.fillText(s.word, s.x+6, s.y+6);
+    });
+    drawStars._af = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+starsCanvas.addEventListener('click', (e)=>{
+  const rect = starsCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const hit = stars.find(s=>{
+    const w = starsCtx.measureText(s.word).width;
+    const h = s.size;
+    return x >= s.x+6 && x <= s.x+6+w && y >= s.y-h && y <= s.y+h/2;
+  });
+  if (!hit) return;
+  // Simple overlay to show posts for this word
+  const posts = starPosts[hit.word] || [];
+  const box = document.createElement('div');
+  box.style.position='absolute';
+  box.style.left= Math.max(10, Math.min(rect.width-340, hit.x+20))+'px';
+  box.style.top=  Math.max(10, Math.min(rect.height-220, hit.y-20))+'px';
+  box.style.width='320px';
+  box.style.background='rgba(17,24,39,.9)';
+  box.style.border='1px solid #243044';
+  box.style.borderRadius='12px';
+  box.style.padding='10px';
+  box.style.boxShadow='0 10px 30px rgba(0,0,0,.35)';
+  box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <strong>“${hit.word}”</strong>
+      <a href="#" id="x" style="color:#fbbf24;text-decoration:none">✕</a>
+    </div>
+    <div style="max-height:180px;overflow:auto;margin-top:8px;font-size:.95rem;color:#e5e7eb">
+      ${posts.slice(0,8).map(p=>`<div style="border-top:1px solid #1f2737;padding:6px 0">
+        <div>${escapeHtml(p.text)}</div>
+        <div style="color:#94a3b8;font-size:.85rem;margin-top:2px">${p.name||'Anonymous'} · ${new Date(p.ts).toLocaleDateString()}</div>
+      </div>`).join('')}
+    </div>`;
+  const holder = panels.stars;
+  holder.appendChild(box);
+  box.querySelector('#x').addEventListener('click', ev=>{ ev.preventDefault(); holder.removeChild(box); });
+});
+window.addEventListener('resize', ()=>{ if(mode==='stars'){ resizeStars(); drawStars(); }});
+
+/* ====== ECHO (leaderboard + your echo) ====== */
+function echoScore(p){
+  // Simple scoring: hearts + recency boost (last 7 days)
+  const days = (Date.now()-p.ts)/(1000*60*60*24);
+  const recency = Math.max(0, 1.5 - days/7); // fades after a week
+  return (p.hearts||0) + recency;
+}
+function renderEcho(){
+  const list = load();
+  const top = [...list].sort((a,b)=> echoScore(b)-echoScore(a)).slice(0,10);
+  const mineEl = document.getElementById('echoMine');
+  const topEl  = document.getElementById('echoTop');
+  topEl.innerHTML = top.map(p=>`
+    <div class="row">
+      <div><strong>${escapeHtml(p.text)}</strong></div>
+      <div class="small">${p.name||'Anonymous'} · ${new Date(p.ts).toLocaleDateString()} · ❤️ ${p.hearts||0}</div>
+    </div>`).join('') || '<div class="row">No posts yet.</div>';
+
+  // your echo = last 3 you posted
+  const me = list.filter(p=> (p.name||'').trim() !== '').slice(-3).reverse();
+  mineEl.innerHTML = me.map(p=>`
+    <div class="row">
+      <div><strong>${escapeHtml(p.text)}</strong></div>
+      <div class="small">You · ${new Date(p.ts).toLocaleDateString()} · ❤️ ${p.hearts||0}</div>
+    </div>`).join('') || '<div class="row">Post with a name to track your echo.</div>';
+}
+</script>
+</body>
+</html>
