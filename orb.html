@@ -31,7 +31,7 @@
   .hero p{color:var(--muted);max-width:760px;margin:.2rem auto}
 
   .scene-wrap{position:relative}
-  #scene{display:block; width:100vw; height:calc(100vh - 22vh - 64px); background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913)}
+  #scene{display:block; width:100vw; height:calc(100vh - 22vh - 160px); background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913)}
 
   /* Floating composer HUD */
   .hud{
@@ -39,7 +39,7 @@
     bottom:18px; z-index:10; width:min(100%, var(--max)); padding:0 16px;
   }
   .composer{
-    display:grid; gap:10px; grid-template-columns: 1fr 240px;
+    display:grid; gap:10px; grid-template-columns: 1fr 280px;
     background:linear-gradient(180deg, rgba(17,24,39,.85), rgba(12,19,34,.9));
     border:1px solid #243044; border-radius:16px; padding:12px;
     backdrop-filter: blur(4px); box-shadow:0 10px 30px rgba(0,0,0,.35);
@@ -57,6 +57,18 @@
   .btn[disabled]{opacity:.5;cursor:not-allowed}
   .muted{color:var(--muted);font-size:.9rem}
   .counter{font-variant-numeric:tabular-nums}
+
+  /* Mini feed so you always see posts even if WebGL fails */
+  .feed{
+    list-style:none; margin:8px 0 0; padding:0; max-height:140px; overflow:auto;
+    border:1px solid #243044; border-radius:10px; background:rgba(12,19,34,.6);
+  }
+  .feed li{
+    padding:.45rem .6rem; border-bottom:1px solid rgba(36,48,68,.6);
+    font-size:.95rem; color:#e5e7eb;
+  }
+  .feed li:last-child{ border-bottom:0; }
+  .feed .who{ color:#94a3b8; margin-right:.35rem; }
 
   footer{padding:42px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
 
@@ -122,6 +134,8 @@
         <div style="flex:1"></div>
         <button class="btn" id="postBtn" disabled>Add to the Light</button>
       </div>
+      <!-- Always-visible local feed (diagnostic + nice UX) -->
+      <ul id="feed" class="feed"></ul>
     </div>
   </div>
 </div>
@@ -395,7 +409,7 @@ requestAnimationFrame(tick);
 /* ========= RESIZE ========= */
 function resize(){
   const w = canvas.clientWidth || window.innerWidth;
-  const h = canvas.clientHeight || (window.innerHeight - (window.innerHeight*0.22) - 64);
+  const h = canvas.clientHeight || (window.innerHeight - (window.innerHeight*0.22) - 160);
   renderer.setSize(w, h, false);
   if (camera){
     camera.aspect = w/h;
@@ -422,7 +436,7 @@ window.addEventListener('pointermove', (e)=>{
 });
 </script>
 
-<!-- ========= INTERACTION / COMPOSER (robust) ========= -->
+<!-- ========= INTERACTION / COMPOSER ========= -->
 <script>
 document.addEventListener('DOMContentLoaded', function(){
 
@@ -432,14 +446,32 @@ document.addEventListener('DOMContentLoaded', function(){
   const count = document.getElementById('count');
   const hint  = document.getElementById('hint');
   const postB = document.getElementById('postBtn');
+  const feed  = document.getElementById('feed');
 
   if (!msg || !nameI || !tone || !count || !hint || !postB) {
-    console.warn('Composer elements not found. Check IDs in the HTML.');
+    console.warn('Composer elements not found.');
     return;
   }
 
   const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot'];
   const clean = t => !BADWORDS.some(w => (t||'').toLowerCase().includes(w));
+
+  function toast(msgText){
+    let el = document.querySelector('.toast');
+    if (!el){ el = document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
+    el.textContent = msgText;
+    el.classList.add('show');
+    setTimeout(()=> el.classList.remove('show'), 1200);
+  }
+
+  function appendFeed(p){
+    if (!feed) return;
+    const li = document.createElement('li');
+    const who = (p.name ? `<span class="who">${escapeHtml(p.name)}:</span>` : '');
+    li.innerHTML = `${who}${escapeHtml(p.text)}`;
+    feed.insertBefore(li, feed.firstChild);
+  }
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m])); }
 
   function updateCounter(){
     const val = (msg.value || '').trim();
@@ -453,23 +485,18 @@ document.addEventListener('DOMContentLoaded', function(){
     else if (len > 160)     hint.textContent = 'Too long.';
     else                    hint.textContent = '';
   }
-
   ['input','keyup','change','blur'].forEach(evt => msg.addEventListener(evt, updateCounter));
   tone.addEventListener('change', updateCounter);
-  let pollId = setInterval(updateCounter, 500);
+  setInterval(updateCounter, 500);
   updateCounter();
 
-  function toast(msgText){
-    const el = document.createElement('div');
-    el.className = 'toast';
-    el.textContent = msgText;
-    document.body.appendChild(el);
-    requestAnimationFrame(()=> el.classList.add('show'));
-    setTimeout(()=>{
-      el.classList.remove('show');
-      setTimeout(()=> el.remove(), 250);
-    }, 1200);
-  }
+  const STORE_KEY = window.STORE_KEY || 'atl_orb_posts_v1';
+  const RATE_KEY  = window.RATE_KEY  || 'atl_orb_last_ms';
+  function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
+  function save(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
+
+  // Preload feed from storage (nice touch)
+  try { load().slice(-10).reverse().forEach(appendFeed); } catch {}
 
   postB.addEventListener('click', ()=>{
     const text = (msg.value || '').trim();
@@ -477,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     const now  = Date.now();
     const last = Number(localStorage.getItem(RATE_KEY)||0);
-    const wait = 10*1000 - (now - last); // cooldown
+    const wait = 3000 - (now - last); // short cooldown
     if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
 
     const t = tone.value || '';
@@ -497,14 +524,17 @@ document.addEventListener('DOMContentLoaded', function(){
     msg.value=''; nameI.value=''; tone.value='';
     updateCounter();
 
-    if (typeof window.addOrbitingPost === 'function') window.addOrbitingPost(p);
-    if (typeof window.blendToneColor  === 'function') window.blendToneColor();
+    appendFeed(p);
+    toast('Added to the Light ✨');
 
     try {
+      if (typeof window.addOrbitingPost === 'function') window.addOrbitingPost(p);
+      if (typeof window.blendToneColor  === 'function') window.blendToneColor();
       if (window.orbMat){ orbMat.emissiveIntensity = 0.9; setTimeout(()=>orbMat.emissiveIntensity = 0.6, 300); }
-    } catch(_) {}
-
-    toast('Added to the Light ✨');
+    } catch (e){
+      console.error('Scene update error:', e);
+      hint.textContent = 'Posted (3D view failed—check console).';
+    }
   });
 
 });
