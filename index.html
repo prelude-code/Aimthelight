@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Aim the Light — The Overexposed Republic</title>
-  <meta name="description" content="A modern call to rebuild empathy, reason, and common sense — discovered, not shouted." />
+  <meta name="description" content="A modern call to rebuild empathy, reason, and common sense—without blinding one another. Mission, approach, and how to get involved." />
 
-  <!-- Fonts -->
+  <!-- Font -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
 
@@ -21,7 +21,7 @@
     a:hover{text-decoration:underline}
     .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
 
-    /* Header — match essay page: text brand, simple links */
+    /* Header (match essay page) */
     header{
       position:sticky; top:0; z-index:50;
       background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));
@@ -32,67 +32,72 @@
     .brand{font-weight:800;letter-spacing:.3px}
     .links a{color:var(--ink);opacity:.9}
     .links a + a{margin-left:.9rem}
-    .btn{display:inline-block;background:var(--accent);color:#0b0b0b;padding:.48rem .8rem;border-radius:10px;font-weight:700}
-
-    /* HERO — logo as centered background (not full bleed), essay-forward */
-    .hero{
-      position:relative; min-height:72vh; display:grid; place-items:center; text-align:center;
-      isolation:isolate; overflow:hidden; border-bottom:1px solid #1f2737;
-    }
-    /* Background: subtle city tint + centered logo (contain) */
-    .hero::before{
-      content:""; position:absolute; inset:0; z-index:-1;
-      background:
-        linear-gradient(180deg, rgba(11,16,32,.60), rgba(11,16,32,.88));
-    }
-    /* Centered logo layer */
-    .hero::after{
-      content:""; position:absolute; inset:0; z-index:-1;
-      background:
-        url("https://github.com/prelude-code/Aimthelight/blob/main/Screenshot_20251101-222941.png") center center / min(60vw, 520px) auto no-repeat;
-      opacity:.9; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45));
-    }
-    @media (max-width:600px){
-      .hero::after{ background-size: min(78vw, 440px) auto; opacity:.95; }
-    }
-    .hero h1{font-size:clamp(2rem,1.2rem + 2.6vw,3rem);margin:.2rem 0 .6rem;font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.55)}
-    .lead{color:#dbe6ff;max-width:760px;margin:0 auto 1.1rem;text-shadow:0 2px 10px rgba(0,0,0,.5)}
     .ghost{
-      display:inline-block; padding:.6rem .95rem; border-radius:12px;
-      border:1px solid rgba(255,255,255,.35); color:#f8fafc; font-weight:700; background:transparent;
+      display:inline-block;padding:.6rem .95rem;border-radius:12px;
+      border:1px solid rgba(255,255,255,.35);color:#f8fafc;font-weight:700;background:transparent;
       transition:border-color .2s ease, color .2s ease, transform .2s ease, box-shadow .2s ease;
     }
     .ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 18px rgba(251,191,36,.18)}
 
-    /* Feature panel — optional light glass with an image (can remove .art div if you don’t want it) */
-    section{padding:52px 0}
-    .feature{
-      border:1px solid var(--border); border-radius:16px; overflow:hidden;
-      background:linear-gradient(180deg, #0f172a, #0b1222);
-      display:grid; gap:0;
+    /* Hero — centered logo as background */
+    .hero{
+      position:relative; min-height:72vh; display:grid; place-items:center; text-align:center;
+      isolation:isolate; overflow:hidden; border-bottom:1px solid #1f2737;
+      padding:44px 0;
     }
-    @media (min-width:940px){ .feature{grid-template-columns:1.08fr .92fr} }
-    .feature .copy{padding:22px}
-    .feature .copy h2{margin:.2rem 0 .55rem; font-size:1.55rem}
-    .feature .copy p{color:#cbd5e1; margin:.35rem 0 1rem}
-    .pull{
-      margin:.8rem 0 1rem; padding:.9rem 1rem;
-      border-left:3px solid var(--accent); background:#0c1322; border-radius:10px; color:#e9eefc;
+    .hero::before{
+      content:""; position:absolute; inset:0; z-index:-1;
+      background: linear-gradient(180deg, rgba(11,16,32,.60), rgba(11,16,32,.88));
     }
-    .feature .art{
-      min-height:260px;
-      background:
-        linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,0)),
-        url("assets/essay-cover.jpg");
-      background-size:cover; background-position:center;
+    .hero::after{
+      content:""; position:absolute; inset:0; z-index:-1;
+      background: url("assets/aimthelight-logo.png") center center / min(60vw, 520px) auto no-repeat;
+      opacity:.92; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45));
     }
+    @media (max-width:600px){
+      .hero::after{ background-size: min(80vw, 440px) auto; opacity:.98; }
+    }
+    .hero h1{font-size:clamp(2rem,1.2rem + 2.6vw,3rem);margin:.2rem 0 .6rem;font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.55)}
+    .lead{color:#dbe6ff;max-width:760px;margin:0 auto 1.1rem;text-shadow:0 2px 10px rgba(0,0,0,.5)}
 
-    /* Volunteer (quiet) */
+    /* Sections */
+    section{padding:56px 0}
+    .muted{color:var(--muted)}
+
+    /* Mission + Approach */
+    .grid2{display:grid;gap:18px}
+    @media (min-width:920px){ .grid2{grid-template-columns:1fr 1fr} }
+    .panel{
+      border:1px solid var(--border); border-radius:16px; background:linear-gradient(180deg,#0f172a,#0b1222);
+      padding:22px; box-shadow:0 10px 24px rgba(0,0,0,.28);
+    }
+    .panel h2{margin:.2rem 0 .6rem; font-size:1.55rem}
+    .panel p{margin:.35rem 0 .9rem; color:#cbd5e1}
+    .bullets{margin:.5rem 0 0; padding-left:1.1rem}
+    .bullets li{margin:.35rem 0}
+
+    /* What we support — 3 cards with images */
+    .cards{display:grid;gap:14px}
+    @media (min-width:960px){ .cards{grid-template-columns:repeat(3,1fr)} }
+    .card{
+      border:1px solid var(--border); border-radius:16px; overflow:hidden;
+      background:linear-gradient(180deg,#101a30,#0b1222); box-shadow:0 10px 24px rgba(0,0,0,.28);
+      display:flex; flex-direction:column;
+    }
+    .card .img{height:180px;background:#0d1426 url('assets/ph-people-1.jpg') center/cover no-repeat; opacity:.95}
+    .card .img.j{background-image:url('assets/ph-people-2.jpg')}
+    .card .img.c{background-image:url('assets/ph-people-3.jpg')}
+    .card .copy{padding:16px}
+    .card h3{margin:.2rem 0 .2rem;font-size:1.12rem}
+    .card p{margin:.35rem 0 .6rem;color:#cbd5e1}
+
+    /* Volunteer */
     .vol{
       border:1px solid #23314f; border-radius:16px; padding:22px;
       background:linear-gradient(180deg, #0c1426, #0b1020);
+      box-shadow:0 10px 22px rgba(0,0,0,.26);
     }
-    .vol p{color:#cbd5e1; margin:.3rem 0 1rem}
+    .vol p{color:#cbd5e1; margin:.35rem 0 .9rem}
 
     /* Footer */
     footer{padding:44px 0;border-top:1px solid #1f2737;color:#9aa6bf;text-align:center}
@@ -104,19 +109,20 @@
 </head>
 <body>
 
-  <!-- Header (same structure/vibe as essay page) -->
+  <!-- Header -->
   <header>
     <div class="nav container">
       <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Aim the Light</a></div>
       <nav class="links" aria-label="Primary">
         <a href="essay.html">Essay</a>
-        <a href="about.html">About</a>
+        <a href="#mission">Mission</a>
+        <a href="#approach">Approach</a>
         <a href="#volunteer">Volunteer</a>
       </nav>
     </div>
   </header>
 
-  <!-- HERO — logo centered, essay-forward -->
+  <!-- Hero -->
   <section class="hero">
     <div class="container">
       <h1>The Overexposed Republic</h1>
@@ -125,28 +131,69 @@
     </div>
   </section>
 
-  <!-- Optional light feature block (keeps intrigue; no spoilers) -->
-  <section>
-    <div class="container">
-      <div class="feature reveal">
-        <div class="copy">
-          <h2>What you’ll find inside</h2>
-          <p>Not a sermon and not a scolding—just a way to carry truth more gently. Midway through, we ask why certainty feels like mercy when we’re exhausted, and how to aim the light instead of turning it on each other.</p>
-          <div class="pull">“Speed without grip spins wheels.”</div>
-          <p><a class="ghost" href="essay.html">Open the essay</a></p>
-        </div>
-        <div class="art" aria-hidden="true"></div>
+  <!-- Mission + Approach -->
+  <section id="mission">
+    <div class="container grid2">
+      <div class="panel reveal">
+        <h2>Mission</h2>
+        <p>Help people carry truth more gently. We believe progress requires both justice <em>and</em> grace, that disagreement isn’t disloyalty, and that light needs shade to see clearly.</p>
+        <p class="muted">We aim for civic oxygen: fewer hot takes, more human-scale understanding.</p>
+      </div>
+      <div id="approach" class="panel reveal">
+        <h2>Approach</h2>
+        <ul class="bullets">
+          <li><strong>Make ideas usable.</strong> Publish clear, shareable tools for dialogue and decision-making.</li>
+          <li><strong>Strengthen local trust.</strong> Back the people who hold communities together—teachers, journalists, organizers.</li>
+          <li><strong>Model the tone we want.</strong> Practical, non-performative, patient—and open to being wrong.</li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <!-- Volunteer (quiet, future-facing) -->
+  <!-- What we support (3 visual cards) -->
+  <section>
+    <div class="container">
+      <h2 style="margin:0 0 12px">What we support</h2>
+      <p class="muted" style="margin:0 0 18px">Three places where small investments compound into real civic health.</p>
+
+      <div class="cards">
+        <article class="card reveal">
+          <div class="img" role="img" aria-label="Educator collaboration"></div>
+          <div class="copy">
+            <h3>Educators</h3>
+            <p>Classroom kits for media literacy, civil discourse, and “aim the light” conversation frameworks.</p>
+            <a class="ghost" href="mailto:info@aimthelight.org?subject=Educators%20program%20inquiry">Contact us</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="img j" role="img" aria-label="Journalists at work"></div>
+          <div class="copy">
+            <h3>Journalists</h3>
+            <p>Micro-grants for local reporting, source-friendly explainers, and tools for context over outrage.</p>
+            <a class="ghost" href="mailto:info@aimthelight.org?subject=Journalism%20support%20inquiry">Contact us</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="img c" role="img" aria-label="Community organizers meeting"></div>
+          <div class="copy">
+            <h3>Community Organizers</h3>
+            <p>Neighbor-scale toolkits: small-table dialogues, moderation guides, and conflict-cooling practices.</p>
+            <a class="ghost" href="mailto:info@aimthelight.org?subject=Community%20organizers%20inquiry">Contact us</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Volunteer (future-facing, simple ask) -->
   <section id="volunteer">
     <div class="container">
       <div class="vol reveal">
-        <h2 style="margin:.2rem 0 .6rem">Volunteer (light touch)</h2>
-        <p>We’re a young project and will expand carefully. If this work resonates, you’re welcome to introduce yourself for future opportunities—no pressure, no mailing lists you didn’t ask for.</p>
-        <p style="margin:.6rem 0 0"><strong>How to reach us:</strong> send a resume or short letter of interest to <a href="mailto:volunteer@aimthelight.org">volunteer@aimthelight.org</a>.</p>
+        <h2 style="margin:.2rem 0 .6rem">Volunteer</h2>
+        <p>We’re growing thoughtfully. If this resonates, you’re welcome to introduce yourself for future openings and project-based work.</p>
+        <p><strong>How to reach us:</strong> send a resume or short letter of interest to <a href="mailto:volunteer@aimthelight.org">volunteer@aimthelight.org</a>. If you have a specific skill (design, front-end, research, outreach), include a one-line note.</p>
       </div>
     </div>
   </section>
@@ -161,7 +208,20 @@
     // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // Simple reveal on scroll
+    // Smooth scroll for in-page links (header)
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', e=>{
+        const id = a.getAttribute('href').slice(1);
+        const target = document.getElementById(id);
+        if(!target) return;
+        e.preventDefault();
+        const y = target.getBoundingClientRect().top + window.pageYOffset - 72;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        history.replaceState(null, '', '#'+id);
+      });
+    });
+
+    // Reveal on scroll
     (function(){
       const els = document.querySelectorAll('.reveal');
       const io = new IntersectionObserver((ents)=>{
