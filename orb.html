@@ -30,7 +30,6 @@
   .hero h1{font-size:clamp(2rem,1.3rem + 2vw,3rem);margin:.2rem 0 .2rem;font-weight:800}
   .hero p{color:var(--muted);max-width:760px;margin:.2rem auto}
 
-  /* Scene */
   .scene-wrap{position:relative}
   #scene{display:block; width:100vw; height:calc(100vh - 22vh - 64px); background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913)}
 
@@ -60,6 +59,28 @@
   .counter{font-variant-numeric:tabular-nums}
 
   footer{padding:42px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 100px;
+    transform: translateX(-50%);
+    background: rgba(17,24,39,.9);
+    border: 1px solid #243044;
+    color: #f8fafc;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-6px);
+  }
 </style>
 </head>
 <body>
@@ -114,10 +135,8 @@
 <script>
 /* ========= UTIL / STORAGE ========= */
 document.getElementById('y').textContent = new Date().getFullYear();
-// Expose keys globally so other blocks can reuse
 window.STORE_KEY = 'atl_orb_posts_v1';
 window.RATE_KEY  = 'atl_orb_last_ms';
-
 function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
 function save(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
 
@@ -176,11 +195,11 @@ scene.add(new THREE.Points(starGeo, starMat));
 
 /* ========= ORBITING POSTS ========= */
 window.TONES = {
-  'Hope':      { col: 0xfbbf24 }, // gold
-  'Resolve':   { col: 0xef4444 }, // red
-  'Gratitude': { col: 0x22c55e }, // green
-  'Clarity':   { col: 0x60a5fa }, // blue
-  'Action':    { col: 0xa78bfa }  // purple
+  'Hope':      { col: 0xfbbf24 },
+  'Resolve':   { col: 0xef4444 },
+  'Gratitude': { col: 0x22c55e },
+  'Clarity':   { col: 0x60a5fa },
+  'Action':    { col: 0xa78bfa }
 };
 window.DEFAULT_COL = 0xffe8a6;
 
@@ -193,22 +212,25 @@ function makeTextSprite(text){
 
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  const pad = 12; const maxW = 320;
+  const pad = 14;
+  const maxW = 360;
   ctx.font = '600 18px Inter, system-ui, sans-serif';
   const lines = wrap(text, ctx, maxW);
   const lineH = 22;
-  const w = Math.min(maxW, Math.max(140, ...lines.map(l=>ctx.measureText(l).width))) + pad*2;
+  const w = Math.min(maxW, Math.max(160, ...lines.map(l=>ctx.measureText(l).width))) + pad*2;
   const h = lines.length*lineH + pad*2;
 
   canvas.width = w*2; canvas.height = h*2; // hi-dpi
   const c = canvas.getContext('2d');
   c.scale(2,2);
+
   // card
   c.fillStyle = '#ffe8a6';
   c.strokeStyle = 'rgba(0,0,0,.18)';
   c.lineWidth = 1;
   roundRect(c, 0, 0, w, h, 12);
   c.fill(); c.stroke();
+
   // text
   c.fillStyle = '#0b0b0b';
   c.font = '600 18px Inter, system-ui, sans-serif';
@@ -216,10 +238,20 @@ function makeTextSprite(text){
   lines.forEach((l,i)=> c.fillText(l, pad, pad + i*lineH));
 
   const tex = new THREE.CanvasTexture(canvas);
-  tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
-  const mat = new THREE.SpriteMaterial({ map: tex, depthWrite:false, transparent:true });
+  tex.minFilter = THREE.LinearFilter; 
+  tex.magFilter = THREE.LinearFilter;
+
+  const mat = new THREE.SpriteMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,     // always on top
+  });
+
   const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(w/28, h/28, 1);
+  sprite.scale.set(w/22, h/22, 1); // larger
+  sprite.renderOrder = 999;        // render last
+
   spriteCache.set(key, sprite);
   return sprite.clone();
 }
@@ -232,7 +264,7 @@ function wrap(text, ctx, maxWidth){
     else { line = t; }
   });
   if (line) lines.push(line);
-  return lines.slice(0, 3); // cap 3 lines
+  return lines.slice(0, 3);
 }
 function roundRect(ctx, x, y, w, h, r){
   ctx.beginPath();
@@ -244,32 +276,57 @@ function roundRect(ctx, x, y, w, h, r){
   ctx.closePath();
 }
 
+function pulseGroup(g){
+  const start = performance.now();
+  const dur = 450;
+  const base = g.scale.clone();
+  function step(t){
+    const k = Math.min(1, (t - start) / dur);
+    const s = 1 + 0.25 * Math.sin(k*Math.PI);
+    g.scale.set(base.x*s, base.y*s, base.z*s);
+    if (k < 1) requestAnimationFrame(step);
+    else g.scale.copy(base);
+  }
+  requestAnimationFrame(step);
+}
+
 function addOrbitingPost(p){
-  // tiny glowing dot
   const dot = new THREE.Mesh(
-    new THREE.SphereGeometry(0.12, 16, 16),
-    new THREE.MeshBasicMaterial({ color: p.col || DEFAULT_COL })
+    new THREE.SphereGeometry(0.18, 16, 16),
+    new THREE.MeshBasicMaterial({ color: p.col || DEFAULT_COL, transparent:true, opacity:0.95 })
   );
+
   const label = (p.name ? `${p.name}: ` : '') + p.text;
   const sprite = makeTextSprite(label);
 
   const group = new THREE.Group();
-  group.add(dot); group.add(sprite);
+  group.add(dot); 
+  group.add(sprite);
   scene.add(group);
 
-  const rad = THREE.MathUtils.randFloat(8.5, 13.5);
+  const rad = THREE.MathUtils.randFloat(9.5, 14.5);
   const angle = Math.random()*Math.PI*2;
   const speed = THREE.MathUtils.randFloat(0.0008, 0.0018);
-  sprite.position.set(0.9, 0.9, 0);
+
+  // place immediately so it's visible
+  const x = Math.cos(angle) * rad;
+  const z = Math.sin(angle) * rad;
+  const y = Math.sin(angle*0.6) * 0.6;
+  group.position.set(x, y, z);
+  group.lookAt(camera.position);
+
+  sprite.position.set(1.0, 1.0, 0);
+
+  pulseGroup(group);
 
   orbits.push({ group, dot, sprite, angle, rad, speed, data:p });
 }
-window.addOrbitingPost = addOrbitingPost; // expose for composer
+window.addOrbitingPost = addOrbitingPost;
 
 function rebuildOrbits(){
   orbits.forEach(o=> scene.remove(o.group));
   orbits.length = 0;
-  const list = load().sort((a,b)=>a.ts - b.ts); // older inside
+  const list = load().sort((a,b)=>a.ts - b.ts);
   list.forEach(addOrbitingPost);
 }
 
@@ -278,7 +335,7 @@ function updateOrbits(dt){
     o.angle += o.speed * dt;
     const x = Math.cos(o.angle) * o.rad;
     const z = Math.sin(o.angle) * o.rad;
-    const y = Math.sin(o.angle*0.6) * 0.6; // gentle bob
+    const y = Math.sin(o.angle*0.6) * 0.6;
     o.group.position.set(x, y, z);
     o.group.lookAt(camera.position);
   });
@@ -312,14 +369,14 @@ function blendToneColor(){
   });
 
   const softened = out.clone().lerp(new THREE.Color(0x111111), 0.4);
-  orbMat.emissive = softened;            // emissive is a Color; assign Color object
+  orbMat.emissive = softened;
   glowMat.color = out.clone().lerp(new THREE.Color(0xfbbf24), 0.2);
   keyLight.color = out.clone().lerp(new THREE.Color(0xffffff), 0.5);
 }
-window.blendToneColor = blendToneColor; // expose for composer
-window.orbMat = orbMat;                 // expose for flash
+window.blendToneColor = blendToneColor;
+window.orbMat = orbMat;
 
-/* ========= INIT CONTENT ========= */
+/* ========= INIT ========= */
 rebuildOrbits();
 blendToneColor();
 
@@ -381,7 +438,6 @@ document.addEventListener('DOMContentLoaded', function(){
     return;
   }
 
-  // Simple profanity filter (demo)
   const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot'];
   const clean = t => !BADWORDS.some(w => (t||'').toLowerCase().includes(w));
 
@@ -398,11 +454,22 @@ document.addEventListener('DOMContentLoaded', function(){
     else                    hint.textContent = '';
   }
 
-  // More events for mobile reliability + polling fallback
   ['input','keyup','change','blur'].forEach(evt => msg.addEventListener(evt, updateCounter));
   tone.addEventListener('change', updateCounter);
   let pollId = setInterval(updateCounter, 500);
   updateCounter();
+
+  function toast(msgText){
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msgText;
+    document.body.appendChild(el);
+    requestAnimationFrame(()=> el.classList.add('show'));
+    setTimeout(()=>{
+      el.classList.remove('show');
+      setTimeout(()=> el.remove(), 250);
+    }, 1200);
+  }
 
   postB.addEventListener('click', ()=>{
     const text = (msg.value || '').trim();
@@ -410,7 +477,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     const now  = Date.now();
     const last = Number(localStorage.getItem(RATE_KEY)||0);
-    const wait = 10*1000 - (now - last); // 10s cooldown
+    const wait = 10*1000 - (now - last); // cooldown
     if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
 
     const t = tone.value || '';
@@ -427,18 +494,17 @@ document.addEventListener('DOMContentLoaded', function(){
     const list = load(); list.push(p); save(list);
     localStorage.setItem(RATE_KEY, String(now));
 
-    // Reset UI
     msg.value=''; nameI.value=''; tone.value='';
     updateCounter();
 
-    // Add to scene & recolor
     if (typeof window.addOrbitingPost === 'function') window.addOrbitingPost(p);
     if (typeof window.blendToneColor  === 'function') window.blendToneColor();
 
-    // Subtle flash on orb
     try {
       if (window.orbMat){ orbMat.emissiveIntensity = 0.9; setTimeout(()=>orbMat.emissiveIntensity = 0.6, 300); }
     } catch(_) {}
+
+    toast('Added to the Light ✨');
   });
 
 });
