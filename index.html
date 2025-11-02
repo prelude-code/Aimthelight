@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aim the Light — A call to rebuild empathy, reason, and common sense</title>
-  <meta name="description" content="Aim the Light is a modern civic project to rebuild empathy, reason, and common sense. Read the essay, join the movement, and aim the light." />
+  <title>Aim the Light — A modern call to rebuild empathy, reason, and common sense</title>
+  <meta name="description" content="Aim the Light is a modern civic project. Read The Overexposed Republic and explore the ideas through images, quotes, and quiet design." />
 
-  <!-- Social preview -->
+  <!-- Social preview (optional) -->
   <meta property="og:title" content="Aim the Light" />
-  <meta property="og:description" content="A call to rebuild empathy, reason, and common sense." />
+  <meta property="og:description" content="Read The Overexposed Republic — a modern call to rebuild empathy, reason, and common sense." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="assets/social-card.jpg" /> <!-- optional -->
+  <meta property="og:image" content="assets/social-card.jpg" />
   <meta property="og:url" content="" />
 
-  <!-- Fonts -->
+  <!-- Font -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
 
@@ -35,70 +35,81 @@
     .brand img{height:42px;width:auto;display:block;filter: drop-shadow(0 0 8px rgba(0,0,0,.3))}
     .links a{color:var(--ink);opacity:.85}
     .links a + a{margin-left:.9rem}
-    .btn{display:inline-block;background:var(--accent);color:#0b0b0b;padding:.5rem .8rem;border-radius:10px;font-weight:700}
+
+    /* Ghost button style (minimal CTA) */
+    .btn-ghost{
+      display:inline-block; padding:.55rem .9rem; border-radius:12px;
+      border:1px solid rgba(255,255,255,.35); color:#f8fafc; font-weight:700;
+      background:transparent; text-decoration:none;
+      transition: border-color .2s ease, color .2s ease, transform .2s ease;
+    }
+    .btn-ghost:hover{border-color:var(--accent);color:var(--accent); transform: translateY(-1px);}
 
     /* Hero */
-    .hero{position:relative;min-height:72vh;display:grid;place-items:center;text-align:center;border-bottom:1px solid #1f2737;isolation:isolate;overflow:hidden}
+    .hero{position:relative;min-height:74vh;display:grid;place-items:center;text-align:center;border-bottom:1px solid #1f2737;isolation:isolate;overflow:hidden}
     .hero::before{
       content:"";position:absolute;inset:0;z-index:-1;
       background:
         linear-gradient(180deg, rgba(11,16,32,.60), rgba(11,16,32,.88)),
-        url("assets/sunrise-city.jpg?v=2"); /* <-- your city image */
+        url("assets/sunrise-city.jpg?v=2"); /* your city image */
       background-size:cover;background-position:center;
       filter:saturate(110%) contrast(1.05);
+      transition: transform 3s ease-out;
     }
+    .hero:hover::before{ transform: scale(1.015); }
     .hero h1{font-size:clamp(2rem, 1.2rem + 2.8vw, 3.2rem);margin:.2rem 0 .6rem;font-weight:800;text-shadow:0 2px 10px rgba(0,0,0,.6)}
-    .hero p.lead{color:#dbe6ff;max-width:720px;margin:0 auto 1.2rem;text-shadow:0 2px 10px rgba(0,0,0,.5)}
-    .hero .cta{display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center;margin-top:.6rem}
-    .btn.outline{background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,.35)}
-    .btn.outline:hover{border-color:var(--accent);color:var(--accent)}
+    .hero p.lead{color:#dbe6ff;max-width:760px;margin:0 auto 1.2rem;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+    .scroll-cue{margin-top:1.2rem;color:#cbd5e1;opacity:.8;font-size:.9rem}
 
-    /* Section headers */
+    /* Sections */
     section{padding:56px 0}
     .section-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:18px}
     .section-head h2{font-size:1.6rem;margin:0}
     .section-head p{color:var(--muted);margin:6px 0 0}
 
-    /* Cards (What we do) */
-    .grid{display:grid;gap:16px}
-    @media (min-width:800px){ .grid{grid-template-columns:repeat(3,1fr)} }
-    .card{
-      background:linear-gradient(180deg, #0f172a, #0c1424);
-      border:1px solid #1f2940; border-radius:14px; padding:18px;
-      box-shadow:0 6px 18px rgba(0,0,0,.25);
-      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-    }
-    .card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.35);border-color:#2a3856}
-    .card h3{margin:.2rem 0 .4rem;font-size:1.15rem}
-    .card p{margin:.4rem 0;color:#cbd5e1}
-
-    /* Essay feature */
+    /* Featured essay */
     .feature{
       border:1px solid #23314f;border-radius:16px;overflow:hidden;
       background:linear-gradient(180deg, #0f172a, #0b1222);
+      box-shadow:0 10px 24px rgba(0,0,0,.28);
     }
     .feature .inner{display:grid;gap:0}
-    @media (min-width:900px){ .feature .inner{grid-template-columns:1.1fr .9fr} }
-    .feature .copy{padding:22px}
+    @media (min-width:900px){ .feature .inner{grid-template-columns:1.12fr .88fr} }
+    .feature .copy{padding:24px 22px}
     .feature .copy h3{margin:.2rem 0 .6rem}
-    .feature .copy p{color:#cbd5e1;margin:.4rem 0 1rem}
+    .feature .copy p{color:#cbd5e1;margin:.4rem 0 1.1rem}
     .feature .art{
-      min-height:240px;
+      min-height:260px;
       background:
         linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,0)),
         url("assets/essay-cover.jpg"); /* optional decorative image */
       background-size:cover;background-position:center;
     }
+    .pull{
+      margin:.8rem 0 0; padding:.8rem 1rem;
+      border-left:3px solid var(--accent); background:#0c1322; border-radius:8px;
+      color:#e8ecf6
+    }
 
-    /* Join */
-    .join{background:linear-gradient(180deg, #0c1426, #0b1020);border:1px solid #1e2a46;border-radius:16px;padding:22px}
-    .join p{color:#cbd5e1;margin:.3rem 0 1rem}
+    /* Image strip (theme gallery) */
+    .strip{display:grid;gap:14px;grid-auto-flow:column;grid-auto-columns:75%;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+    @media (min-width:820px){ .strip{grid-auto-columns:32%} }
+    .tile{
+      scroll-snap-align:start; position:relative; border-radius:14px; overflow:hidden;
+      border:1px solid #22304e; box-shadow:0 10px 22px rgba(0,0,0,.25);
+      background:#0d1426;
+    }
+    .tile img{display:block;width:100%;height:220px;object-fit:cover;opacity:.95;transition:transform .35s ease, opacity .35s ease}
+    .tile:hover img{transform:scale(1.03);opacity:1}
+    .tile .cap{
+      position:absolute;left:0;right:0;bottom:0;
+      background:linear-gradient(180deg, rgba(11,16,32,0), rgba(11,16,32,.85));
+      padding:14px 12px; font-weight:600; color:#f8fafc
+    }
+    .muted{color:var(--muted)}
 
     /* Footer */
     footer{padding:44px 0;border-top:1px solid #1f2737;color:#9aa6bf;text-align:center}
-
-    /* Small niceties */
-    .muted{color:var(--muted)}
   </style>
 </head>
 <body>
@@ -112,63 +123,37 @@
         </a>
       </div>
       <nav class="links" aria-label="Primary">
-        <a href="#what">What we do</a>
-        <a href="#essay">Read the essay</a>
-        <a href="#join">Join</a>
+        <a href="#essay">Essay</a>
+        <a href="#gallery">Images</a>
+        <a href="about.html">About</a>
       </nav>
-      <a class="btn" href="#join">Get involved</a>
     </div>
   </header>
 
-  <!-- Hero -->
+  <!-- Hero (city background, minimal CTA) -->
   <section class="hero">
     <div class="container">
       <h1>Aim the Light</h1>
-      <p class="lead">A modern call to rebuild empathy, reason, and common sense—together.</p>
-      <div class="cta">
-        <a class="btn" href="essay.html">Read “The Overexposed Republic”</a>
-        <a class="btn outline" href="#what">What we do</a>
+      <p class="lead">A modern call to rebuild empathy, reason, and common sense—without blinding one another.</p>
+      <div style="margin-top:.8rem">
+        <a class="btn-ghost" href="essay.html" rel="prefetch">Read “The Overexposed Republic”</a>
       </div>
+      <div class="scroll-cue">↓ Scroll</div>
     </div>
   </section>
 
-  <!-- What we do -->
-  <section id="what">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <h2>What we do</h2>
-          <p>From reflection to action—how we turn light into traction.</p>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="card">
-          <h3>Equip classrooms</h3>
-          <p>Free, nonpartisan discussion guides and media-literacy mini-labs for teachers and students.</p>
-        </div>
-        <div class="card">
-          <h3>Support local journalism</h3>
-          <p>Micro-grants and “explainers first” toolkits that help communities share facts before fights.</p>
-        </div>
-        <div class="card">
-          <h3>Host civil forums</h3>
-          <p>Small-table dialogue formats anyone can run—designed for grace, not point-scoring.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Featured essay -->
+  <!-- Featured Essay -->
   <section id="essay">
     <div class="container">
       <div class="feature">
         <div class="inner">
           <div class="copy">
             <h3>The Overexposed Republic</h3>
-            <p>Smartphones gave us endless light and took away our shade. We don’t need less truth—we need gentler ways to hold it. This essay is a blueprint for aiming the light without blinding one another.</p>
-            <a class="btn" href="essay.html">Read the essay</a>
-            <a class="btn outline" style="margin-left:.5rem" href="#join">Join the effort</a>
+            <p class="muted">Smartphones gave us endless light and took away our shade. We don’t need less truth—we need gentler ways to hold it. This essay is a blueprint for aiming the light without blinding one another.</p>
+            <div class="pull">“It wasn’t the light that failed us, but how we turned it inward—blinding each other when we were meant to find the way forward together.”</div>
+            <div style="margin-top:1rem">
+              <a class="btn-ghost" href="essay.html">Read the essay</a>
+            </div>
           </div>
           <div class="art" aria-hidden="true"></div>
         </div>
@@ -176,16 +161,35 @@
     </div>
   </section>
 
-  <!-- Join / Volunteer -->
-  <section id="join">
+  <!-- Image Strip (essay themes as visuals) -->
+  <section id="gallery">
     <div class="container">
-      <div class="join">
-        <h2>Join us</h2>
-        <p>We’re a young, nonpartisan civic project. Whether you’re a student, educator, journalist, designer, or an everyday neighbor—you can help.</p>
-        <div class="cta">
-          <a class="btn" href="volunteer.html">Volunteer</a>
-          <a class="btn outline" href="mailto:info@aimthelight.org">Contact</a>
+      <div class="section-head">
+        <div>
+          <h2>Images from the ideas</h2>
+          <p>Scenes that echo the essay’s metaphors and moments.</p>
         </div>
+        <a class="muted" href="essay.html">Open essay →</a>
+      </div>
+
+      <div class="strip" aria-label="Image gallery">
+        <!-- Replace images with your own assets -->
+        <a class="tile" href="essay.html#overexposure">
+          <img src="assets/gallery-ferrari.jpg" alt="Speed vs traction" />
+          <div class="cap">Speed without grip spins wheels</div>
+        </a>
+        <a class="tile" href="essay.html#smartphones">
+          <img src="assets/gallery-screens.jpg" alt="Screens and light" />
+          <div class="cap">Too much light, no shade</div>
+        </a>
+        <a class="tile" href="essay.html#aim">
+          <img src="assets/gallery-lantern.jpg" alt="Lantern light" />
+          <div class="cap">Aim the light, don’t weaponize it</div>
+        </a>
+        <a class="tile" href="essay.html#now">
+          <img src="assets/gallery-table.jpg" alt="Neighbors in dialogue" />
+          <div class="cap">Small tables, shared words</div>
+        </a>
       </div>
     </div>
   </section>
@@ -200,7 +204,7 @@
     // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // Smooth scroll for in-page nav
+    // Smooth scroll for in-page links (header)
     document.querySelectorAll('a[href^="#"]').forEach(a=>{
       a.addEventListener('click', e=>{
         const id = a.getAttribute('href').slice(1);
