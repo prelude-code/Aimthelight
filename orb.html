@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Orb World — Aim the Light</title>
+<title>Orb Wall — Aim the Light</title>
 <meta name="description" content="A living orb of light shaped by our reflections." />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -32,12 +32,11 @@
   .hero p{color:var(--muted);max-width:760px;margin:.2rem auto}
 
   .scene-wrap{position:relative}
-  #scene3d, #scene2d {
+  #scene2d {
     display:block; width:100vw;
-    /* Height is controlled by JS to avoid mobile calc bugs */
+    /* Height will be set via JS to avoid mobile calc bugs */
     background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913);
   }
-  #scene2d{ display:none; } /* hidden unless we fallback */
 
   /* Floating composer HUD */
   .hud{
@@ -64,7 +63,7 @@
   .muted{color:var(--muted);font-size:.9rem}
   .counter{font-variant-numeric:tabular-nums}
 
-  /* Mini feed so you always see posts even if the scene fails */
+  /* Mini feed */
   .feed{
     list-style:none; margin:8px 0 0; padding:0; max-height:140px; overflow:auto;
     border:1px solid #243044; border-radius:10px; background:rgba(12,19,34,.6);
@@ -118,8 +117,7 @@
 </section>
 
 <div class="scene-wrap">
-  <canvas id="scene3d"></canvas>
-  <canvas id="scene2d"></canvas> <!-- automatic fallback target -->
+  <canvas id="scene2d"></canvas>
 </div>
 
 <!-- Floating composer -->
@@ -139,7 +137,6 @@
         <div style="flex:1"></div>
         <button class="btn" id="postBtn" disabled>Add to the Light</button>
       </div>
-      <!-- Always-visible local feed -->
       <ul id="feed" class="feed"></ul>
     </div>
   </div>
@@ -149,443 +146,233 @@
   <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
 </footer>
 
-<!-- Three.js (CDN + fallback) -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
 <script>
-  if (typeof THREE === 'undefined') {
-    document.write('<script src="https://unpkg.com/three@0.161.0/build/three.min.js"><\/script>');
-  }
-</script>
-
-<script>
-/* ================== SHARED STATE & UTIL ================== */
+/* ====== UTIL + STORAGE ====== */
 document.getElementById('y').textContent = new Date().getFullYear();
 const STORE_KEY = 'atl_orb_posts_v1';
 const RATE_KEY  = 'atl_orb_last_ms';
 const TONES = {
-  'Hope':      { col: 0xfbbf24 },
-  'Resolve':   { col: 0xef4444 },
-  'Gratitude': { col: 0x22c55e },
-  'Clarity':   { col: 0x60a5fa },
-  'Action':    { col: 0xa78bfa }
+  'Hope':      { col: '#fbbf24' },
+  'Resolve':   { col: '#ef4444' },
+  'Gratitude': { col: '#22c55e' },
+  'Clarity':   { col: '#60a5fa' },
+  'Action':    { col: '#a78bfa' }
 };
-const DEFAULT_COL = 0xffe8a6;
+const DEFAULT_COL = '#ffe8a6';
 
 function loadPosts(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
 function savePosts(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
-function escapeHtml(s){
+function esc(s){
   return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))
                  .replace(/'/g,'&#39;');
 }
 
-/* Mini feed (always shows) */
+/* ====== 2D ORB SCENE ====== */
+const canvas = document.getElementById('scene2d');
+const ctx    = canvas.getContext('2d', { alpha: true });
+
+function calcSceneHeight(){
+  const reserve = (window.innerWidth < 860) ? 220 : 160; // for HUD
+  const heroH   = Math.max(140, window.innerHeight * 0.22);
+  return Math.floor(Math.max(300, window.innerHeight - heroH - reserve));
+}
+function sizeCanvas(){
+  const w = window.innerWidth;
+  const h = calcSceneHeight();
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+}
+sizeCanvas();
+window.addEventListener('resize', sizeCanvas);
+
+/* orbiting items */
+let orbits = [];
+function addOrbit(p){
+  const rad   = 120 + Math.random()*70;
+  const angle = Math.random()*Math.PI*2;
+  const speed = 0.0008 + Math.random()*0.0018;
+  orbits.push({ p, rad, angle, speed });
+}
+function rebuild(){
+  orbits = [];
+  loadPosts().sort((a,b)=>a.ts-b.ts).forEach(addOrbit);
+}
+
+/* mood blend (affects glow color) */
+function moodColor(){
+  const list = loadPosts();
+  if (!list.length) return '#fbbf24';
+  const counts = {Hope:0,Resolve:0,Gratitude:0,Clarity:0,Action:0, Unknown:0};
+  list.forEach(p => { const t = p.tone || 'Unknown'; counts[t] = (counts[t]||0) + 1; });
+  const total = Object.values(counts).reduce((a,b)=>a+b,0)||1;
+  const weights = [
+    {c:'#fbbf24', w:counts.Hope/total},
+    {c:'#ef4444', w:counts.Resolve/total},
+    {c:'#22c55e', w:counts.Gratitude/total},
+    {c:'#60a5fa', w:counts.Clarity/total},
+    {c:'#a78bfa', w:counts.Action/total},
+    {c:'#ffcc88', w:(counts.Unknown/total)*0.5},
+  ];
+  // simple average in RGB
+  let r=0,g=0,b=0;
+  function hex2rgb(hex){ const n=parseInt(hex.slice(1),16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
+  weights.forEach(({c,w})=>{ const {r:rr,g:gg,b:bb}=hex2rgb(c); r+=rr*w; g+=gg*w; b+=bb*w; });
+  r=Math.round(r); g=Math.round(g); b=Math.round(b);
+  return `rgb(${r},${g},${b})`;
+}
+
+/* draw loop */
+let last = performance.now();
+function tick(t){
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const dt = t - last; last = t;
+  const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
+
+  // clear
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,w,h);
+
+  // stars
+  ctx.save();
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = '#ffffff';
+  for(let i=0;i<80;i++){
+    const sx = Math.random()*w, sy = Math.random()*h, s = Math.random()*1.8;
+    ctx.fillRect(sx, sy, s, s);
+  }
+  ctx.restore();
+
+  // glow ring
+  const mood = moodColor();
+  const grad = ctx.createRadialGradient(cx, cy, 10*dpr, cx, cy, 160*dpr);
+  grad.addColorStop(0, mood.replace('rgb','rgba').replace(')', ',0.22)'));
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 160*dpr, 0, Math.PI*2);
+  ctx.fill();
+
+  // orb body
+  const orbGrad = ctx.createRadialGradient(cx-40*dpr, cy-50*dpr, 10*dpr, cx, cy, 120*dpr);
+  orbGrad.addColorStop(0, '#223157');
+  orbGrad.addColorStop(1, '#0b1020');
+  ctx.fillStyle = orbGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 100*dpr, 0, Math.PI*2);
+  ctx.fill();
+
+  // posts
+  ctx.font = `${14*dpr}px Inter, system-ui, sans-serif`;
+  orbits.forEach(o=>{
+    o.angle += o.speed * dt;
+    const x = cx + Math.cos(o.angle) * o.rad*dpr * 0.6;
+    const y = cy + Math.sin(o.angle*0.6) * 18*dpr + Math.sin(o.angle) * o.rad*dpr * 0.22;
+
+    // dot
+    ctx.fillStyle = '#ffe8a6';
+    ctx.beginPath(); ctx.arc(x, y, 3*dpr, 0, Math.PI*2); ctx.fill();
+
+    // label
+    const label = (o.p.name ? `${o.p.name}: ` : '') + o.p.text;
+    const pad = 8*dpr;
+    const textW = Math.min(260*dpr, Math.max(120*dpr, ctx.measureText(label).width));
+    const boxW  = textW + pad*2, boxH = 30*dpr;
+    const bx = x + 12*dpr, by = y - boxH - 6*dpr;
+
+    // card
+    ctx.fillStyle = '#ffe8a6';
+    roundRect(ctx, bx, by, boxW, boxH, 10*dpr); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 1*dpr; ctx.stroke();
+
+    // text
+    ctx.fillStyle = '#0b0b0b';
+    ctx.fillText(label, bx + pad, by + 18*dpr - 10*dpr, textW);
+  });
+
+  requestAnimationFrame(tick);
+}
+function roundRect(ctx, x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+rebuild();
+requestAnimationFrame(tick);
+
+/* ====== FEED + COMPOSER ====== */
 const feedEl = document.getElementById('feed');
 function appendFeed(p){
   const li = document.createElement('li');
-  const who = p.name ? `<span class="who">${escapeHtml(p.name)}:</span>` : '';
-  li.innerHTML = `${who}${escapeHtml(p.text)}`;
+  const who = p.name ? `<span class="who">${esc(p.name)}:</span>` : '';
+  li.innerHTML = `${who}${esc(p.text)}`;
   feedEl.insertBefore(li, feedEl.firstChild);
 }
+// preload feed
 try { loadPosts().slice(-10).reverse().forEach(appendFeed); } catch {}
 
-/* ================== 3D SCENE (if available) ================== */
-let use2D = false;
-let renderer, scene, camera, orb, glow, orbMat, glowMat, keyLight;
-let orbits3D = [];
-const canvas3D = document.getElementById('scene3d');
-const canvas2D = document.getElementById('scene2d');
+const msg   = document.getElementById('msg');
+const nameI = document.getElementById('name');
+const tone  = document.getElementById('tone');
+const count = document.getElementById('count');
+const hint  = document.getElementById('hint');
+const postB = document.getElementById('postBtn');
 
-function calcSceneHeight(){
-  const reserve = (window.innerWidth < 860) ? 220 : 160;
-  const heroH = Math.max(140, window.innerHeight * 0.22);
-  return Math.floor(Math.max(280, window.innerHeight - heroH - reserve));
+const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot'];
+const clean = t => !BADWORDS.some(w => (t||'').toLowerCase().includes(w));
+
+function updateCounter(){
+  const val = (msg.value || '').trim();
+  const len = val.length;
+  count.textContent = `${len}/160`;
+  const enable = len > 0 && len <= 160 && clean(val);
+  postB.disabled = !enable;
+  if (!clean(val))        hint.textContent = 'Please keep it respectful.';
+  else if (len > 160)     hint.textContent = 'Too long.';
+  else                    hint.textContent = '';
 }
-function sizeCanvases(){
-  const w = window.innerWidth;
-  const h = calcSceneHeight();
-  [canvas3D, canvas2D].forEach(c=>{
-    c.style.width = w + 'px';
-    c.style.height = h + 'px';
-    c.width = w * Math.min(devicePixelRatio || 1, 2);
-    c.height = h * Math.min(devicePixelRatio || 1, 2);
-  });
-  if (renderer && camera){
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  }
-}
+['input','keyup','change','blur'].forEach(e=> msg.addEventListener(e, updateCounter));
+tone.addEventListener('change', updateCounter);
+setInterval(updateCounter, 500);
+updateCounter();
 
-function init3D(){
-  if (typeof THREE === 'undefined') throw new Error('THREE not loaded');
-
-  renderer = new THREE.WebGLRenderer({ canvas: canvas3D, antialias:true, alpha:true });
-  const gl = renderer.getContext();
-  if (!gl) throw new Error('WebGL context unavailable');
-
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setClearColor(0x0b1020, 1);
-  if (renderer.outputColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-  scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x060913, 30, 140);
-
-  camera = new THREE.PerspectiveCamera(55, 1, 0.1, 500);
-  camera.position.set(0, 6, 24);
-
-  const hemi = new THREE.HemisphereLight(0x6688ff, 0x000813, 0.5);
-  scene.add(hemi);
-  keyLight = new THREE.PointLight(0xffffff, 2.6, 100);
-  keyLight.position.set(6,8,10);
-  scene.add(keyLight);
-
-  const orbGeo = new THREE.SphereGeometry(6, 64, 64);
-  orbMat = new THREE.MeshStandardMaterial({
-    color: 0x0d1327, roughness: 0.5, metalness: 0.1,
-    emissive: 0x111111, emissiveIntensity: 0.9
-  });
-  orb = new THREE.Mesh(orbGeo, orbMat); scene.add(orb);
-
-  const glowGeo = new THREE.SphereGeometry(6.4, 64, 64);
-  glowMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent:true, opacity:0.14, side: THREE.BackSide });
-  glow = new THREE.Mesh(glowGeo, glowMat); scene.add(glow);
-
-  // Stars
-  const starGeo = new THREE.BufferGeometry();
-  const starCnt = 1200;
-  const starPos = new Float32Array(starCnt*3);
-  for (let i=0;i<starCnt;i++){
-    const r = THREE.MathUtils.randFloat(60,120);
-    const th = Math.random()*Math.PI*2;
-    const ph = Math.acos(THREE.MathUtils.randFloatSpread(2));
-    starPos[i*3+0] = r*Math.sin(ph)*Math.cos(th);
-    starPos[i*3+1] = r*Math.cos(ph);
-    starPos[i*3+2] = r*Math.sin(ph)*Math.sin(th);
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
-  const starMat = new THREE.PointsMaterial({ color:0xffffff, size:0.6, sizeAttenuation:true, transparent:true, opacity:.9 });
-  scene.add(new THREE.Points(starGeo, starMat));
-
-  sizeCanvases();
-
-  // Drag orbit
-  let dragging=false, lx=0, ly=0, ry=0, rx=0;
-  canvas3D.addEventListener('pointerdown', e=>{ dragging=true; lx=e.clientX; ly=e.clientY; });
-  window.addEventListener('pointerup', ()=> dragging=false);
-  window.addEventListener('pointermove', (e)=>{
-    if (!dragging) return;
-    const dx = (e.clientX - lx)/window.innerWidth;
-    const dy = (e.clientY - ly)/window.innerHeight;
-    lx = e.clientX; ly = e.clientY;
-    ry += dx * Math.PI; rx = Math.max(-0.6, Math.min(0.6, rx + dy * Math.PI*0.5));
-    const r = 24;
-    camera.position.x = Math.sin(ry) * r * Math.cos(rx);
-    camera.position.z = Math.cos(ry) * r * Math.cos(rx);
-    camera.position.y = Math.sin(rx) * r * 0.6;
-    camera.lookAt(0,0,0);
-  });
+function toast(text){
+  let el = document.querySelector('.toast');
+  if (!el){ el = document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(()=> el.classList.remove('show'), 1200);
 }
 
-const spriteCache = new Map();
-function makeSpriteCanvas(text){
-  const key = text;
-  if (spriteCache.has(key)) return spriteCache.get(key);
+postB.addEventListener('click', ()=>{
+  const text = (msg.value || '').trim();
+  if (!text || !clean(text)) { updateCounter(); return; }
 
-  const c = document.createElement('canvas');
-  const ctx = c.getContext('2d');
-  const pad = 14;
-  const maxW = 360;
-  ctx.font = '600 18px Inter, system-ui, sans-serif';
-  const lines = wrapText(text, ctx, maxW);
-  const lineH = 22;
-  const w = Math.min(maxW, Math.max(160, ...lines.map(l=>ctx.measureText(l).width))) + pad*2;
-  const h = lines.length*lineH + pad*2;
+  const now  = Date.now();
+  const last = Number(localStorage.getItem(RATE_KEY)||0);
+  const wait = 3000 - (now - last);
+  if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
 
-  c.width = w*2; c.height = h*2;
-  const g = c.getContext('2d'); g.scale(2,2);
-  g.fillStyle = '#ffe8a6'; g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=1;
-  roundRect(g, 0,0, w,h, 12); g.fill(); g.stroke();
-  g.fillStyle = '#0b0b0b'; g.font='600 18px Inter, system-ui, sans-serif'; g.textBaseline='top';
-  lines.forEach((l,i)=> g.fillText(l, pad, pad+i*lineH));
-  spriteCache.set(key, c);
-  return c;
-}
-function wrapText(text, ctx, maxWidth){
-  const words = (text||'').split(/\s+/);
-  const lines = []; let line = '';
-  words.forEach(word=>{
-    const t = line ? line + ' ' + word : word;
-    if (ctx.measureText(t).width > maxWidth) { if (line) lines.push(line); line = word; }
-    else { line = t; }
-  });
-  if (line) lines.push(line);
-  return lines.slice(0,3);
-}
-function roundRect(ctx, x, y, w, h, r){
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.arcTo(x+w, y, x+w, y+h, r);
-  ctx.arcTo(x+w, y+h, x, y+h, r);
-  ctx.arcTo(x, y+h, x, y, r);
-  ctx.arcTo(x, y, x+w, y, r);
-  ctx.closePath();
-}
+  const t = tone.value || '';
+  const col = TONES[t]?.col || DEFAULT_COL;
+  const p = {
+    id: (crypto.randomUUID ? crypto.randomUUID() : String(now)),
+    text, name: (nameI.value||'').trim(), tone: t, col, ts: now
+  };
 
-function addOrbit3D(p){
-  const dot = new THREE.Mesh(
-    new THREE.SphereGeometry(0.18, 16,16),
-    new THREE.MeshBasicMaterial({ color: p.col || DEFAULT_COL, transparent:true, opacity:0.95 })
-  );
-  const label = (p.name ? `${p.name}: ` : '') + p.text;
-  const cardCanvas = makeSpriteCanvas(label);
-  const tex = new THREE.CanvasTexture(cardCanvas);
-  tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent:true, depthWrite:false, depthTest:false });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(cardCanvas.width/44, cardCanvas.height/44, 1);
-  sprite.renderOrder = 999;
+  const list = loadPosts(); list.push(p); savePosts(list);
+  localStorage.setItem(RATE_KEY, String(now));
 
-  const group = new THREE.Group();
-  group.add(dot); group.add(sprite);
-  scene.add(group);
-
-  const rad = THREE.MathUtils.randFloat(9.5, 14.5);
-  const angle = Math.random()*Math.PI*2;
-  const speed = THREE.MathUtils.randFloat(0.0008, 0.0018);
-
-  group.position.set(Math.cos(angle)*rad, Math.sin(angle*0.6)*0.6, Math.sin(angle)*rad);
-  group.lookAt(camera.position);
-  sprite.position.set(1.0, 1.0, 0);
-
-  // pulse
-  const base = group.scale.clone(); const start = performance.now(), dur=450;
-  (function pulse(t){ const k=Math.min(1,(t-start)/dur), s=1+0.25*Math.sin(k*Math.PI);
-    group.scale.set(base.x*s, base.y*s, base.z*s); if(k<1) requestAnimationFrame(pulse); else group.scale.copy(base);
-  })(start);
-
-  orbits3D.push({ group, angle, rad, speed });
-}
-function rebuild3D(){
-  orbits3D.forEach(o=> scene.remove(o.group)); orbits3D = [];
-  loadPosts().sort((a,b)=>a.ts-b.ts).forEach(addOrbit3D);
-}
-function update3D(dt){
-  orbits3D.forEach(o=>{
-    o.angle += o.speed * dt;
-    const x = Math.cos(o.angle) * o.rad;
-    const z = Math.sin(o.angle) * o.rad;
-    const y = Math.sin(o.angle*0.6) * 0.6;
-    o.group.position.set(x, y, z);
-    o.group.lookAt(camera.position);
-  });
-}
-function blend3D(){
-  const list = loadPosts();
-  if (!list.length){ orbMat.emissive.setHex(0x111111); glowMat.color.setHex(0xfbbf24); keyLight.color.setHex(0xffffff); return; }
-  const freq = {Hope:0,Resolve:0,Gratitude:0,Clarity:0,Action:0, Unknown:0};
-  list.forEach(p=>{ const t=p.tone||'Unknown'; if(freq[t]==null) freq.Unknown++; else freq[t]++; });
-  const total = Object.values(freq).reduce((a,b)=>a+b,0)||1;
-  const mix = [
-    {c:TONES.Hope?.col||0xfbbf24,      w:freq.Hope/total},
-    {c:TONES.Resolve?.col||0xef4444,   w:freq.Resolve/total},
-    {c:TONES.Gratitude?.col||0x22c55e, w:freq.Gratitude/total},
-    {c:TONES.Clarity?.col||0x60a5fa,   w:freq.Clarity/total},
-    {c:TONES.Action?.col||0xa78bfa,    w:freq.Action/total},
-    {c:0xffcc88,                        w:(freq.Unknown/total)*0.5}
-  ];
-  const out = new THREE.Color(0,0,0);
-  mix.forEach(({c,w})=>{ const col=new THREE.Color(c); out.r+=col.r*w; out.g+=col.g*w; out.b+=col.b*w; });
-  const softened = out.clone().lerp(new THREE.Color(0x111111), 0.4);
-  orbMat.emissive = softened; glowMat.color = out.clone().lerp(new THREE.Color(0xfbbf24), 0.2);
-  keyLight.color = out.clone().lerp(new THREE.Color(0xffffff), 0.5);
-}
-
-/* ================== 2D FALLBACK ================== */
-let ctx2d, orbits2D = [];
-function init2D(){
-  use2D = true;
-  canvas3D.style.display = 'none';
-  canvas2D.style.display = 'block';
-  sizeCanvases();
-  ctx2d = canvas2D.getContext('2d');
-  rebuild2D();
-}
-function addOrbit2D(p){
-  // random orbit radius and speed
-  const rad = 110 + Math.random()*70;
-  const angle = Math.random()*Math.PI*2;
-  const speed = 0.0008 + Math.random()*0.0018;
-  orbits2D.push({ p, rad, angle, speed });
-}
-function rebuild2D(){
-  orbits2D = [];
-  loadPosts().sort((a,b)=>a.ts-b.ts).forEach(addOrbit2D);
-}
-function draw2D(dt){
-  const w = canvas2D.width, h = canvas2D.height;
-  const dpr = Math.min(devicePixelRatio||1, 2);
-  const cx = w/2, cy = h/2;
-
-  // background
-  ctx2d.save();
-  ctx2d.scale(dpr,dpr);
-  ctx2d.clearRect(0,0,w/dpr,h/dpr);
-
-  // stars
-  ctx2d.fillStyle = 'rgba(255,255,255,0.7)';
-  for(let i=0;i<80;i++){
-    const sx = Math.random()*w/dpr, sy = Math.random()*h/dpr, s = Math.random()*1.2;
-    ctx2d.fillRect(sx,sy,s,s);
-  }
-
-  // orb glow
-  const grad = ctx2d.createRadialGradient(cx/dpr, cy/dpr, 10, cx/dpr, cy/dpr, 140);
-  grad.addColorStop(0,'rgba(251,191,36,0.20)');
-  grad.addColorStop(1,'rgba(0,0,0,0)');
-  ctx2d.fillStyle = grad;
-  ctx2d.beginPath(); ctx2d.arc(cx/dpr, cy/dpr, 140, 0, Math.PI*2); ctx2d.fill();
-
-  // orb body
-  const orbGrad = ctx2d.createRadialGradient(cx/dpr-20, cy/dpr-30, 10, cx/dpr, cy/dpr, 120);
-  orbGrad.addColorStop(0, '#223157');
-  orbGrad.addColorStop(1, '#0b1020');
-  ctx2d.fillStyle = orbGrad;
-  ctx2d.beginPath(); ctx2d.arc(cx/dpr, cy/dpr, 90, 0, Math.PI*2); ctx2d.fill();
-
-  // update + draw posts
-  orbits2D.forEach(o=>{
-    o.angle += o.speed * dt;
-    const x = cx/dpr + Math.cos(o.angle) * o.rad/dpr * 0.5;
-    const y = cy/dpr + Math.sin(o.angle*0.6) * 12 + Math.sin(o.angle) * o.rad/dpr * 0.18;
-
-    // dot
-    ctx2d.fillStyle = '#ffe8a6';
-    ctx2d.beginPath(); ctx2d.arc(x, y, 3, 0, Math.PI*2); ctx2d.fill();
-
-    // label card
-    const label = (o.p.name ? `${o.p.name}: ` : '') + o.p.text;
-    ctx2d.font = '600 14px Inter, sans-serif';
-    const pad = 8;
-    const textW = Math.min(240, Math.max(120, ctx2d.measureText(label).width));
-    const boxW = textW + pad*2, boxH = 28;
-
-    const bx = x + 10, by = y - boxH - 4;
-    ctx2d.fillStyle = '#ffe8a6';
-    roundRect2D(ctx2d, bx, by, boxW, boxH, 8); ctx2d.fill();
-    ctx2d.strokeStyle = 'rgba(0,0,0,.15)'; ctx2d.stroke();
-
-    ctx2d.fillStyle = '#0b0b0b';
-    ctx2d.fillText(label, bx + pad, by + 8, textW);
-  });
-
-  ctx2d.restore();
-}
-function roundRect2D(ctx,x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.arcTo(x+w, y, x+w, y+h, r);
-  ctx.arcTo(x+w, y+h, x, y+h, r);
-  ctx.arcTo(x, y+h, x, y, r);
-  ctx.arcTo(x, y, x+w, y, r);
-  ctx.closePath();
-}
-
-/* ================== BOOT & TICK ================== */
-let last = performance.now();
-function tick(t){
-  const dt = t - last; last = t;
-
-  if (!use2D && renderer && scene && camera){
-    if (orb)  orb.rotation.y  += 0.0006 * dt;
-    if (glow) glow.rotation.y -= 0.0003 * dt;
-    update3D(dt);
-    renderer.render(scene, camera);
-    document.body.dataset.webgl = 'ok';
-  } else if (use2D && ctx2d){
-    draw2D(dt);
-  }
-  requestAnimationFrame(tick);
-}
-
-window.addEventListener('load', ()=>{
-  sizeCanvases();
-  // Try 3D, then fall back to 2D
-  try {
-    init3D();
-    rebuild3D();
-  } catch(e){
-    console.warn('3D failed, switching to 2D:', e);
-    init2D();
-  }
-  requestAnimationFrame(tick);
-  window.addEventListener('resize', sizeCanvases);
-});
-
-/* ================== COMPOSER ================== */
-document.addEventListener('DOMContentLoaded', function(){
-  const msg   = document.getElementById('msg');
-  const nameI = document.getElementById('name');
-  const tone  = document.getElementById('tone');
-  const count = document.getElementById('count');
-  const hint  = document.getElementById('hint');
-  const postB = document.getElementById('postBtn');
-
-  const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot'];
-  const clean = t => !BADWORDS.some(w => (t||'').toLowerCase().includes(w));
-
-  function toast(s){
-    let el = document.querySelector('.toast');
-    if (!el){ el = document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
-    el.textContent = s;
-    el.classList.add('show');
-    setTimeout(()=> el.classList.remove('show'), 1200);
-  }
-
-  function updateCounter(){
-    const val = (msg.value || '').trim();
-    const len = val.length;
-    count.textContent = `${len}/160`;
-    const enable = len > 0 && len <= 160 && clean(val);
-    postB.disabled = !enable;
-    if (!clean(val))        hint.textContent = 'Please keep it respectful.';
-    else if (len > 160)     hint.textContent = 'Too long.';
-    else                    hint.textContent = '';
-  }
-  ['input','keyup','change','blur'].forEach(e=> msg.addEventListener(e, updateCounter));
-  tone.addEventListener('change', updateCounter);
-  setInterval(updateCounter, 500);
-  updateCounter();
-
-  postB.addEventListener('click', ()=>{
-    const text = (msg.value || '').trim();
-    if (!text || !clean(text)) { updateCounter(); return; }
-
-    const now  = Date.now();
-    const last = Number(localStorage.getItem(RATE_KEY)||0);
-    const wait = 3000 - (now - last);
-    if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
-
-    const t = tone.value || '';
-    const col = TONES[t]?.col ?? DEFAULT_COL;
-    const p = {
-      id: (crypto.randomUUID ? crypto.randomUUID() : String(now)),
-      text, name: (nameI.value||'').trim(), tone: t, col, ts: now
-    };
-
-    const list = loadPosts(); list.push(p); savePosts(list);
-    localStorage.setItem(RATE_KEY, String(now));
-
-    msg.value=''; nameI.value=''; tone.value=''; updateCounter();
-    appendFeed(p);
-    toast('Added to the Light ✨');
-
-    try {
-      if (!use2D && typeof addOrbit3D === 'function') { addOrbit3D(p); blend3D(); }
-      if (use2D) { addOrbit2D(p); }
-    } catch(e){
-      console.warn('Scene update error:', e);
-    }
-  });
+  msg.value=''; nameI.value=''; tone.value=''; updateCounter();
+  appendFeed(p);
+  addOrbit(p);      // make it orbit visually
+  toast('Added to the Light ✨');
 });
 </script>
 </body>
