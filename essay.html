@@ -627,33 +627,48 @@ That’s the new common sense.
 
 </script> <!-- end #essay-src -->
 
+<style>
+  /* Ensure no global padding is interfering */
+  html { scroll-padding-top: 0 !important; }
+
+  /* Headings honor our computed offset */
+  #essay h2 { scroll-margin-top: var(--anchor-offset, 92px); }
+</style>
+
 <script>
 (function(){
-  const toc = document.getElementById('toc');
+  // 1) Compute and apply anchor offset from sticky header
   const header = document.querySelector('header');
-  if (!toc || !header) return;
 
-  // ↓ Adjust this number to tighten/loosen the gap (try 10, 12, 16)
-  const TIGHTEN_PX = 24;
+  // Tweak this number to close the gap more or less (try 6, 10, 14)
+  const TIGHTEN_PX = 12;
 
-  function scrollToId(id){
-    const target = document.getElementById(id);
-    if (!target) return;
-
-    const headerH = header.getBoundingClientRect().height;
-    // shave pixels off the header height so the title sits closer
-    const offset = Math.max(0, headerH - TIGHTEN_PX);
-    const y = target.getBoundingClientRect().top + window.pageYOffset - offset;
-
-    window.scrollTo({ top: y, behavior: 'smooth' });
-    history.replaceState(null, '', '#' + id);
+  function setAnchorOffset(){
+    const h = header ? Math.round(header.getBoundingClientRect().height) : 96;
+    const offset = Math.max(0, h - TIGHTEN_PX);
+    document.documentElement.style.setProperty('--anchor-offset', offset + 'px');
   }
+  setAnchorOffset();
+  window.addEventListener('resize', setAnchorOffset);
 
+  // 2) Remove ANY old TOC click handlers that might be fighting us
+  const old = document.getElementById('toc');
+  if (!old) return;
+  const toc = old.cloneNode(true);       // cloning strips previous listeners
+  old.replaceWith(toc);
+
+  // 3) New, minimal click handler that lets CSS do the offset work
   toc.addEventListener('click', (e)=>{
     const link = e.target.closest('a[href^="#"]');
     if (!link) return;
     e.preventDefault();
-    scrollToId(link.getAttribute('href').slice(1));
+    const id = link.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (!target) return;
+
+    // Native smooth scroll; offset handled by scroll-margin-top
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    history.replaceState(null, '', '#' + id);
   });
 })();
 </script>
