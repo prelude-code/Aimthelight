@@ -327,7 +327,6 @@ function blendToneColor(){
 const msg   = document.getElementById('msg');
 const nameI = document.getElementById('name');
 const tone  = document.getElementById('tone');
-const okC   = document.getElementById('consent');
 const count = document.getElementById('count');
 const hint  = document.getElementById('hint');
 const postB = document.getElementById('postBtn');
@@ -335,21 +334,29 @@ const postB = document.getElementById('postBtn');
 function updateCounter(){
   const len = msg.value.trim().length;
   count.textContent = `${len}/160`;
-  postB.disabled = !(len>0 && len<=160 && okC.checked && clean(msg.value));
-  hint.textContent = postB.disabled ? (!okC.checked ? 'Consent required.' : (!clean(msg.value) ? 'Please keep it respectful.' : '')) : '';
+
+  // Enable if nonempty, within limit, and clean
+  const enable = len > 0 && len <= 160 && clean(msg.value);
+  postB.disabled = !enable;
+
+  if (!clean(msg.value))      hint.textContent = 'Please keep it respectful.';
+  else if (len > 160)         hint.textContent = 'Too long.';
+  else if (len === 0)         hint.textContent = '';
+  else                        hint.textContent = '';
 }
+
 msg.addEventListener('input', updateCounter);
-okC.addEventListener('change', updateCounter);
 updateCounter();
 
 postB.addEventListener('click', ()=>{
   const text = msg.value.trim();
   if (!text) return;
+  if (!clean(text)){ hint.textContent='Please keep it respectful.'; return; }
+
   const now = Date.now();
   const last = Number(localStorage.getItem(RATE_KEY)||0);
-  const wait = 30*1000 - (now - last);
+  const wait = 10*1000 - (now - last); // only 10s cooldown now
   if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
-  if (!clean(text)){ hint.textContent='Please keep it respectful.'; return; }
 
   const t = tone.value || '';
   const col = (TONES[t]?.col) ?? DEFAULT_COL;
@@ -361,13 +368,14 @@ postB.addEventListener('click', ()=>{
   localStorage.setItem(RATE_KEY, String(now));
 
   // reset UI
-  msg.value=''; nameI.value=''; tone.value=''; okC.checked=false; updateCounter();
+  msg.value=''; nameI.value=''; tone.value='';
+  updateCounter();
 
   // add to scene
   addOrbitingPost(p);
   blendToneColor();
 
-  // tiny flash on orb
+  // subtle flash on orb
   orbMat.emissiveIntensity = 0.9;
   setTimeout(()=>{ orbMat.emissiveIntensity = 0.6; }, 300);
 });
