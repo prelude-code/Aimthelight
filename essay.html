@@ -627,6 +627,39 @@ That’s the new common sense.
 
 </script> <!-- end #essay-src -->
 
+<script>
+(function(){
+  const toc = document.getElementById('toc');
+  const header = document.querySelector('header');
+  if (!toc || !header) return;
+
+  // ↓ Adjust this number to tighten/loosen the gap (try 10, 12, 16)
+  const TIGHTEN_PX = 12;
+
+  function scrollToId(id){
+    const target = document.getElementById(id);
+    if (!target) return;
+
+    const headerH = header.getBoundingClientRect().height;
+    // shave pixels off the header height so the title sits closer
+    const offset = Math.max(0, headerH - TIGHTEN_PX);
+    const y = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+    window.scrollTo({ top: y, behavior: 'smooth' });
+    history.replaceState(null, '', '#' + id);
+  }
+
+  toc.addEventListener('click', (e)=>{
+    const link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+    e.preventDefault();
+    scrollToId(link.getAttribute('href').slice(1));
+  });
+})();
+</script>
+
+
+
 
 <style>
 /* TOC: sticky on desktop; hidden on mobile unless opened */
