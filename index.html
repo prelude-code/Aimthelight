@@ -56,6 +56,37 @@ nav.links a:hover {
 }
 
 
+/* Keep "Aim the Light" on a single line */
+.brand a {
+  white-space: nowrap;       /* Prevent line break */
+  display: inline-block;     /* Keep text inline with nav */
+  font-size: 1.25rem;        /* Adjust if you want larger */
+  font-weight: 800;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Optional tweak: tighter header layout on small screens */
+@media (max-width: 600px) {
+  .nav {
+    flex-wrap: nowrap;
+    gap: .75rem;
+  }
+  nav.links a {
+    font-size: .9rem;
+    margin-left: .7rem;
+  }
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
