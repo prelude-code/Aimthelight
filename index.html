@@ -22,63 +22,63 @@
     a:hover{text-decoration:underline}
     .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
 
-/* Unified header styling (same for all pages) */
+/* === Make index header match essay header (without touching essay.html) === */
 header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
+  border-bottom: 1px solid rgba(31,39,55,.35);
   background: linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));
   backdrop-filter: saturate(120%) blur(6px);
 }
 
 .nav {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  justify-content: space-between;
+  padding: 8px 16px !important;  /* tighten */
+  min-height: 56px !important;   /* prevent tall bar */
+  gap: 0 !important;
 }
 
-.brand {
+header .container {              /* nuke theme padding on index */
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.brand a {
+  white-space: nowrap;
+  display: inline-block;
+  line-height: 1;                /* remove tall line box */
   font-weight: 800;
-  letter-spacing: .3px;
+  font-size: 1.15rem;
+  color: inherit;
+  text-decoration: none;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+nav.links {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;             /* keep one line */
+  gap: 0.9rem;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 nav.links a {
-  margin-left: 1rem;
-  color: var(--accent); /* orange links */
+  color: var(--accent);          /* same orange as essay */
   font-weight: 500;
-  text-decoration: none;
-  transition: color 0.25s ease;
+  line-height: 1;                /* match essay’s tight line box */
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-nav.links a:hover {
-  color: #ffe8a6; /* lighter orange on hover */
-}
-
-
-/* Keep "Aim the Light" on a single line */
-.brand a {
-  white-space: nowrap;       /* Prevent line break */
-  display: inline-block;     /* Keep text inline with nav */
-  font-size: 1.25rem;        /* Adjust if you want larger */
-  font-weight: 800;
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Optional tweak: tighter header layout on small screens */
 @media (max-width: 600px) {
-  .nav {
-    flex-wrap: nowrap;
-    gap: .75rem;
-  }
-  nav.links a {
-    font-size: .9rem;
-    margin-left: .7rem;
-  }
+  .nav { padding: 8px 12px !important; min-height: 52px !important; }
+  nav.links a { font-size: .9rem; }
 }
 
-
+/* If the hero is pushing the header visually, zero it out on index only */
+.hero { margin-top: 0 !important; }
 
 
 
