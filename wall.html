@@ -1,257 +1,292 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Light Wall — Aim the Light</title>
-  <meta name="description" content="What does light mean to you right now? Add your voice to a live mosaic of reflections." />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Light Wall — Aim the Light</title>
+<meta name="description" content="An interactive wall of reflections. Add yours and watch it fly to the wall." />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1020; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24; --card:#111827; --soft:#1f2937;
+    --max:1100px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
 
-  <style>
-    :root{
-      --bg:#0f172a; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24; --card:#111827; --soft:#1f2937;
-      --max:1100px; --prose:#e5e7eb;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:#0b1020;color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
-    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
-    .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
-    header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
-    .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
-    .brand{font-weight:800;letter-spacing:.3px}
-    .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
+  /* Header to match your site */
+  header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+  .brand{font-weight:800}
+  .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
 
-    /* Hero */
-    .hero{min-height:46vh;display:grid;place-items:center;position:relative;text-align:center;border-bottom:1px solid #1f2737;isolation:isolate}
-    .hero::before{
-      content:"";position:absolute;inset:0;z-index:-2;
-      background:linear-gradient(180deg, rgba(11,16,32,.68), rgba(11,16,32,.82)),
-                 url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2000&auto=format&fit=crop");
-      background-size:cover;background-position:center;
-    }
-    .hero h1{font-size:clamp(2rem, 1.4rem + 2vw, 3rem);margin:.2rem 0 .3rem;font-weight:800}
-    .hero p{color:var(--muted);max-width:700px;margin:0 auto}
+  /* Hero */
+  .hero{min-height:38vh;display:grid;place-items:center;text-align:center;isolation:isolate;position:relative;border-bottom:1px solid #1f2737}
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:-2;
+    background:linear-gradient(180deg, rgba(11,16,32,.72), rgba(11,16,32,.85)),
+      url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2000&auto=format&fit=crop");
+    background-size:cover;background-position:center;
+    filter:saturate(1.1);
+  }
+  .hero h1{font-size:clamp(2rem, 1.3rem + 2vw, 3rem);margin:.2rem 0 .4rem;font-weight:800}
+  .hero p{color:var(--muted);max-width:760px;margin:0 auto}
 
-    main{padding:34px 0 80px}
+  main{padding:32px 0 72px}
 
-    /* Composer */
-    .composer{border:1px solid #243044;background:linear-gradient(180deg,#111827,#0f172a);border-radius:16px;padding:16px;margin-bottom:22px}
-    .composer label{display:block;font-weight:600;margin-bottom:.4rem}
-    .composer .row{display:grid;gap:10px}
-    textarea{
-      width:100%;min-height:110px;resize:vertical;border:1px solid #2b3a52;border-radius:12px;
-      background:#0c1322;color:var(--prose);padding:10px 12px;font-size:1rem;outline:none;
-    }
-    .muted{color:var(--muted);font-size:.9rem}
-    .controls{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap}
-    .left, .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .chip{display:inline-flex;align-items:center;gap:.4rem;border:1px solid #344155;background:rgba(17,24,39,.5);padding:.45rem .7rem;border-radius:999px;color:var(--ink);font-weight:600}
-    .btn{background:var(--accent);color:#0b0b0b;padding:.5rem .9rem;border-radius:12px;border:none;font-weight:700;cursor:pointer}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
-    .counter{font-variant-numeric:tabular-nums}
+  /* Composer bar */
+  .composer{border:1px solid #243044;background:linear-gradient(180deg,#111827,#0f172a);border-radius:16px;padding:14px;margin:0 0 18px 0}
+  .composer label{display:block;font-weight:600;margin-bottom:.4rem}
+  .comp-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+  @media (max-width:720px){ .comp-row{grid-template-columns:1fr} }
+  textarea{
+    width:100%;min-height:90px;resize:vertical;border:1px solid #2b3a52;border-radius:12px;
+    background:#0c1322;color:#e5e7eb;padding:10px 12px;font-size:1rem;outline:none;
+  }
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+  .muted{color:var(--muted);font-size:.9rem}
+  .btn{background:var(--accent);color:#0b0b0b;padding:.55rem .95rem;border-radius:12px;border:none;font-weight:800;cursor:pointer}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .chip{display:inline-flex;align-items:center;gap:.4rem;border:1px solid #344155;background:rgba(17,24,39,.5);padding:.45rem .7rem;border-radius:999px;color:var(--ink);font-weight:600}
+  .counter{font-variant-numeric:tabular-nums}
 
-    /* Wall grid (masonry via columns) */
-    .wall{column-width:300px;column-gap:14px}
-    @media (max-width:760px){ .wall{column-width:100%} }
-    .card{
-      display:inline-block;width:100%;break-inside:avoid;border-radius:14px;margin:0 0 14px 0;
-      background:linear-gradient(180deg,#111827,#0f172a);border:1px solid #243044;box-shadow:0 6px 20px rgba(0,0,0,.25);
-      position:relative;overflow:hidden;transform:translateY(10px);opacity:0;animation:pop .5s ease forwards;
-    }
-    .card .ink{padding:14px;color:var(--prose);font-size:1.02rem}
-    .meta{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.85rem;border-top:1px solid #1f2737;padding:10px 14px}
-    .tag{border:1px solid rgba(251,191,36,.45);color:#ffe8a6;background:rgba(251,191,36,.10);padding:.1rem .5rem;border-radius:999px;font-size:.78rem}
-    .accentbar{height:3px;background:linear-gradient(90deg, var(--accent), rgba(251,191,36,.15));opacity:.9}
-    @keyframes pop{to{transform:none;opacity:1}}
+  /* The Wall (brick pattern + grid for placement) */
+  .wall-wrap{
+    border:1px solid #243044;border-radius:16px;overflow:hidden;
+    background:
+      /* brick pattern */
+      linear-gradient(#0000, #0000),
+      repeating-linear-gradient(90deg,#1b2637 0 46px,#0e1624 46px 48px),
+      repeating-linear-gradient(180deg,#1b2637 0 22px,#0e1624 22px 24px);
+    box-shadow:0 12px 40px rgba(0,0,0,.35) inset;
+    padding:18px;
+  }
+  .wall{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(160px,1fr));
+    gap:14px;
+  }
 
-    .empty{color:var(--muted);text-align:center;border:1px dashed #344155;border-radius:14px;padding:16px}
-  </style>
+  /* Tiles look like sticky notes / cards */
+  .tile{
+    background:linear-gradient(180deg,#0f172a,#0b1426);
+    border:1px solid #243044;
+    border-radius:14px;
+    color:#e5e7eb;
+    padding:12px 12px 10px;
+    box-shadow:0 10px 22px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.03) inset;
+    transform:rotate(var(--rot,0deg));
+    position:relative;
+    will-change:transform, opacity;
+  }
+  .tile:before{
+    /* a tiny strip of “tape” for vibe */
+    content:""; position:absolute; left:50%; top:-8px; transform:translateX(-50%) rotate(-1deg);
+    width:46px; height:14px; border-radius:4px;
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 2px 6px rgba(0,0,0,.3);
+  }
+  .tile .text{white-space:pre-wrap; line-height:1.25}
+  .tile .meta{
+    margin-top:8px; display:flex; justify-content:space-between; align-items:center; color:#94a3b8; font-size:.82rem;
+    border-top:1px solid #1f2737; padding-top:8px;
+  }
+  .tag{border:1px solid rgba(251,191,36,.45);color:#ffe8a6;background:rgba(251,191,36,.10);padding:.06rem .45rem;border-radius:999px;font-size:.78rem}
+
+  /* “Ghost” card that flies to the wall on submit */
+  .fly{
+    position:fixed; left:0; top:0; width:220px; z-index:9999; pointer-events:none;
+    background:linear-gradient(180deg,#0f172a,#0b1426);
+    border:1px solid #243044; border-radius:14px; color:#e5e7eb; padding:12px;
+    box-shadow:0 10px 22px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.03) inset;
+  }
+
+  footer{padding:48px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
+</style>
 </head>
 <body>
-  <header>
-    <div class="nav container">
-      <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Aim the Light</a></div>
-      <nav class="links" aria-label="Primary">
-        <a class="muted" href="index.html#mission">Mission</a>
-        &nbsp;·&nbsp;<a class="muted" href="index.html#approach">Approach</a>
-        &nbsp;·&nbsp;<a class="muted" href="index.html#volunteer">Volunteer</a>
-        &nbsp;·&nbsp;<a class="muted" href="essay.html">Essay</a>
-        &nbsp;·&nbsp;<a class="muted" href="wall.html" aria-current="page">Light Wall</a>
-      </nav>
-      <a class="btn" href="index.html#join">Join</a>
-    </div>
-  </header>
+<header>
+  <div class="nav container">
+    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Aim the Light</a></div>
+    <nav class="links" aria-label="Primary">
+      <a class="muted" href="index.html#mission">Mission</a>
+      &nbsp;·&nbsp;<a class="muted" href="index.html#approach">Approach</a>
+      &nbsp;·&nbsp;<a class="muted" href="essay.html">Essay</a>
+      &nbsp;·&nbsp;<a class="muted" href="wall.html" aria-current="page">Light Wall</a>
+    </nav>
+    <a class="btn" href="index.html#join">Join</a>
+  </div>
+</header>
 
-  <section class="hero">
-    <div class="container">
-      <h1>What does “light” mean to you right now?</h1>
-      <p>Share a short reflection (200 characters). Your words join a living wall—a mosaic of hope, grit, and clarity.</p>
-    </div>
-  </section>
+<section class="hero">
+  <div class="container">
+    <h1>Pin your light to the wall</h1>
+    <p>Add a short reflection (max 140 chars). Watch it fly and land like a note on the brick wall.</p>
+  </div>
+</section>
 
-  <main>
-    <div class="container">
-      <!-- Composer -->
-      <div class="composer" id="composer">
-        <label for="msg">Your reflection</label>
-        <div class="row">
-          <textarea id="msg" placeholder="E.g., Light is the courage to listen first."></textarea>
-        </div>
-        <div class="controls">
-          <div class="left">
-            <span class="chip counter" id="count">0/200</span>
-            <label class="muted">
-              <input type="checkbox" id="consent" /> I agree to have this displayed publicly.
-            </label>
-          </div>
-          <div class="right">
-            <select id="tone" class="chip" title="Optional tag">
-              <option value="">No tag</option>
-              <option>Hope</option>
-              <option>Resolve</option>
-              <option>Gratitude</option>
-              <option>Clarity</option>
-              <option>Action</option>
-            </select>
-            <button class="btn" id="postBtn" disabled>Post to the Wall</button>
-          </div>
-        </div>
-        <div class="muted" id="hint" style="margin-top:6px;"></div>
+<main>
+  <div class="container">
+    <div class="composer" id="composer">
+      <label for="msg">Your reflection</label>
+      <div class="comp-row">
+        <textarea id="msg" maxlength="140" placeholder="Light is..."></textarea>
+        <button class="btn" id="postBtn" disabled>Pin to Wall</button>
       </div>
+      <div class="controls">
+        <span class="chip counter" id="count">0/140</span>
+        <label class="muted"><input type="checkbox" id="consent"> I agree to public display</label>
+        <select id="tone" class="chip" title="Tag (optional)">
+          <option value="">No tag</option>
+          <option>Hope</option><option>Resolve</option><option>Gratitude</option>
+          <option>Clarity</option><option>Action</option>
+        </select>
+        <span class="muted" id="hint"></span>
+      </div>
+    </div>
 
-      <!-- Wall -->
+    <div class="wall-wrap">
       <div id="wall" class="wall" aria-live="polite"></div>
-      <div id="empty" class="empty" style="display:none;">Be the first to post.</div>
     </div>
-  </main>
+  </div>
+</main>
 
-  <footer>
-    <div class="container">
-      <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
-    </div>
-  </footer>
+<footer>
+  <div class="container">
+    <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
+  </div>
+</footer>
 
-  <script>
-    // Year
-    document.getElementById('y').textContent = new Date().getFullYear();
+<script>
+  // Footer year
+  document.getElementById('y').textContent = new Date().getFullYear();
 
-    // ===== Simple client-side “backend” (localStorage) =====
-    const STORE_KEY = 'lightwall_posts_v1';
-    const RATE_KEY  = 'lightwall_last_post_ms';
-    const MAX_LEN   = 200;
-    const MIN_MS_BETWEEN = 60 * 1000; // 60s
+  // ===== storage (local demo) =====
+  const STORE_KEY = 'lightwall_tiles_v1';
+  const RATE_KEY  = 'lightwall_last_ms';
+  const MIN_WAIT  = 45 * 1000; // 45s between posts
 
-    const msgEl   = document.getElementById('msg');
-    const countEl = document.getElementById('count');
-    const postBtn = document.getElementById('postBtn');
-    const consent = document.getElementById('consent');
-    const toneEl  = document.getElementById('tone');
-    const hintEl  = document.getElementById('hint');
-    const wallEl  = document.getElementById('wall');
-    const emptyEl = document.getElementById('empty');
+  const wall  = document.getElementById('wall');
+  const msg   = document.getElementById('msg');
+  const count = document.getElementById('count');
+  const post  = document.getElementById('postBtn');
+  const tone  = document.getElementById('tone');
+  const ok    = document.getElementById('consent');
+  const hint  = document.getElementById('hint');
+  const composer = document.getElementById('composer');
 
-    const accents = [
-      'linear-gradient(90deg, #fbbf24, rgba(251,191,36,.15))',
-      'linear-gradient(90deg, #a3e635, rgba(163,230,53,.15))',
-      'linear-gradient(90deg, #60a5fa, rgba(96,165,250,.15))',
-      'linear-gradient(90deg, #f472b6, rgba(244,114,182,.15))',
-      'linear-gradient(90deg, #34d399, rgba(52,211,153,.15))'
+  const bad = ['fuck','shit','bitch','asshole','cunt','nigger','faggot']; // demo filter
+  const clean = t => !bad.some(w => t.toLowerCase().includes(w));
+
+  function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
+  function save(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
+
+  function rng(min,max){ return Math.random()*(max-min)+min; }
+
+  function tileEl(tile){
+    const el = document.createElement('article');
+    el.className = 'tile';
+    el.style.setProperty('--rot', (rng(-2.2,2.2)).toFixed(2) + 'deg');
+    const text = document.createElement('div');
+    text.className = 'text';
+    text.textContent = tile.text;
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const left = document.createElement('span');
+    left.textContent = new Date(tile.ts).toLocaleString();
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = tile.tone || 'Reflection';
+    meta.append(left, tag);
+    el.append(text, meta);
+    return el;
+  }
+
+  function render(){
+    const tiles = load().sort((a,b)=>b.ts - a.ts);
+    wall.innerHTML = '';
+    tiles.forEach(t => wall.appendChild(tileEl(t)));
+  }
+
+  function update(){
+    const len = msg.value.trim().length;
+    count.textContent = len + '/140';
+    const can = len>0 && len<=140 && ok.checked && clean(msg.value);
+    post.disabled = !can;
+    hint.textContent = can ? '' : (!ok.checked ? 'Consent required.' : (!clean(msg.value) ? 'Please keep it respectful.' : ''));
+  }
+
+  msg.addEventListener('input', update);
+  ok.addEventListener('change', update);
+  update(); render();
+
+  // ===== fly-to-wall animation on post =====
+  post.addEventListener('click', ()=>{
+    const text = msg.value.trim();
+    if (!text) return;
+
+    const now = Date.now();
+    const last = Number(localStorage.getItem(RATE_KEY)||0);
+    const wait = MIN_WAIT - (now - last);
+    if (wait > 0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s before posting again.`; return; }
+
+    if (!clean(text)){ hint.textContent='Please keep it respectful.'; return; }
+
+    // 1) Create real tile hidden in wall to measure final spot
+    const data = { id: crypto.randomUUID(), text, tone: tone.value || '', ts: now };
+    const real = tileEl(data);
+    real.style.visibility = 'hidden';
+    wall.prepend(real); // put it at the top
+
+    // force layout to get target rect
+    const targetRect = real.getBoundingClientRect();
+
+    // 2) Create flying clone at composer
+    const compRect = composer.getBoundingClientRect();
+    const fly = document.createElement('div');
+    fly.className = 'fly';
+    fly.textContent = text;
+    fly.style.width = Math.min(240, Math.max(180, compRect.width * 0.35)) + 'px';
+    document.body.appendChild(fly);
+
+    const startX = compRect.left + compRect.width*0.55 - fly.offsetWidth/2;
+    const startY = compRect.top + 12;
+    const endX   = targetRect.left + 8;
+    const endY   = targetRect.top  + 8;
+
+    fly.style.transform = `translate(${startX}px, ${startY}px) rotate(${(rng(-6,6)).toFixed(1)}deg)`;
+    fly.style.opacity = '0.95';
+
+    // 3) Animate to target
+    const keyframes = [
+      { transform: `translate(${startX}px, ${startY}px) scale(1) rotate(0deg)`, opacity: .95, offset: 0 },
+      { transform: `translate(${(startX+endX)/2}px, ${(startY+endY)/2 - 60}px) scale(1.06) rotate(2deg)`, opacity: 1, offset: .6 },
+      { transform: `translate(${endX}px, ${endY}px) scale(1) rotate(0deg)`, opacity: 1, offset: 1 }
     ];
+    fly.animate(keyframes, { duration: 700, easing: 'cubic-bezier(.2,.7,.2,1)' }).onfinish = () => {
+      document.body.removeChild(fly);
+      real.style.visibility = 'visible'; // reveal real tile
+      // slight pop-in
+      real.animate([
+        { transform:'scale(.96)', opacity:.0 },
+        { transform:'scale(1)',   opacity:1 }
+      ], { duration: 180, easing:'ease-out' });
 
-    const badWords = ['fuck','shit','bitch','asshole','cunt','nigger','faggot']; // minimal demo list
-    function isClean(t){
-      const lo = t.toLowerCase();
-      return !badWords.some(w => lo.includes(w));
-    }
-
-    function loadPosts(){
-      try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
-      catch { return []; }
-    }
-    function savePosts(list){
-      localStorage.setItem(STORE_KEY, JSON.stringify(list));
-    }
-
-    function render(){
-      const posts = loadPosts().sort((a,b)=>b.ts - a.ts);
-      wallEl.innerHTML = '';
-      if (posts.length === 0){ emptyEl.style.display='block'; return; }
-      emptyEl.style.display='none';
-      posts.forEach((p,i)=>{
-        const card = document.createElement('article');
-        card.className = 'card';
-        const bar = document.createElement('div');
-        bar.className = 'accentbar';
-        bar.style.backgroundImage = accents[i % accents.length];
-        const body = document.createElement('div');
-        body.className = 'ink';
-        body.textContent = p.text;
-        const meta = document.createElement('div');
-        meta.className = 'meta';
-        const left = document.createElement('span');
-        left.textContent = new Date(p.ts).toLocaleString();
-        const right = document.createElement('span');
-        right.className = 'tag';
-        right.textContent = p.tone || 'Reflection';
-        meta.append(left,right);
-        card.append(bar, body, meta);
-        wallEl.append(card);
-      });
-    }
-
-    function updateCounter(){
-      const len = msgEl.value.trim().length;
-      countEl.textContent = len + '/' + MAX_LEN;
-      const ok = len > 0 && len <= MAX_LEN && consent.checked && isClean(msgEl.value);
-      postBtn.disabled = !ok;
-    }
-
-    msgEl.addEventListener('input', updateCounter);
-    consent.addEventListener('change', updateCounter);
-    updateCounter();
-
-    postBtn.addEventListener('click', ()=>{
-      const text = msgEl.value.trim();
-      if (!text) return;
-
-      // basic moderation
-      if (!isClean(text)){
-        hintEl.textContent = 'Please keep it respectful.';
-        return;
-      }
-      // rate limit
-      const now = Date.now();
-      const last = Number(localStorage.getItem(RATE_KEY) || 0);
-      const wait = MIN_MS_BETWEEN - (now - last);
-      if (wait > 0){
-        hintEl.textContent = `Please wait ${Math.ceil(wait/1000)}s before posting again.`;
-        return;
-      }
-
-      const post = { id: crypto.randomUUID(), text, tone: toneEl.value || '', ts: now };
-      const posts = loadPosts();
-      posts.push(post);
-      savePosts(posts);
+      // persist
+      const tiles = load(); tiles.push(data); save(tiles);
       localStorage.setItem(RATE_KEY, String(now));
 
-      // reset
-      msgEl.value = '';
-      toneEl.value = '';
-      consent.checked = false;
-      hintEl.textContent = '';
-      updateCounter();
-      render();
-      // scroll to top of wall to show the new card
-      wallEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+      // reset composer
+      msg.value = ''; tone.value=''; ok.checked=false; update();
 
-    // initial render
-    render();
-
-    // ===== Backend hook (optional) =====
-    // If/when you add a real backend, replace loadPosts/savePosts with fetch calls.
-    // Keep the same post shape: { id, text, tone, ts }
-  </script>
+      // ensure new tile is in view on mobile
+      real.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    };
+  });
+</script>
 </body>
 </html>
