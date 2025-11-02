@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Orb World — Aim the Light</title>
+<meta name="description" content="A living orb of light shaped by our reflections." />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1020; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24; --card:#111827; --soft:#1f2937;
+    --max:1200px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent);text-decoration:none}
+  header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+  .brand{font-weight:800}
+  .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
+
+  .hero{display:grid;place-items:center;text-align:center;min-height:22vh;border-bottom:1px solid #1f2737;position:relative;isolation:isolate}
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:-1;
+    background:
+      radial-gradient(900px 420px at 70% 0%, rgba(251,191,36,.18), transparent 60%),
+      radial-gradient(700px 400px at 10% 30%, rgba(96,165,250,.12), transparent 60%);
+  }
+  .hero h1{font-size:clamp(2rem,1.3rem + 2vw,3rem);margin:.2rem 0 .2rem;font-weight:800}
+  .hero p{color:var(--muted);max-width:760px;margin:.2rem auto}
+
+  /* Controls over scene */
+  .hud{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom:18px; z-index:10; width:min(100%, var(--max)); padding:0 16px;
+  }
+  .composer{
+    display:grid; gap:10px; grid-template-columns: 1fr 240px;
+    background:linear-gradient(180deg, rgba(17,24,39,.85), rgba(12,19,34,.9));
+    border:1px solid #243044; border-radius:16px; padding:12px;
+    backdrop-filter: blur(4px); box-shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  @media (max-width:860px){ .composer{grid-template-columns:1fr} }
+  textarea,input,select{
+    width:100%; border:1px solid #2b3a52; border-radius:12px; background:#0c1322;
+    color:#e5e7eb; padding:10px 12px; font-size:1rem; outline:none;
+  }
+  textarea{min-height:84px;resize:vertical}
+  .rightcol{display:grid; gap:10px; grid-template-columns:1fr}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:.35rem;border:1px solid #344155;background:rgba(17,24,39,.5);padding:.35rem .6rem;border-radius:999px;color:var(--ink);font-weight:600}
+  .btn{background:var(--accent);color:#0b0b0b;padding:.55rem .95rem;border-radius:12px;border:none;font-weight:800;cursor:pointer}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .muted{color:var(--muted);font-size:.9rem}
+  .counter{font-variant-numeric:tabular-nums}
+
+  /* Scene container fills viewport under the header/hero */
+  .scene-wrap{position:relative}
+  #scene{display:block; width:100vw; height:calc(100vh - 22vh - 64px); background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913)}
+  footer{padding:42px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Aim the Light</a></div>
+    <nav class="links" aria-label="Primary">
+      <a class="muted" href="index.html#mission">Mission</a>
+      &nbsp;·&nbsp;<a class="muted" href="essay.html">Essay</a>
+      &nbsp;·&nbsp;<a class="muted" href="hub.html">Hub</a>
+    </nav>
+    <a class="btn" href="index.html#join">Join</a>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>A Living Orb of Light</h1>
+  <p>Your reflections become sparks that orbit a shared world. The orb’s color shifts with our collective mood.</p>
+</section>
+
+<div class="scene-wrap">
+  <canvas id="scene"></canvas>
+</div>
+
+<!-- Floating composer -->
+<div class="hud">
+  <div class="composer">
+    <textarea id="msg" maxlength="160" placeholder="Light is... (max 160)"></textarea>
+    <div class="rightcol">
+      <input id="name" type="text" placeholder="Name (optional)" />
+      <select id="tone">
+        <option value="">Tag (optional)</option>
+        <option>Hope</option><option>Resolve</option><option>Gratitude</option>
+        <option>Clarity</option><option>Action</option>
+      </select>
+      <div class="row">
+        <span class="chip counter" id="count">0/160</span>
+        <label class="muted"><input type="checkbox" id="consent"> I agree to public display</label>
+        <span class="muted" id="hint"></span>
+        <div style="flex:1"></div>
+        <button class="btn" id="postBtn" disabled>Add to the Light</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
+</footer>
+
+<!-- Three.js -->
+<script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
+<script>
+/* ========= UTIL / STORAGE ========= */
+document.getElementById('y').textContent = new Date().getFullYear();
+const STORE_KEY = 'atl_orb_posts_v1';
+const RATE_KEY  = 'atl_orb_last_ms';
+const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot']; // demo
+const clean = t => !BADWORDS.some(w => t.toLowerCase().includes(w));
+
+function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
+function save(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
+
+/* ========= SCENE SETUP ========= */
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+resize();
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x060913, 30, 140);
+
+const camera = new THREE.PerspectiveCamera(55, canvas.clientWidth / canvas.clientHeight, 0.1, 500);
+camera.position.set(0, 6, 24);
+
+// Lights
+const hemi = new THREE.HemisphereLight(0x6688ff, 0x000813, 0.5);
+scene.add(hemi);
+const keyLight = new THREE.PointLight(0xffffff, 2.2, 100);
+keyLight.position.set(6, 8, 10);
+scene.add(keyLight);
+
+// Orb (planet) with subtle emissive that we will tint
+const orbGeo = new THREE.SphereGeometry(6, 64, 64);
+const orbMat = new THREE.MeshStandardMaterial({
+  color: 0x0d1327,
+  roughness: 0.5,
+  metalness: 0.1,
+  emissive: 0x111111,
+  emissiveIntensity: 0.6
+});
+const orb = new THREE.Mesh(orbGeo, orbMat);
+scene.add(orb);
+
+// Soft “atmosphere” glow using a larger, backface sphere
+const glowGeo = new THREE.SphereGeometry(6.4, 64, 64);
+const glowMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent:true, opacity:0.08, side: THREE.BackSide });
+const glow = new THREE.Mesh(glowGeo, glowMat);
+scene.add(glow);
+
+// Starfield (points)
+const starGeo = new THREE.BufferGeometry();
+const starCnt = 1200;
+const starPos = new Float32Array(starCnt * 3);
+for (let i=0;i<starCnt;i++){
+  const r = THREE.MathUtils.randFloat(60, 120);
+  const th = Math.random()*Math.PI*2;
+  const ph = Math.acos(THREE.MathUtils.randFloatSpread(2));
+  starPos[i*3+0] = r*Math.sin(ph)*Math.cos(th);
+  starPos[i*3+1] = r*Math.cos(ph);
+  starPos[i*3+2] = r*Math.sin(ph)*Math.sin(th);
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, sizeAttenuation:true, transparent:true, opacity:.9 });
+scene.add(new THREE.Points(starGeo, starMat));
+
+/* ========= ORBITING POSTS ========= */
+const TONES = {
+  'Hope':      { col: 0xfbbf24 }, // gold
+  'Resolve':   { col: 0xef4444 }, // red
+  'Gratitude': { col: 0x22c55e }, // green
+  'Clarity':   { col: 0x60a5fa }, // blue
+  'Action':    { col: 0xa78bfa }  // purple
+};
+const DEFAULT_COL = 0xffe8a6;
+
+const orbits = []; // {mesh,label,angle,rad,speed,data}
+const spriteCache = new Map();
+
+function makeTextSprite(text, color=0x0b0b0b){
+  const key = text+'|'+color;
+  if (spriteCache.has(key)) return spriteCache.get(key).clone();
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const pad = 12; const maxW = 320;
+  ctx.font = '600 18px Inter, system-ui, sans-serif';
+  const lines = wrap(text, ctx, maxW);
+  const lineH = 22;
+  const w = Math.min(maxW, Math.max(140, ...lines.map(l=>ctx.measureText(l).width))) + pad*2;
+  const h = lines.length*lineH + pad*2;
+
+  canvas.width = w*2; canvas.height = h*2; // hi-dpi
+  const c = canvas.getContext('2d');
+  c.scale(2,2);
+  // card
+  c.fillStyle = '#ffe8a6';
+  c.strokeStyle = 'rgba(0,0,0,.18)';
+  c.lineWidth = 1;
+  roundRect(c, 0, 0, w, h, 12);
+  c.fill(); c.stroke();
+  // text
+  c.fillStyle = '#0b0b0b';
+  c.font = '600 18px Inter, system-ui, sans-serif';
+  c.textBaseline = 'top';
+  lines.forEach((l,i)=> c.fillText(l, pad, pad + i*lineH));
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
+  const mat = new THREE.SpriteMaterial({ map: tex, depthWrite:false, transparent:true });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(w/28, h/28, 1);
+  spriteCache.set(key, sprite);
+  return sprite.clone();
+}
+function wrap(text, ctx, maxWidth){
+  const words = text.split(/\s+/);
+  const lines = []; let line = '';
+  words.forEach(word=>{
+    const t = line ? line + ' ' + word : word;
+    if (ctx.measureText(t).width > maxWidth) { if (line) lines.push(line); line = word; }
+    else { line = t; }
+  });
+  if (line) lines.push(line);
+  return lines.slice(0, 3); // cap 3 lines
+}
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+
+function addOrbitingPost(p){
+  // tiny glowing dot
+  const dot = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12, 16, 16),
+    new THREE.MeshBasicMaterial({ color: p.col || DEFAULT_COL })
+  );
+  const sprite = makeTextSprite((p.name ? `${p.name}: ` : '') + p.text);
+
+  const group = new THREE.Group();
+  group.add(dot); group.add(sprite);
+  scene.add(group);
+
+  const rad = THREE.MathUtils.randFloat(8.5, 13.5);
+  const angle = Math.random()*Math.PI*2;
+  const speed = THREE.MathUtils.randFloat(0.0008, 0.0018);
+  sprite.position.set(0.9, 0.9, 0);
+
+  orbits.push({ group, dot, sprite, angle, rad, speed, data:p });
+}
+
+function rebuildOrbits(){
+  // clear previous
+  orbits.forEach(o=> scene.remove(o.group));
+  orbits.length = 0;
+  const list = load().sort((a,b)=>a.ts - b.ts); // older inside
+  list.forEach(addOrbitingPost);
+}
+
+function updateOrbits(dt){
+  orbits.forEach(o=>{
+    o.angle += o.speed * dt;
+    const x = Math.cos(o.angle) * o.rad;
+    const z = Math.sin(o.angle) * o.rad;
+    const y = Math.sin(o.angle*0.6) * 0.6; // gentle bob
+    o.group.position.set(x, y, z);
+    o.group.lookAt(camera.position);
+  });
+}
+
+/* ========= COLOR MOOD BLEND ========= */
+function hexToVec3(hex){
+  return new THREE.Color(hex);
+}
+function blendToneColor(){
+  const list = load();
+  if (!list.length){
+    orbMat.emissive.setHex(0x111111);
+    glowMat.color.setHex(0xfbbf24);
+    keyLight.color.setHex(0xffffff);
+    return;
+  }
+  // frequency by tone
+  const freq = {Hope:0,Resolve:0,Gratitude:0,Clarity:0,Action:0, Unknown:0};
+  list.forEach(p=>{ const t = p.tone || 'Unknown'; if(freq[t]==null) freq.Unknown++; else freq[t]++; });
+  const total = Object.values(freq).reduce((a,b)=>a+b,0) || 1;
+
+  // weighted blend of tone colors (unknown pulls slightly warm)
+  const weights = [
+    {c:TONES.Hope.col,      w:freq.Hope/total},
+    {c:TONES.Resolve.col,   w:freq.Resolve/total},
+    {c:TONES.Gratitude.col, w:freq.Gratitude/total},
+    {c:TONES.Clarity.col,   w:freq.Clarity/total},
+    {c:TONES.Action.col,    w:freq.Action/total},
+    {c:0xffcc88,            w:(freq.Unknown/total)*0.5}
+  ];
+  const out = new THREE.Color(0,0,0);
+  weights.forEach(({c,w})=>{
+    const col = new THREE.Color(c);
+    out.r += col.r*w; out.g += col.g*w; out.b += col.b*w;
+  });
+
+  // apply to emissive/glow/light (soften)
+  const softened = out.clone().lerp(new THREE.Color(0x111111), 0.4);
+  orbMat.emissive = softened;
+  glowMat.color = out.clone().lerp(new THREE.Color(0xfbbf24), 0.2);
+  keyLight.color = out.clone().lerp(new THREE.Color(0xffffff), 0.5);
+}
+
+/* ========= INTERACTION / COMPOSER ========= */
+const msg   = document.getElementById('msg');
+const nameI = document.getElementById('name');
+const tone  = document.getElementById('tone');
+const okC   = document.getElementById('consent');
+const count = document.getElementById('count');
+const hint  = document.getElementById('hint');
+const postB = document.getElementById('postBtn');
+
+function updateCounter(){
+  const len = msg.value.trim().length;
+  count.textContent = `${len}/160`;
+  postB.disabled = !(len>0 && len<=160 && okC.checked && clean(msg.value));
+  hint.textContent = postB.disabled ? (!okC.checked ? 'Consent required.' : (!clean(msg.value) ? 'Please keep it respectful.' : '')) : '';
+}
+msg.addEventListener('input', updateCounter);
+okC.addEventListener('change', updateCounter);
+updateCounter();
+
+postB.addEventListener('click', ()=>{
+  const text = msg.value.trim();
+  if (!text) return;
+  const now = Date.now();
+  const last = Number(localStorage.getItem(RATE_KEY)||0);
+  const wait = 30*1000 - (now - last);
+  if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
+  if (!clean(text)){ hint.textContent='Please keep it respectful.'; return; }
+
+  const t = tone.value || '';
+  const col = (TONES[t]?.col) ?? DEFAULT_COL;
+  const p = {
+    id: crypto.randomUUID(),
+    text, name: nameI.value.trim(), tone: t, col, ts: now
+  };
+  const list = load(); list.push(p); save(list);
+  localStorage.setItem(RATE_KEY, String(now));
+
+  // reset UI
+  msg.value=''; nameI.value=''; tone.value=''; okC.checked=false; updateCounter();
+
+  // add to scene
+  addOrbitingPost(p);
+  blendToneColor();
+
+  // tiny flash on orb
+  orbMat.emissiveIntensity = 0.9;
+  setTimeout(()=>{ orbMat.emissiveIntensity = 0.6; }, 300);
+});
+
+/* ========= ANIMATE ========= */
+let last = performance.now();
+function tick(t){
+  const dt = t - last; last = t;
+  orb.rotation.y += 0.0006 * dt;
+  glow.rotation.y -= 0.0003 * dt;
+  updateOrbits(dt);
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+/* ========= INIT CONTENT ========= */
+rebuildOrbits();
+blendToneColor();
+
+/* ========= RESIZE ========= */
+function resize(){
+  const w = canvas.clientWidth || window.innerWidth;
+  const h = canvas.clientHeight || (window.innerHeight - (window.innerHeight*0.22) - 64);
+  renderer.setSize(w, h, false);
+  if (camera){
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+  }
+}
+window.addEventListener('resize', resize);
+
+/* ========= CAMERA ORBIT CONTROLS (simple mouse drag) ========= */
+let dragging=false, lx=0, ly=0, ry=0, rx=0;
+canvas.addEventListener('pointerdown', e=>{ dragging=true; lx=e.clientX; ly=e.clientY; });
+window.addEventListener('pointerup', ()=> dragging=false);
+window.addEventListener('pointermove', (e)=>{
+  if (!dragging) return;
+  const dx = (e.clientX - lx)/window.innerWidth;
+  const dy = (e.clientY - ly)/window.innerHeight;
+  lx = e.clientX; ly = e.clientY;
+  ry += dx * Math.PI; rx = THREE.MathUtils.clamp(rx + dy * Math.PI*0.5, -0.6, 0.6);
+  const r = 24;
+  camera.position.x = Math.sin(ry) * r * Math.cos(rx);
+  camera.position.z = Math.cos(ry) * r * Math.cos(rx);
+  camera.position.y = Math.sin(rx) * r * 0.6;
+  camera.lookAt(0,0,0);
+});
+</script>
+</body>
+</html>
