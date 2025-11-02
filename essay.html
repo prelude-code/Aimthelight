@@ -644,8 +644,7 @@ That’s the new common sense.
       .replace(/__(.+?)__/g,'<strong>$1</strong>')
       .replace(/_([^_]+?)_/g,'<em>$1</em>')
       .replace(/==(.+?)==/g,'<span class="goldline">$1</span>');
-    t=t.replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-    t = t.replace(/&lt;(\/?(span|em|strong|b|i|a)(\s+[^&<>]*)?)&gt;/gi, '<$1>');
+    t = t.replace(/&lt;(\/?(span|em|strong|b|i|a)(\s+[^<>]*?)?)&gt;/gi, '<$1>');
     return t;
   };
 
