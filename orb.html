@@ -7,6 +7,7 @@
 <meta name="description" content="A living orb of light shaped by our reflections." />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
 <style>
   :root{
     --bg:#0b1020; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24; --card:#111827; --soft:#1f2937;
@@ -15,6 +16,7 @@
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
   a{color:var(--accent);text-decoration:none}
+
   header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
   .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
   .brand{font-weight:800}
@@ -31,7 +33,12 @@
   .hero p{color:var(--muted);max-width:760px;margin:.2rem auto}
 
   .scene-wrap{position:relative}
-  #scene{display:block; width:100vw; height:calc(100vh - 22vh - 160px); background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913)}
+  #scene{
+    display:block;
+    width:100vw;
+    /* no height here; JS controls height to avoid mobile calc bugs */
+    background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913);
+  }
 
   /* Floating composer HUD */
   .hud{
@@ -144,8 +151,14 @@
   <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
 </footer>
 
-<!-- Three.js -->
-<script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
+<!-- Three.js (CDN + fallback) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+<script>
+  if (typeof THREE === 'undefined') {
+    document.write('<script src="https://unpkg.com/three@0.161.0/build/three.min.js"><\/script>');
+  }
+</script>
+
 <script>
 /* ========= UTIL / STORAGE ========= */
 document.getElementById('y').textContent = new Date().getFullYear();
@@ -154,58 +167,102 @@ window.RATE_KEY  = 'atl_orb_last_ms';
 function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
 function save(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
 
-/* ========= SCENE SETUP ========= */
+/* ========= SCENE + RENDER ========= */
+let renderer, scene, camera, orb, glow, orbMat, glowMat, keyLight;
 const canvas = document.getElementById('scene');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-resize();
 
-const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x060913, 30, 140);
-
-const camera = new THREE.PerspectiveCamera(55, canvas.clientWidth / canvas.clientHeight, 0.1, 500);
-camera.position.set(0, 6, 24);
-
-// Lights
-const hemi = new THREE.HemisphereLight(0x6688ff, 0x000813, 0.5);
-scene.add(hemi);
-const keyLight = new THREE.PointLight(0xffffff, 2.2, 100);
-keyLight.position.set(6, 8, 10);
-scene.add(keyLight);
-
-// Orb (planet)
-const orbGeo = new THREE.SphereGeometry(6, 64, 64);
-const orbMat = new THREE.MeshStandardMaterial({
-  color: 0x0d1327,
-  roughness: 0.5,
-  metalness: 0.1,
-  emissive: 0x111111,
-  emissiveIntensity: 0.6
-});
-const orb = new THREE.Mesh(orbGeo, orbMat);
-scene.add(orb);
-
-// Soft atmosphere glow
-const glowGeo = new THREE.SphereGeometry(6.4, 64, 64);
-const glowMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent:true, opacity:0.08, side: THREE.BackSide });
-const glow = new THREE.Mesh(glowGeo, glowMat);
-scene.add(glow);
-
-// Starfield
-const starGeo = new THREE.BufferGeometry();
-const starCnt = 1200;
-const starPos = new Float32Array(starCnt * 3);
-for (let i=0;i<starCnt;i++){
-  const r = THREE.MathUtils.randFloat(60, 120);
-  const th = Math.random()*Math.PI*2;
-  const ph = Math.acos(THREE.MathUtils.randFloatSpread(2));
-  starPos[i*3+0] = r*Math.sin(ph)*Math.cos(th);
-  starPos[i*3+1] = r*Math.cos(ph);
-  starPos[i*3+2] = r*Math.sin(ph)*Math.sin(th);
+function calcSceneHeight() {
+  const reserve = (window.innerWidth < 860) ? 220 : 160; // space for HUD
+  const heroH = Math.max(140, window.innerHeight * 0.22);
+  return Math.floor(Math.max(280, window.innerHeight - heroH - reserve));
 }
-starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, sizeAttenuation:true, transparent:true, opacity:.9 });
-scene.add(new THREE.Points(starGeo, starMat));
+function resize(){
+  const w = window.innerWidth;
+  const h = calcSceneHeight();
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  if (renderer){
+    renderer.setSize(w, h, false);
+  }
+  if (camera){
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+}
+
+function initScene(){
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearColor(0x0b1020, 1);
+  if (renderer.outputColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x060913, 30, 140);
+
+  camera = new THREE.PerspectiveCamera(55, 1, 0.1, 500);
+  camera.position.set(0, 6, 24);
+
+  // Lights
+  const hemi = new THREE.HemisphereLight(0x6688ff, 0x000813, 0.5);
+  scene.add(hemi);
+  keyLight = new THREE.PointLight(0xffffff, 2.6, 100); // brighter
+  keyLight.position.set(6, 8, 10);
+  scene.add(keyLight);
+
+  // Orb (planet)
+  const orbGeo = new THREE.SphereGeometry(6, 64, 64);
+  orbMat = new THREE.MeshStandardMaterial({
+    color: 0x0d1327,
+    roughness: 0.5,
+    metalness: 0.1,
+    emissive: 0x111111,
+    emissiveIntensity: 0.9  // brighter
+  });
+  orb = new THREE.Mesh(orbGeo, orbMat);
+  scene.add(orb);
+
+  // Soft atmosphere glow
+  const glowGeo = new THREE.SphereGeometry(6.4, 64, 64);
+  glowMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent:true, opacity:0.14, side: THREE.BackSide });
+  glow = new THREE.Mesh(glowGeo, glowMat);
+  scene.add(glow);
+
+  // Starfield
+  const starGeo = new THREE.BufferGeometry();
+  const starCnt = 1200;
+  const starPos = new Float32Array(starCnt * 3);
+  for (let i=0;i<starCnt;i++){
+    const r = THREE.MathUtils.randFloat(60, 120);
+    const th = Math.random()*Math.PI*2;
+    const ph = Math.acos(THREE.MathUtils.randFloatSpread(2));
+    starPos[i*3+0] = r*Math.sin(ph)*Math.cos(th);
+    starPos[i*3+1] = r*Math.cos(ph);
+    starPos[i*3+2] = r*Math.sin(ph)*Math.sin(th);
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, sizeAttenuation:true, transparent:true, opacity:.9 });
+  scene.add(new THREE.Points(starGeo, starMat));
+
+  // Size last so we have correct dimensions
+  resize();
+
+  // Camera drag orbit
+  let dragging=false, lx=0, ly=0, ry=0, rx=0;
+  canvas.addEventListener('pointerdown', e=>{ dragging=true; lx=e.clientX; ly=e.clientY; });
+  window.addEventListener('pointerup', ()=> dragging=false);
+  window.addEventListener('pointermove', (e)=>{
+    if (!dragging) return;
+    const dx = (e.clientX - lx)/window.innerWidth;
+    const dy = (e.clientY - ly)/window.innerHeight;
+    lx = e.clientX; ly = e.clientY;
+    ry += dx * Math.PI; rx = THREE.MathUtils.clamp(rx + dy * Math.PI*0.5, -0.6, 0.6);
+    const r = 24;
+    camera.position.x = Math.sin(ry) * r * Math.cos(rx);
+    camera.position.z = Math.cos(ry) * r * Math.cos(rx);
+    camera.position.y = Math.sin(rx) * r * 0.6;
+    camera.lookAt(0,0,0);
+  });
+}
 
 /* ========= ORBITING POSTS ========= */
 window.TONES = {
@@ -217,15 +274,15 @@ window.TONES = {
 };
 window.DEFAULT_COL = 0xffe8a6;
 
-const orbits = []; // {group,dot,sprite,angle,rad,speed,data}
+const orbits = [];
 const spriteCache = new Map();
 
 function makeTextSprite(text){
   const key = text;
   if (spriteCache.has(key)) return spriteCache.get(key).clone();
 
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const c = document.createElement('canvas');
+  const ctx = c.getContext('2d');
   const pad = 14;
   const maxW = 360;
   ctx.font = '600 18px Inter, system-ui, sans-serif';
@@ -234,24 +291,22 @@ function makeTextSprite(text){
   const w = Math.min(maxW, Math.max(160, ...lines.map(l=>ctx.measureText(l).width))) + pad*2;
   const h = lines.length*lineH + pad*2;
 
-  canvas.width = w*2; canvas.height = h*2; // hi-dpi
-  const c = canvas.getContext('2d');
-  c.scale(2,2);
+  c.width = w*2; c.height = h*2;
+  const g = c.getContext('2d'); g.scale(2,2);
 
   // card
-  c.fillStyle = '#ffe8a6';
-  c.strokeStyle = 'rgba(0,0,0,.18)';
-  c.lineWidth = 1;
-  roundRect(c, 0, 0, w, h, 12);
-  c.fill(); c.stroke();
+  g.fillStyle = '#ffe8a6';
+  g.strokeStyle = 'rgba(0,0,0,.18)';
+  g.lineWidth = 1;
+  roundRect(g, 0, 0, w, h, 12); g.fill(); g.stroke();
 
   // text
-  c.fillStyle = '#0b0b0b';
-  c.font = '600 18px Inter, system-ui, sans-serif';
-  c.textBaseline = 'top';
-  lines.forEach((l,i)=> c.fillText(l, pad, pad + i*lineH));
+  g.fillStyle = '#0b0b0b';
+  g.font = '600 18px Inter, system-ui, sans-serif';
+  g.textBaseline = 'top';
+  lines.forEach((l,i)=> g.fillText(l, pad, pad + i*lineH));
 
-  const tex = new THREE.CanvasTexture(canvas);
+  const tex = new THREE.CanvasTexture(c);
   tex.minFilter = THREE.LinearFilter; 
   tex.magFilter = THREE.LinearFilter;
 
@@ -259,12 +314,12 @@ function makeTextSprite(text){
     map: tex,
     transparent: true,
     depthWrite: false,
-    depthTest: false,     // always on top
+    depthTest: false,
   });
 
   const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(w/22, h/22, 1); // larger
-  sprite.renderOrder = 999;        // render last
+  sprite.scale.set(w/22, h/22, 1);
+  sprite.renderOrder = 999;
 
   spriteCache.set(key, sprite);
   return sprite.clone();
@@ -388,51 +443,33 @@ function blendToneColor(){
   keyLight.color = out.clone().lerp(new THREE.Color(0xffffff), 0.5);
 }
 window.blendToneColor = blendToneColor;
-window.orbMat = orbMat;
-
-/* ========= INIT ========= */
-rebuildOrbits();
-blendToneColor();
+window.orbMat = null; // set after init
 
 /* ========= ANIMATE ========= */
 let last = performance.now();
 function tick(t){
   const dt = t - last; last = t;
-  orb.rotation.y += 0.0006 * dt;
-  glow.rotation.y -= 0.0003 * dt;
+  if (orb)  orb.rotation.y  += 0.0006 * dt;
+  if (glow) glow.rotation.y -= 0.0003 * dt;
   updateOrbits(dt);
-  renderer.render(scene, camera);
+  if (renderer && scene && camera) renderer.render(scene, camera);
+  document.body.dataset.webgl = 'ok';
   requestAnimationFrame(tick);
 }
-requestAnimationFrame(tick);
 
-/* ========= RESIZE ========= */
-function resize(){
-  const w = canvas.clientWidth || window.innerWidth;
-  const h = canvas.clientHeight || (window.innerHeight - (window.innerHeight*0.22) - 160);
-  renderer.setSize(w, h, false);
-  if (camera){
-    camera.aspect = w/h;
-    camera.updateProjectionMatrix();
+/* ========= BOOT ========= */
+window.addEventListener('load', ()=>{
+  try {
+    initScene();
+    // expose for composer flashes
+    window.orbMat = orbMat;
+    rebuildOrbits();
+    blendToneColor();
+    requestAnimationFrame(tick);
+  } catch(e){
+    console.error('Scene init error:', e);
   }
-}
-window.addEventListener('resize', resize);
-
-/* ========= CAMERA DRAG ORBIT ========= */
-let dragging=false, lx=0, ly=0, ry=0, rx=0;
-canvas.addEventListener('pointerdown', e=>{ dragging=true; lx=e.clientX; ly=e.clientY; });
-window.addEventListener('pointerup', ()=> dragging=false);
-window.addEventListener('pointermove', (e)=>{
-  if (!dragging) return;
-  const dx = (e.clientX - lx)/window.innerWidth;
-  const dy = (e.clientY - ly)/window.innerHeight;
-  lx = e.clientX; ly = e.clientY;
-  ry += dx * Math.PI; rx = THREE.MathUtils.clamp(rx + dy * Math.PI*0.5, -0.6, 0.6);
-  const r = 24;
-  camera.position.x = Math.sin(ry) * r * Math.cos(rx);
-  camera.position.z = Math.cos(ry) * r * Math.cos(rx);
-  camera.position.y = Math.sin(rx) * r * 0.6;
-  camera.lookAt(0,0,0);
+  window.addEventListener('resize', resize);
 });
 </script>
 
@@ -495,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function(){
   function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
   function save(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
 
-  // Preload feed from storage (nice touch)
+  // Preload feed
   try { load().slice(-10).reverse().forEach(appendFeed); } catch {}
 
   postB.addEventListener('click', ()=>{
@@ -530,7 +567,7 @@ document.addEventListener('DOMContentLoaded', function(){
     try {
       if (typeof window.addOrbitingPost === 'function') window.addOrbitingPost(p);
       if (typeof window.blendToneColor  === 'function') window.blendToneColor();
-      if (window.orbMat){ orbMat.emissiveIntensity = 0.9; setTimeout(()=>orbMat.emissiveIntensity = 0.6, 300); }
+      if (window.orbMat){ window.orbMat.emissiveIntensity = 1.05; setTimeout(()=>window.orbMat.emissiveIntensity = 0.9, 300); }
     } catch (e){
       console.error('Scene update error:', e);
       hint.textContent = 'Posted (3D view failed—check console).';
