@@ -80,6 +80,24 @@
     .prose blockquote{margin:1.2rem 0;padding:.8rem 1rem;border-left:3px solid var(--accent);background:#0c1322;border-radius:6px;color:var(--prose)}
     .prose hr{border:0;border-top:1px solid #1f2737;margin:2rem 0}
 
+/* Gray aside box for commentary or notes */
+.prose .aside {
+  background: linear-gradient(180deg, #111827, #0f172a);
+  border-left: 3px solid var(--muted);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  color: var(--prose);
+  font-size: 0.98rem;
+  font-style: italic;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+/* Optional: subtle gold accent for special ones */
+.prose .aside.accent {
+  border-left-color: var(--accent);
+  box-shadow: 0 0 6px rgba(251,191,36,0.25);
+}
     /* Share row */
     .share{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
     .chip{display:inline-flex;align-items:center;gap:.4rem;border:1px solid #344155;background:rgba(17,24,39,.5);padding:.45rem .7rem;border-radius:999px;color:var(--ink);font-weight:600}
@@ -119,6 +137,14 @@
   border-radius: 2px;
   margin: 2.5rem 0;
   box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+
+
+/* Inline gold underline */
+.goldline {
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 2px;
+  box-shadow: 0 2px 4px rgba(251,191,36,0.3);
 }
 
 
@@ -315,7 +341,7 @@ Our moral vocabulary shrank to slogans; our patience dissolved in dopamine.
 We had once argued to persuade; now we argued to belong.
 The content hardly mattered — the signal did:
 I am on the right side.
-I am not one of them.
+*I am not one of them.*
 
 It felt safer inside the glare of shared outrage.
 If you stayed silent, you were suspect; if you questioned the script, you were exiled.
@@ -381,7 +407,7 @@ Not to hate the other side — at least, not at first — but to stop feeling al
 A tribe offers warmth, clarity, relief.
 Inside, you don’t have to keep re-deciding what’s right and wrong.
 The script is written for you.
-You can finally rest your moral muscles and say, “my side’s got this.”
+You can finally rest your moral muscles and say, *“my side’s got this.”*
 
 It is a clever psychological trade: complexity for calm, empathy for certainty.
 The mind quiets, the anxiety lifts, and you belong again.
@@ -438,7 +464,7 @@ That’s how noble causes lose followers — not through opposition, but through
 The high road gets lonely when it feels like an endurance test instead of a shared journey.
 
 We didn’t lose our morality.
-We overdosed on it.
+We *overdosed* on it.
 
 ## Part VI – Too Much Light, Not Enough Warmth
 
@@ -545,7 +571,9 @@ We can argue fiercely and still believe we share a home.
 
 The Overexposed Republic doesn’t have to stay overexposed.
 We can draw the blinds a little, steady the light, and talk to one another again.
-It wasn’t the light that failed us, but how we turned it inward—blinding each other when we were meant to find the way forward together.
+It wasn’t the light that failed us, but how we turned it inward—blinding each other when we were meant to find the way forward <span class="goldline">together.</span>
+
+---
 
 ## Postscript – What Now?
 
