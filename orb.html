@@ -30,7 +30,11 @@
   .hero h1{font-size:clamp(2rem,1.3rem + 2vw,3rem);margin:.2rem 0 .2rem;font-weight:800}
   .hero p{color:var(--muted);max-width:760px;margin:.2rem auto}
 
-  /* Controls over scene */
+  /* Scene */
+  .scene-wrap{position:relative}
+  #scene{display:block; width:100vw; height:calc(100vh - 22vh - 64px); background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913)}
+
+  /* Floating composer HUD */
   .hud{
     position:fixed; left:50%; transform:translateX(-50%);
     bottom:18px; z-index:10; width:min(100%, var(--max)); padding:0 16px;
@@ -55,9 +59,6 @@
   .muted{color:var(--muted);font-size:.9rem}
   .counter{font-variant-numeric:tabular-nums}
 
-  /* Scene container fills viewport under the header/hero */
-  .scene-wrap{position:relative}
-  #scene{display:block; width:100vw; height:calc(100vh - 22vh - 64px); background:radial-gradient(800px 400px at 50% 0%, #0e1630, #060913)}
   footer{padding:42px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
 </style>
 </head>
@@ -96,7 +97,6 @@
       </select>
       <div class="row">
         <span class="chip counter" id="count">0/160</span>
-        <label class="muted"><input type="checkbox" id="consent"> I agree to public display</label>
         <span class="muted" id="hint"></span>
         <div style="flex:1"></div>
         <button class="btn" id="postBtn" disabled>Add to the Light</button>
@@ -114,10 +114,9 @@
 <script>
 /* ========= UTIL / STORAGE ========= */
 document.getElementById('y').textContent = new Date().getFullYear();
-const STORE_KEY = 'atl_orb_posts_v1';
-const RATE_KEY  = 'atl_orb_last_ms';
-const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot']; // demo
-const clean = t => !BADWORDS.some(w => t.toLowerCase().includes(w));
+// Expose keys globally so other blocks can reuse
+window.STORE_KEY = 'atl_orb_posts_v1';
+window.RATE_KEY  = 'atl_orb_last_ms';
 
 function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
 function save(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
@@ -141,7 +140,7 @@ const keyLight = new THREE.PointLight(0xffffff, 2.2, 100);
 keyLight.position.set(6, 8, 10);
 scene.add(keyLight);
 
-// Orb (planet) with subtle emissive that we will tint
+// Orb (planet)
 const orbGeo = new THREE.SphereGeometry(6, 64, 64);
 const orbMat = new THREE.MeshStandardMaterial({
   color: 0x0d1327,
@@ -153,13 +152,13 @@ const orbMat = new THREE.MeshStandardMaterial({
 const orb = new THREE.Mesh(orbGeo, orbMat);
 scene.add(orb);
 
-// Soft “atmosphere” glow using a larger, backface sphere
+// Soft atmosphere glow
 const glowGeo = new THREE.SphereGeometry(6.4, 64, 64);
 const glowMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent:true, opacity:0.08, side: THREE.BackSide });
 const glow = new THREE.Mesh(glowGeo, glowMat);
 scene.add(glow);
 
-// Starfield (points)
+// Starfield
 const starGeo = new THREE.BufferGeometry();
 const starCnt = 1200;
 const starPos = new Float32Array(starCnt * 3);
@@ -176,20 +175,20 @@ const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, sizeAtten
 scene.add(new THREE.Points(starGeo, starMat));
 
 /* ========= ORBITING POSTS ========= */
-const TONES = {
+window.TONES = {
   'Hope':      { col: 0xfbbf24 }, // gold
   'Resolve':   { col: 0xef4444 }, // red
   'Gratitude': { col: 0x22c55e }, // green
   'Clarity':   { col: 0x60a5fa }, // blue
   'Action':    { col: 0xa78bfa }  // purple
 };
-const DEFAULT_COL = 0xffe8a6;
+window.DEFAULT_COL = 0xffe8a6;
 
-const orbits = []; // {mesh,label,angle,rad,speed,data}
+const orbits = []; // {group,dot,sprite,angle,rad,speed,data}
 const spriteCache = new Map();
 
-function makeTextSprite(text, color=0x0b0b0b){
-  const key = text+'|'+color;
+function makeTextSprite(text){
+  const key = text;
   if (spriteCache.has(key)) return spriteCache.get(key).clone();
 
   const canvas = document.createElement('canvas');
@@ -225,7 +224,7 @@ function makeTextSprite(text, color=0x0b0b0b){
   return sprite.clone();
 }
 function wrap(text, ctx, maxWidth){
-  const words = text.split(/\s+/);
+  const words = (text||'').split(/\s+/);
   const lines = []; let line = '';
   words.forEach(word=>{
     const t = line ? line + ' ' + word : word;
@@ -251,7 +250,8 @@ function addOrbitingPost(p){
     new THREE.SphereGeometry(0.12, 16, 16),
     new THREE.MeshBasicMaterial({ color: p.col || DEFAULT_COL })
   );
-  const sprite = makeTextSprite((p.name ? `${p.name}: ` : '') + p.text);
+  const label = (p.name ? `${p.name}: ` : '') + p.text;
+  const sprite = makeTextSprite(label);
 
   const group = new THREE.Group();
   group.add(dot); group.add(sprite);
@@ -264,9 +264,9 @@ function addOrbitingPost(p){
 
   orbits.push({ group, dot, sprite, angle, rad, speed, data:p });
 }
+window.addOrbitingPost = addOrbitingPost; // expose for composer
 
 function rebuildOrbits(){
-  // clear previous
   orbits.forEach(o=> scene.remove(o.group));
   orbits.length = 0;
   const list = load().sort((a,b)=>a.ts - b.ts); // older inside
@@ -285,9 +285,6 @@ function updateOrbits(dt){
 }
 
 /* ========= COLOR MOOD BLEND ========= */
-function hexToVec3(hex){
-  return new THREE.Color(hex);
-}
 function blendToneColor(){
   const list = load();
   if (!list.length){
@@ -296,12 +293,10 @@ function blendToneColor(){
     keyLight.color.setHex(0xffffff);
     return;
   }
-  // frequency by tone
   const freq = {Hope:0,Resolve:0,Gratitude:0,Clarity:0,Action:0, Unknown:0};
   list.forEach(p=>{ const t = p.tone || 'Unknown'; if(freq[t]==null) freq.Unknown++; else freq[t]++; });
   const total = Object.values(freq).reduce((a,b)=>a+b,0) || 1;
 
-  // weighted blend of tone colors (unknown pulls slightly warm)
   const weights = [
     {c:TONES.Hope.col,      w:freq.Hope/total},
     {c:TONES.Resolve.col,   w:freq.Resolve/total},
@@ -316,69 +311,17 @@ function blendToneColor(){
     out.r += col.r*w; out.g += col.g*w; out.b += col.b*w;
   });
 
-  // apply to emissive/glow/light (soften)
   const softened = out.clone().lerp(new THREE.Color(0x111111), 0.4);
-  orbMat.emissive = softened;
+  orbMat.emissive = softened;            // emissive is a Color; assign Color object
   glowMat.color = out.clone().lerp(new THREE.Color(0xfbbf24), 0.2);
   keyLight.color = out.clone().lerp(new THREE.Color(0xffffff), 0.5);
 }
+window.blendToneColor = blendToneColor; // expose for composer
+window.orbMat = orbMat;                 // expose for flash
 
-/* ========= INTERACTION / COMPOSER ========= */
-const msg   = document.getElementById('msg');
-const nameI = document.getElementById('name');
-const tone  = document.getElementById('tone');
-const count = document.getElementById('count');
-const hint  = document.getElementById('hint');
-const postB = document.getElementById('postBtn');
-
-function updateCounter(){
-  const len = msg.value.trim().length;
-  count.textContent = `${len}/160`;
-
-  // Enable if nonempty, within limit, and clean
-  const enable = len > 0 && len <= 160 && clean(msg.value);
-  postB.disabled = !enable;
-
-  if (!clean(msg.value))      hint.textContent = 'Please keep it respectful.';
-  else if (len > 160)         hint.textContent = 'Too long.';
-  else if (len === 0)         hint.textContent = '';
-  else                        hint.textContent = '';
-}
-
-msg.addEventListener('input', updateCounter);
-updateCounter();
-
-postB.addEventListener('click', ()=>{
-  const text = msg.value.trim();
-  if (!text) return;
-  if (!clean(text)){ hint.textContent='Please keep it respectful.'; return; }
-
-  const now = Date.now();
-  const last = Number(localStorage.getItem(RATE_KEY)||0);
-  const wait = 10*1000 - (now - last); // only 10s cooldown now
-  if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
-
-  const t = tone.value || '';
-  const col = (TONES[t]?.col) ?? DEFAULT_COL;
-  const p = {
-    id: crypto.randomUUID(),
-    text, name: nameI.value.trim(), tone: t, col, ts: now
-  };
-  const list = load(); list.push(p); save(list);
-  localStorage.setItem(RATE_KEY, String(now));
-
-  // reset UI
-  msg.value=''; nameI.value=''; tone.value='';
-  updateCounter();
-
-  // add to scene
-  addOrbitingPost(p);
-  blendToneColor();
-
-  // subtle flash on orb
-  orbMat.emissiveIntensity = 0.9;
-  setTimeout(()=>{ orbMat.emissiveIntensity = 0.6; }, 300);
-});
+/* ========= INIT CONTENT ========= */
+rebuildOrbits();
+blendToneColor();
 
 /* ========= ANIMATE ========= */
 let last = performance.now();
@@ -392,10 +335,6 @@ function tick(t){
 }
 requestAnimationFrame(tick);
 
-/* ========= INIT CONTENT ========= */
-rebuildOrbits();
-blendToneColor();
-
 /* ========= RESIZE ========= */
 function resize(){
   const w = canvas.clientWidth || window.innerWidth;
@@ -408,7 +347,7 @@ function resize(){
 }
 window.addEventListener('resize', resize);
 
-/* ========= CAMERA ORBIT CONTROLS (simple mouse drag) ========= */
+/* ========= CAMERA DRAG ORBIT ========= */
 let dragging=false, lx=0, ly=0, ry=0, rx=0;
 canvas.addEventListener('pointerdown', e=>{ dragging=true; lx=e.clientX; ly=e.clientY; });
 window.addEventListener('pointerup', ()=> dragging=false);
@@ -423,6 +362,85 @@ window.addEventListener('pointermove', (e)=>{
   camera.position.z = Math.cos(ry) * r * Math.cos(rx);
   camera.position.y = Math.sin(rx) * r * 0.6;
   camera.lookAt(0,0,0);
+});
+</script>
+
+<!-- ========= INTERACTION / COMPOSER (robust) ========= -->
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  const msg   = document.getElementById('msg');
+  const nameI = document.getElementById('name');
+  const tone  = document.getElementById('tone');
+  const count = document.getElementById('count');
+  const hint  = document.getElementById('hint');
+  const postB = document.getElementById('postBtn');
+
+  if (!msg || !nameI || !tone || !count || !hint || !postB) {
+    console.warn('Composer elements not found. Check IDs in the HTML.');
+    return;
+  }
+
+  // Simple profanity filter (demo)
+  const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot'];
+  const clean = t => !BADWORDS.some(w => (t||'').toLowerCase().includes(w));
+
+  function updateCounter(){
+    const val = (msg.value || '').trim();
+    const len = val.length;
+    count.textContent = `${len}/160`;
+
+    const enable = len > 0 && len <= 160 && clean(val);
+    postB.disabled = !enable;
+
+    if (!clean(val))        hint.textContent = 'Please keep it respectful.';
+    else if (len > 160)     hint.textContent = 'Too long.';
+    else                    hint.textContent = '';
+  }
+
+  // More events for mobile reliability + polling fallback
+  ['input','keyup','change','blur'].forEach(evt => msg.addEventListener(evt, updateCounter));
+  tone.addEventListener('change', updateCounter);
+  let pollId = setInterval(updateCounter, 500);
+  updateCounter();
+
+  postB.addEventListener('click', ()=>{
+    const text = (msg.value || '').trim();
+    if (!text || !clean(text)) { updateCounter(); return; }
+
+    const now  = Date.now();
+    const last = Number(localStorage.getItem(RATE_KEY)||0);
+    const wait = 10*1000 - (now - last); // 10s cooldown
+    if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
+
+    const t = tone.value || '';
+    const col = (window.TONES && window.TONES[t]?.col) ? window.TONES[t].col : (window.DEFAULT_COL || 0xffe8a6);
+    const p = {
+      id: (crypto.randomUUID ? crypto.randomUUID() : String(now)),
+      text,
+      name: (nameI.value || '').trim(),
+      tone: t,
+      col,
+      ts: now
+    };
+
+    const list = load(); list.push(p); save(list);
+    localStorage.setItem(RATE_KEY, String(now));
+
+    // Reset UI
+    msg.value=''; nameI.value=''; tone.value='';
+    updateCounter();
+
+    // Add to scene & recolor
+    if (typeof window.addOrbitingPost === 'function') window.addOrbitingPost(p);
+    if (typeof window.blendToneColor  === 'function') window.blendToneColor();
+
+    // Subtle flash on orb
+    try {
+      if (window.orbMat){ orbMat.emissiveIntensity = 0.9; setTimeout(()=>orbMat.emissiveIntensity = 0.6, 300); }
+    } catch(_) {}
+  });
+
 });
 </script>
 </body>
