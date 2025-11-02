@@ -650,16 +650,16 @@ That’s the new common sense.
     return s.replace(/&lt;(\/?)(em|strong|i|b|u|a|br|code|sup|sub|span)&gt;/gi, '<$1$2>');
   }
   function mdInline(s){
-    // markdown emphasis → html
-    let t = s
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // **bold**
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')             // *italic*
-      .replace(/__(.+?)__/g, '<strong>$1</strong>')     // __bold__
-      .replace(/_(.+?)_/g, '<em>$1</em>');              // _italic_
-    t = escapeHtml(t);
-    t = unescapeAllowedTags(t);
-    return t;
-  }
+  let t = s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    .replace(/==(.+?)==/g, '<span class="goldline">$1</span>'); // ← optional: ==highlight==
+  t = t.replace(/&lt;(\/?(span|em|strong|b|i|a)(\s+[^>]*)?)&gt;/gi, '<$1>');
+  t = t.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  return t;
+}
   function slug(str){
     return str.toLowerCase().trim()
       .replace(/[^\w\s-]/g,'')
