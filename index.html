@@ -3,196 +3,192 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aim the Light</title>
-  <meta name="description" content="A call to rebuild empathy, reason, and common sense." />
+  <title>Aim the Light — A call to rebuild empathy, reason, and common sense</title>
+  <meta name="description" content="Aim the Light is a modern civic project to rebuild empathy, reason, and common sense. Read the essay, join the movement, and aim the light." />
+
+  <!-- Social preview -->
+  <meta property="og:title" content="Aim the Light" />
+  <meta property="og:description" content="A call to rebuild empathy, reason, and common sense." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/social-card.jpg" /> <!-- optional -->
+  <meta property="og:url" content="" />
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
-  <style>
-    /* Scroll-reveal base */
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition:
-    opacity .6s ease,
-    transform .6s ease;
-  transition-delay: var(--d, 0s);
-  will-change: opacity, transform;
-}
-.reveal.visible {
-  opacity: 1;
-  transform: none;
-}
 
-/* Optional: different directions if you ever want them */
-.reveal[data-anim="left"]  { transform: translateX(-24px); }
-.reveal[data-anim="right"] { transform: translateX(24px);  }
-.reveal[data-anim="left"].visible,
-.reveal[data-anim="right"].visible { transform: none; }
+  <style>
     :root{
-      --bg:#0f172a;          /* deep slate */
-      --ink:#f8fafc;         /* near-white text */
-      --muted:#94a3b8;       /* slate-300 */
-      --accent:#fbbf24;      /* warm amber */
-      --card:#111827;
-      --soft:#1f2937;
+      --bg:#0b1020; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24; --soft:#1f2937; --card:#111827;
       --max:1100px;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:#0b1020;color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.65}
     a{color:var(--accent);text-decoration:none}
     a:hover{text-decoration:underline}
     .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
-    /* Header (optional simple nav) */
-    header{position:fixed;top:0;left:0;right:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
-    .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
-    .brand{font-weight:800;letter-spacing:.3px}
-    .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
+
+    /* Header */
+    header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.85), rgba(15,23,42,0));backdrop-filter: blur(6px) saturate(120%)}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+    .brand a{display:flex;align-items:center;gap:.6rem;color:inherit;text-decoration:none}
+    .brand img{height:42px;width:auto;display:block;filter: drop-shadow(0 0 8px rgba(0,0,0,.3))}
+    .links a{color:var(--ink);opacity:.85}
+    .links a + a{margin-left:.9rem}
+    .btn{display:inline-block;background:var(--accent);color:#0b0b0b;padding:.5rem .8rem;border-radius:10px;font-weight:700}
+
     /* Hero */
-    .hero{min-height:88vh;display:grid;place-items:center;position:relative;isolation:isolate;text-align:center}
+    .hero{position:relative;min-height:72vh;display:grid;place-items:center;text-align:center;border-bottom:1px solid #1f2737;isolation:isolate;overflow:hidden}
     .hero::before{
-      content:"";
-      position:absolute;inset:0;z-index:-2;
+      content:"";position:absolute;inset:0;z-index:-1;
       background:
-        linear-gradient(180deg, rgba(11,16,32,.6), rgba(11,16,32,.7)),
-        url("https://raw.githubusercontent.com/prelude-code/Aimthelight/refs/heads/main/1761926228099%7E2.jpg");
+        linear-gradient(180deg, rgba(11,16,32,.60), rgba(11,16,32,.88)),
+        url("assets/sunrise-city.jpg?v=2"); /* <-- your city image */
       background-size:cover;background-position:center;
-      filter:contrast(1.02) saturate(1.02);
+      filter:saturate(110%) contrast(1.05);
     }
-    .hero h1{font-size:clamp(2rem, 3.6vw + 1rem, 4rem);margin:0 0 .3rem;font-weight:800;letter-spacing:.2px}
-    .hero p.sub{font-size:clamp(1rem, 1.1vw + .6rem, 1.35rem);color:var(--muted);margin:.25rem 0 1.1rem}
-    .cta{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center}
-    .cta a{display:inline-block;border-radius:12px;padding:.7rem 1rem;font-weight:600}
-    .cta .primary{background:var(--accent);color:#0b0b0b}
-    .cta .ghost{border:1px solid #3b4255;color:var(--ink);background:rgba(17,24,39,.4)}
-    /* Sections */
-    section{padding:64px 0;border-top:1px solid #1f2737;background:linear-gradient(180deg,#0b1020 0%, #0d1324 100%)}
-    section.alt{background:linear-gradient(180deg,#0c1222 0%, #0b1020 100%)}
-    h2{font-size:clamp(1.4rem, 1.2rem + 1.2vw, 2rem);margin:.2rem 0 .6rem}
-    p.lead{color:var(--muted);max-width:800px}
-    .grid-3{display:grid;gap:1rem;margin-top:1rem}
-    @media (min-width:800px){ .grid-3{grid-template-columns:repeat(3,1fr);} }
-    .card{background:linear-gradient(180deg,var(--card),var(--soft));border:1px solid #1f2937;border-radius:16px;padding:18px;box-shadow:0 1px 0 #1f2937 inset, 0 8px 30px rgba(251,191,36,.06)}
-    .pill{display:inline-block;background:rgba(251,191,36,.14);color:#ffe8a6;border:1px solid rgba(251,191,36,.35);padding:.2rem .55rem;border-radius:999px;font-size:.8rem;font-weight:600;letter-spacing:.3px}
+    .hero h1{font-size:clamp(2rem, 1.2rem + 2.8vw, 3.2rem);margin:.2rem 0 .6rem;font-weight:800;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+    .hero p.lead{color:#dbe6ff;max-width:720px;margin:0 auto 1.2rem;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+    .hero .cta{display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center;margin-top:.6rem}
+    .btn.outline{background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,.35)}
+    .btn.outline:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* Section headers */
+    section{padding:56px 0}
+    .section-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:18px}
+    .section-head h2{font-size:1.6rem;margin:0}
+    .section-head p{color:var(--muted);margin:6px 0 0}
+
+    /* Cards (What we do) */
+    .grid{display:grid;gap:16px}
+    @media (min-width:800px){ .grid{grid-template-columns:repeat(3,1fr)} }
+    .card{
+      background:linear-gradient(180deg, #0f172a, #0c1424);
+      border:1px solid #1f2940; border-radius:14px; padding:18px;
+      box-shadow:0 6px 18px rgba(0,0,0,.25);
+      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.35);border-color:#2a3856}
+    .card h3{margin:.2rem 0 .4rem;font-size:1.15rem}
+    .card p{margin:.4rem 0;color:#cbd5e1}
+
+    /* Essay feature */
+    .feature{
+      border:1px solid #23314f;border-radius:16px;overflow:hidden;
+      background:linear-gradient(180deg, #0f172a, #0b1222);
+    }
+    .feature .inner{display:grid;gap:0}
+    @media (min-width:900px){ .feature .inner{grid-template-columns:1.1fr .9fr} }
+    .feature .copy{padding:22px}
+    .feature .copy h3{margin:.2rem 0 .6rem}
+    .feature .copy p{color:#cbd5e1;margin:.4rem 0 1rem}
+    .feature .art{
+      min-height:240px;
+      background:
+        linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,0)),
+        url("assets/essay-cover.jpg"); /* optional decorative image */
+      background-size:cover;background-position:center;
+    }
+
+    /* Join */
+    .join{background:linear-gradient(180deg, #0c1426, #0b1020);border:1px solid #1e2a46;border-radius:16px;padding:22px}
+    .join p{color:#cbd5e1;margin:.3rem 0 1rem}
+
     /* Footer */
-    footer{padding:48px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
+    footer{padding:44px 0;border-top:1px solid #1f2737;color:#9aa6bf;text-align:center}
+
+    /* Small niceties */
     .muted{color:var(--muted)}
   </style>
 </head>
 <body>
- <header>
-  <div class="nav container">
-    <div class="brand">
-      <a href="index.html" style="display:flex; align-items:center; gap:.6rem; text-decoration:none; color:inherit;">
-        <img src="Screenshot_20251101-222941.png" alt="Aim the Light logo" style="height:42px; width:auto;">
-      </a>
+
+  <!-- Header -->
+  <header>
+    <div class="nav container">
+      <div class="brand">
+        <a href="index.html">
+          <img src="assets/aimthelight-logo.png" alt="Aim the Light" />
+        </a>
+      </div>
+      <nav class="links" aria-label="Primary">
+        <a href="#what">What we do</a>
+        <a href="#essay">Read the essay</a>
+        <a href="#join">Join</a>
+      </nav>
+      <a class="btn" href="#join">Get involved</a>
     </div>
-    <nav class="links" aria-label="Primary">
-      <a class="muted" href="index.html#mission">Mission</a>
-      &nbsp;·&nbsp;<a class="muted" href="index.html#approach">Approach</a>
-      &nbsp;·&nbsp;<a class="muted" href="index.html#volunteer">Volunteer</a>
-    </nav>
-    <a class="btn" href="index.html#join">Join</a>
-  </div>
-</header>
-  <main>
-    <!-- Hero -->
-    <section class="hero">
-  <div class="container" style="text-align:center">
-    <p class="meta" style="color:#cbd5e1;max-width:700px;margin:0 auto;">
-      A call to rebuild empathy, reason, and common sense.
-    </p>
-  </div>
-</section>
+  </header>
 
-    <!-- Mission -->
-    <section id="mission" class="alt">
-      <div class="container">
-        <h2>Mission</h2>
-        <p class="lead">
-          In a world saturated by noise and outrage, we’ve mistaken exposure for understanding.
-          <strong>Aim the Light</strong> invites a different way: slow down, listen, and look again—so we can rebuild empathy, reason, and common sense in how we see one another and ourselves.
-        </p>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>Aim the Light</h1>
+      <p class="lead">A modern call to rebuild empathy, reason, and common sense—together.</p>
+      <div class="cta">
+        <a class="btn" href="essay.html">Read “The Overexposed Republic”</a>
+        <a class="btn outline" href="#what">What we do</a>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Our Approach -->
-    <section id="approach">
-      <div class="container">
-        <h2>Our Approach</h2>
-        <p class="lead">We don’t shout louder—we help people see clearer. We support those who shape understanding: educators, journalists, and community builders. Through collaboration, dialogue, and accessible storytelling, we move culture from glare to guidance.</p>
-        <div class="grid-3" role="list">
-          <div class="card" role="listitem">
-            <span class="pill">Educators</span>
-            <p>Classroom-ready prompts and discussion guides that build empathy and media literacy.</p>
-          </div>
-          <div class="card" role="listitem">
-            <span class="pill">Journalists</span>
-            <p>Partnerships to surface stories of nuance and understanding—beyond the outrage loop.</p>
-          </div>
-          <div class="card" role="listitem">
-            <span class="pill">Community</span>
-            <p>Tools and challenges that turn reflection into action—online and in real life.</p>
-          </div>
+  <!-- What we do -->
+  <section id="what">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2>What we do</h2>
+          <p>From reflection to action—how we turn light into traction.</p>
         </div>
       </div>
-    </section>
 
-    <!-- The Essay / Story -->
-    <section id="essay" class="alt">
-      <div class="container">
-        <h2>The Overexposed Republic</h2>
-        <p class="lead">It began as a reflection on how a nation flooded with light could still lose sight of itself. Read the essay that sparked Aim the Light, and share it if it moves you.</p>
-        <p><a class="primary" href="essay.html">Read the Essay →</a></p>
-      </div>
-    </section>
-
-    <!-- Core Values -->
-    <section id="values">
-      <div class="container">
-        <h2>Core Values</h2>
-        <div class="grid-3">
-          <div class="card">
-            <span class="pill">Empathy</span>
-            <p>We listen before we speak. People over points.</p>
-          </div>
-          <div class="card">
-            <span class="pill">Reason</span>
-            <p>We value truth over tribal victory. Slow thinking beats hot takes.</p>
-          </div>
-          <div class="card">
-            <span class="pill">Common Sense</span>
-            <p>We keep humanity at the center of every debate.</p>
-          </div>
+      <div class="grid">
+        <div class="card">
+          <h3>Equip classrooms</h3>
+          <p>Free, nonpartisan discussion guides and media-literacy mini-labs for teachers and students.</p>
+        </div>
+        <div class="card">
+          <h3>Support local journalism</h3>
+          <p>Micro-grants and “explainers first” toolkits that help communities share facts before fights.</p>
+        </div>
+        <div class="card">
+          <h3>Host civil forums</h3>
+          <p>Small-table dialogue formats anyone can run—designed for grace, not point-scoring.</p>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Volunteer -->
-    <section id="volunteer" class="alt">
-      <div class="container">
-        <h2>Volunteer</h2>
-        <p class="lead">We’re a young initiative and we’re growing. Whether you’re a student, a seasoned professional, or simply someone who cares, there’s a place for you here.</p>
-        <p><a class="ghost" href="mailto:volunteer@aimthelight.org">Email volunteer@aimthelight.org</a></p>
+  <!-- Featured essay -->
+  <section id="essay">
+    <div class="container">
+      <div class="feature">
+        <div class="inner">
+          <div class="copy">
+            <h3>The Overexposed Republic</h3>
+            <p>Smartphones gave us endless light and took away our shade. We don’t need less truth—we need gentler ways to hold it. This essay is a blueprint for aiming the light without blinding one another.</p>
+            <a class="btn" href="essay.html">Read the essay</a>
+            <a class="btn outline" style="margin-left:.5rem" href="#join">Join the effort</a>
+          </div>
+          <div class="art" aria-hidden="true"></div>
+        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-<!-- Join / Mailing -->
-    <section id="join">
-      <div class="container">
-        <h2>Stay Connected</h2>
-        <p class="lead">Be first to know when new essays and projects go live. We’ll never share your info.</p>
-        <p><a class="ghost" href="https://forms.gle/" target="_blank" rel="noopener">Join the Mailing List</a></p>
+  <!-- Join / Volunteer -->
+  <section id="join">
+    <div class="container">
+      <div class="join">
+        <h2>Join us</h2>
+        <p>We’re a young, nonpartisan civic project. Whether you’re a student, educator, journalist, designer, or an everyday neighbor—you can help.</p>
+        <div class="cta">
+          <a class="btn" href="volunteer.html">Volunteer</a>
+          <a class="btn outline" href="mailto:info@aimthelight.org">Contact</a>
+        </div>
       </div>
-    </section>
-
-    <!-- Placeholder for your future interactive wall -->
-    <section id="wall" class="alt">
-      <div class="container">
-        <h2>What does “light” mean to you right now?</h2>
-        <p class="lead">We’re building a living wall of short reflections from readers. Coming soon.</p>
-      </div>
-    </section>
-  </main>
+    </div>
+  </section>
 
   <footer>
     <div class="container">
@@ -201,51 +197,21 @@
   </footer>
 
   <script>
-    // set copyright year
+    // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
-    // smooth anchor scroll (accessibility-friendly)
+
+    // Smooth scroll for in-page nav
     document.querySelectorAll('a[href^="#"]').forEach(a=>{
-      a.addEventListener('click',e=>{
-        const id=a.getAttribute('href').slice(1);
-        const el=document.getElementById(id);
-        if(el){ e.preventDefault(); el.scrollIntoView({behavior:'smooth',block:'start'}); }
+      a.addEventListener('click', e=>{
+        const id = a.getAttribute('href').slice(1);
+        const target = document.getElementById(id);
+        if(!target) return;
+        e.preventDefault();
+        const y = target.getBoundingClientRect().top + window.pageYOffset - 72; // header offset
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        history.replaceState(null, '', '#'+id);
       });
     });
   </script>
-  <script>
-/* Auto-tag common elements for reveal so you don't have to edit lots of HTML */
-const groups = [
-  '.hero h1, .hero p.sub, .cta a',
-  '#mission .lead',
-  '#approach .lead, #approach .card',
-  '#essay .lead, #essay .primary',
-  '#values .card',
-  '#volunteer .lead, #volunteer a',
-  '#join .lead, #join a',
-  'footer p'
-];
-
-// Assign .reveal and stagger delays inside each group
-groups.forEach(sel => {
-  const els = Array.from(document.querySelectorAll(sel));
-  els.forEach((el, i) => {
-    el.classList.add('reveal');
-    el.style.setProperty('--d', (i * 0.08) + 's'); // 80ms stagger
-  });
-});
-
-// IntersectionObserver to toggle visibility once per element
-const io = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      io.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.12 });
-
-document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-  </script>
 </body>
 </html>
-
