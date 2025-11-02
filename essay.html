@@ -639,8 +639,12 @@ That’s the new common sense.
 
   // helpers
   function escapeHtml(s){
-    return s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-  }
+  // Allow harmless inline tags (span, em, strong, b, i, a)
+  return s.replace(/&lt;(\/?(span|em|strong|b|i|a)(\s+[^>]*)?)&gt;/gi, '<$1>')
+          .replace(/[&<>"']/g, m => ({
+            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+          }[m]));
+}
   function unescapeAllowedTags(s){
     // allow safe inline tags only
     return s.replace(/&lt;(\/?)(em|strong|i|b|u|a|br|code|sup|sub|span)&gt;/gi, '<$1$2>');
