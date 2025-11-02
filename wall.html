@@ -3,122 +3,95 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Light Wall — Aim the Light</title>
-<meta name="description" content="Pin your reflection to a living wall. Add a name (optional) and watch it fly into place." />
+<title>Idea Garden — Aim the Light</title>
+<meta name="description" content="Plant a seed. Nurture the garden. Watch ideas grow." />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0b1020; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24;
+    --card:#111827; --soft:#1f2937; --grass:#0e3120; --soil:#2b1f15;
     --max:1200px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent);text-decoration:none}
 
-  /* Header (match your site) */
   header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
   .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
-  .brand{font-weight:800;letter-spacing:.3px}
-  .nav a{color:var(--ink);text-decoration:none}
+  .brand{font-weight:800}
   .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
 
-  /* Full-bleed wall background */
-  .stage{
-    position:relative;
-    min-height: calc(100vh - 64px);
-    /* Subtle “city + light” vibe; replace with your own image if you like */
+  .hero{display:grid;place-items:center;text-align:center;min-height:22vh;border-bottom:1px solid #1f2737;position:relative;isolation:isolate}
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:-1;
     background:
-      radial-gradient(1200px 600px at 70% 0%, rgba(251,191,36,.25), transparent 60%),
-      radial-gradient(900px 500px at 10% 30%, rgba(96,165,250,.18), transparent 60%),
-      url("https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2000&auto=format&fit=crop");
-    background-size: cover;
-    background-position: center;
-    overflow: hidden;
-    border-top:1px solid rgba(255,255,255,.06);
+      radial-gradient(900px 420px at 70% 0%, rgba(251,191,36,.18), transparent 60%),
+      radial-gradient(700px 400px at 10% 30%, rgba(96,165,250,.12), transparent 60%);
+  }
+  .hero h1{font-size:clamp(2rem,1.3rem + 2vw,3rem);margin:.2rem 0 .2rem;font-weight:800}
+  .hero p{color:var(--muted);max-width:760px;margin:.2rem auto}
+
+  /* Scene */
+  .scene-wrap{position:relative}
+  #garden {
+    display:block; width:100vw;
+    background:
+      linear-gradient(180deg, #0a1327 0%, #0a1732 40%, #0b1a1d 60%, #0f1f12 100%);
   }
 
-  /* Dark scrim for legibility */
-  .scrim{
-    position:absolute; inset:0;
-    background:linear-gradient(180deg, rgba(7,10,20,.65), rgba(7,10,20,.80));
+  /* Composer HUD */
+  .hud{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom:18px; z-index:10; width:min(100%, var(--max)); padding:0 16px;
   }
-
-  /* Content rails */
-  .frame{position:relative; z-index:1; max-width:var(--max); margin:0 auto; padding:18px 16px 64px}
-
-  /* Composer panel (floating card) */
   .composer{
-    display:grid; gap:10px; grid-template-columns: 1fr auto;
-    border:1px solid rgba(255,255,255,.12);
-    background:linear-gradient(180deg, rgba(17,24,39,.85), rgba(12,19,34,.85));
-    backdrop-filter: blur(4px);
-    border-radius:16px; padding:14px; margin:10px 0 18px 0;
-    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    display:grid; gap:10px; grid-template-columns: 1fr 280px;
+    background:linear-gradient(180deg, rgba(17,24,39,.85), rgba(12,19,34,.9));
+    border:1px solid #243044; border-radius:16px; padding:12px;
+    backdrop-filter: blur(4px); box-shadow:0 10px 30px rgba(0,0,0,.35);
   }
-  @media (max-width:800px){ .composer{grid-template-columns:1fr} }
-  .composer .fields{display:grid; grid-template-columns: 1fr 220px; gap:10px}
-  @media (max-width:800px){ .composer .fields{grid-template-columns:1fr} }
-
-  input[type="text"], textarea, select{
+  @media (max-width:860px){ .composer{grid-template-columns:1fr} }
+  textarea,input,select{
     width:100%; border:1px solid #2b3a52; border-radius:12px; background:#0c1322;
     color:#e5e7eb; padding:10px 12px; font-size:1rem; outline:none;
   }
-  textarea{min-height:96px; resize:vertical}
-  .meta-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-  .muted{color:var(--muted); font-size:.9rem}
-  .chip{display:inline-flex;align-items:center;gap:.4rem;border:1px solid #344155;background:rgba(17,24,39,.5);padding:.45rem .7rem;border-radius:999px;color:var(--ink);font-weight:600}
-  .btn{background:var(--accent);color:#0b0b0b;padding:.6rem 1rem;border-radius:12px;border:none;font-weight:800;cursor:pointer}
+  textarea{min-height:84px;resize:vertical}
+  .rightcol{display:grid; gap:10px; grid-template-columns:1fr}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:.35rem;border:1px solid #344155;background:rgba(17,24,39,.5);padding:.35rem .6rem;border-radius:999px;color:var(--ink);font-weight:600}
+  .btn{background:var(--accent);color:#0b0b0b;padding:.55rem .95rem;border-radius:12px;border:none;font-weight:800;cursor:pointer}
   .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .muted{color:var(--muted);font-size:.9rem}
   .counter{font-variant-numeric:tabular-nums}
 
-  /* Full-page “wall” grid */
-  .wall{
-    display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap:14px;
-    align-content:start;
-    min-height: 60vh;
+  /* Tooltip bubble */
+  .tip{
+    position:fixed; pointer-events:none; z-index:9;
+    background:rgba(15,23,42,.95); border:1px solid #243044; color:#f8fafc;
+    padding:8px 10px; border-radius:10px; font-size:.95rem; max-width:240px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+    transform:translate(-50%,-110%); white-space:normal;
+    opacity:0; transition:opacity .12s ease;
   }
+  .tip.show{opacity:1}
 
-  /* Colorful tiles (sticky-notes vibe) */
-  .tile{
-    position:relative; padding:12px 12px 10px; border-radius:14px; color:#0b0b0b;
-    box-shadow:0 12px 24px rgba(0,0,0,.28), 0 0 0 1px rgba(255,255,255,.04) inset;
-    transform: rotate(var(--rot,0deg));
-    background: var(--col, #ffe8a6);
+  /* Top-right garden HUD */
+  #hudTop {
+    position:fixed; right:12px; top:62px; z-index:9;
+    background:rgba(17,24,39,.75); border:1px solid #243044; border-radius:12px;
+    padding:10px 12px; font-weight:600; color:#f8fafc; backdrop-filter:blur(4px);
   }
-  .tile .text{white-space:pre-wrap; line-height:1.25; color:#0b0b0b}
-  .tile .meta{
-    margin-top:8px; display:flex; justify-content:space-between; align-items:center; font-size:.82rem;
-    border-top:1px solid rgba(0,0,0,.12); padding-top:8px; color:#1f2937;
+  #moodNow{ font-size:.9rem; color:#94a3b8 }
+  footer{padding:42px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
+  .toast {
+    position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%);
+    background: rgba(17,24,39,.9); border: 1px solid #243044; color: #f8fafc;
+    padding: 10px 14px; border-radius: 12px; font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35); z-index: 100; opacity: 0;
+    transition: opacity .2s ease, transform .2s ease;
   }
-  .tag{
-    border:1px solid rgba(0,0,0,.18);
-    background:rgba(255,255,255,.5);
-    backdrop-filter: blur(2px);
-    padding:.06rem .45rem; border-radius:999px; font-size:.78rem; color:#0b0b0b;
-  }
-  .name{font-weight:700}
-
-  /* Tape detail */
-  .tile:before{
-    content:""; position:absolute; left:50%; top:-8px; transform:translateX(-50%) rotate(-1deg);
-    width:46px; height:14px; border-radius:4px;
-    background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.06));
-    border:1px solid rgba(0,0,0,.15);
-    box-shadow:0 2px 6px rgba(0,0,0,.3);
-  }
-
-  /* Flying ghost on submit */
-  .fly{
-    position:fixed; left:0; top:0; width:220px; z-index:9999; pointer-events:none;
-    padding:12px; border-radius:14px; color:#0b0b0b;
-    background: var(--col, #ffe8a6);
-    box-shadow:0 12px 24px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.04) inset;
-  }
-
-  /* Footer */
-  footer{position:relative; z-index:1; padding:42px 0; text-align:center; color:var(--muted)}
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
 </style>
 </head>
 <body>
@@ -127,186 +100,438 @@
     <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Aim the Light</a></div>
     <nav class="links" aria-label="Primary">
       <a class="muted" href="index.html#mission">Mission</a>
-      &nbsp;·&nbsp;<a class="muted" href="index.html#approach">Approach</a>
       &nbsp;·&nbsp;<a class="muted" href="essay.html">Essay</a>
-      &nbsp;·&nbsp;<a class="muted" href="wall.html" aria-current="page">Light Wall</a>
+      &nbsp;·&nbsp;<a class="muted" href="hub.html">Hub</a>
+      &nbsp;·&nbsp;<a class="muted" href="garden.html">Garden</a>
     </nav>
     <a class="btn" href="index.html#join">Join</a>
   </div>
 </header>
 
-<section class="stage">
-  <div class="scrim"></div>
-  <div class="frame">
-    <!-- Composer -->
-    <div class="composer" id="composer">
-      <div class="fields">
-        <textarea id="msg" maxlength="160" placeholder="Light is... (max 160)"></textarea>
-        <div>
-          <input id="name" type="text" placeholder="Name (optional)" />
-          <select id="tone" style="margin-top:10px">
-            <option value="">Tag (optional)</option>
-            <option>Hope</option><option>Resolve</option><option>Gratitude</option>
-            <option>Clarity</option><option>Action</option>
-          </select>
-        </div>
-      </div>
-      <div class="meta-row">
+<section class="hero">
+  <h1>The Idea Garden</h1>
+  <p>Plant a seed. Water others. Return to see what your idea becomes.</p>
+</section>
+
+<div class="scene-wrap">
+  <canvas id="garden"></canvas>
+</div>
+
+<!-- Garden HUD -->
+<div id="hudTop">
+  <div id="countTotal">0 plants</div>
+  <div id="moodNow">season: early spring</div>
+</div>
+
+<!-- Tooltip -->
+<div id="tip" class="tip"></div>
+
+<!-- Composer -->
+<div class="hud">
+  <div class="composer">
+    <textarea id="msg" maxlength="160" placeholder="Plant a seed… (max 160)"></textarea>
+    <div class="rightcol">
+      <input id="name" type="text" placeholder="Name (optional)" />
+      <select id="theme">
+        <option value="">Choose a theme (optional)</option>
+        <option>Hope</option><option>Resolve</option><option>Gratitude</option>
+        <option>Clarity</option><option>Action</option>
+      </select>
+      <div class="row">
         <span class="chip counter" id="count">0/160</span>
-        <label class="muted"><input type="checkbox" id="consent"> I agree to public display</label>
         <span class="muted" id="hint"></span>
         <div style="flex:1"></div>
-        <button class="btn" id="postBtn" disabled>Pin to Wall</button>
+        <button class="btn" id="plantBtn" disabled>Plant Seed 🌱</button>
       </div>
     </div>
-
-    <!-- Wall -->
-    <div id="wall" class="wall" aria-live="polite"></div>
   </div>
-</section>
+</div>
 
 <footer>
   <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
 </footer>
 
 <script>
-  // Year
-  document.getElementById('y').textContent = new Date().getFullYear();
+/* ---------- UTIL / STORAGE ---------- */
+document.getElementById('y').textContent = new Date().getFullYear();
 
-  // Local demo storage
-  const STORE_KEY = 'lightwall_tiles_v2';
-  const RATE_KEY  = 'lightwall_last_ms';
-  const MIN_WAIT  = 45 * 1000; // 45s
+const STORE_KEY = 'atl_garden_plants_v1';
+const RATE_KEY  = 'atl_garden_last_ms';
 
-  const wall  = document.getElementById('wall');
-  const msg   = document.getElementById('msg');
-  const nameI = document.getElementById('name');
-  const tone  = document.getElementById('tone');
-  const count = document.getElementById('count');
-  const post  = document.getElementById('postBtn');
-  const ok    = document.getElementById('consent');
-  const hint  = document.getElementById('hint');
-  const composer = document.getElementById('composer');
+const THEMES = {
+  Hope:      { flower:'#fbbf24', leaf:'#22c55e' },
+  Resolve:   { flower:'#ef4444', leaf:'#16a34a' },
+  Gratitude: { flower:'#22c55e', leaf:'#10b981' },
+  Clarity:   { flower:'#60a5fa', leaf:'#22d3ee' },
+  Action:    { flower:'#a78bfa', leaf:'#34d399' }
+};
+function themeColor(theme, part){
+  const t = THEMES[theme] || {flower:'#ffe8a6', leaf:'#39d353'};
+  return t[part];
+}
+function loadPlants(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
+function savePlants(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
+function esc(s){
+  return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))
+                 .replace(/'/g,'&#39;');
+}
 
-  const colors = [
-    '#ffe8a6', '#ffd2cc', '#d9f99d', '#bae6fd', '#c7d2fe',
-    '#fecaca', '#a7f3d0', '#fde68a', '#fbcfe8', '#bbf7d0'
+/* ---------- CANVAS SETUP ---------- */
+const canvas = document.getElementById('garden');
+const ctx    = canvas.getContext('2d');
+function calcSceneHeight(){
+  const reserve = (window.innerWidth < 860) ? 220 : 160;
+  const heroH   = Math.max(140, window.innerHeight * 0.22);
+  return Math.floor(Math.max(360, window.innerHeight - heroH - reserve));
+}
+function sizeCanvas(){
+  const w = window.innerWidth;
+  const h = calcSceneHeight();
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+}
+sizeCanvas(); window.addEventListener('resize', sizeCanvas);
+
+/* ---------- WORLD ---------- */
+let plants = loadPlants();
+const tip = document.getElementById('tip');
+let mouse = {x:0, y:0, over:null};
+canvas.addEventListener('pointermove',(e)=>{
+  const r = canvas.getBoundingClientRect();
+  mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
+  mouse.y = (e.clientY - r.top)  * (canvas.height / r.height);
+});
+canvas.addEventListener('pointerleave', ()=> { mouse.over=null; tip.classList.remove('show'); });
+
+/* simple Poisson-ish placement to avoid clumping */
+function placePlant(){
+  const w = canvas.width, h = canvas.height;
+  for (let tries=0; tries<80; tries++){
+    const x = (Math.random()*0.85 + 0.075) * w;
+    const y = (Math.random()*0.35 + 0.55)  * h; // bottom half
+    let ok = true;
+    for (const p of plants){
+      const dx = (x - p.x), dy = (y - p.y);
+      if (Math.hypot(dx,dy) < 80) { ok=false; break; }
+    }
+    if (ok) return {x,y};
+  }
+  // fallback
+  return { x: (0.2+Math.random()*0.6)*w, y: (0.58+Math.random()*0.35)*h };
+}
+
+/* ---------- GROWTH MODEL ---------- */
+function growth(p){
+  // Age in hours + water bonus. Tuned for “visible growth in minutes”.
+  const ageHrs = (Date.now() - p.ts) / (1000*60*20); // 20 min == 1 “hour”
+  const wtr    = p.water || 0;
+  // 0..1 stage factor
+  let g = Math.min(1, (ageHrs*0.55) + (wtr*0.10));
+  return g; // 0 seed, 0.2 sprout, 0.5 leaf, 0.8 bud, 1 bloom
+}
+function plantRadius(g){ return 12 + g*42; }
+
+/* ---------- DRAW ---------- */
+let windT = 0;
+function drawBackground(dpr){
+  const w = canvas.width, h = canvas.height;
+
+  // stars/ fireflies subtly
+  ctx.save();
+  ctx.globalAlpha = 0.05;
+  ctx.fillStyle = '#ffffff';
+  for(let i=0;i<120;i++){
+    const sx = (Math.sin(i*12.33 + windT*0.05)*0.5+0.5) * w;
+    const sy = (Math.cos(i*7.71  + windT*0.05)*0.5+0.5) * h*0.6;
+    const s  = (Math.sin(i*3.1 + windT*0.25)*0.5+0.5) * 1.6 + 0.3;
+    ctx.fillRect(sx, sy, s, s);
+  }
+  ctx.restore();
+
+  // horizon glow
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, 'rgba(96,165,250,0.08)');
+  sky.addColorStop(0.5, 'rgba(20,50,90,0.12)');
+  sky.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sky; ctx.fillRect(0,0,w,h);
+
+  // distant hills
+  ctx.fillStyle = '#0c1b14';
+  ctx.beginPath();
+  ctx.moveTo(0, h*0.68);
+  for(let x=0; x<=w; x+=40){
+    const y = h*0.68 + Math.sin((x*0.004)+windT*0.002)*8;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, h); ctx.lineTo(0,h); ctx.closePath(); ctx.fill();
+
+  // ground/soil
+  const ground = ctx.createLinearGradient(0, h*0.65, 0, h);
+  ground.addColorStop(0, '#0e2718');
+  ground.addColorStop(1, '#102412');
+  ctx.fillStyle = ground; ctx.fillRect(0, h*0.65, w, h);
+
+  // soil line
+  ctx.strokeStyle = 'rgba(251,191,36,0.22)';
+  ctx.lineWidth = 1*dpr;
+  ctx.beginPath();
+  ctx.moveTo(0, h*0.65);
+  ctx.lineTo(w, h*0.65);
+  ctx.stroke();
+}
+
+function drawPlant(p, dpr, t){
+  const g = growth(p);
+  const r = plantRadius(g) * dpr;
+  const sway = Math.sin(t*0.0015 + (p.x+p.y)*0.0002)* (4 + g*6) * dpr;
+
+  // stem
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(sway*0.002);
+  ctx.strokeStyle = '#1f8a44';
+  ctx.lineWidth = Math.max(2, 2.5*g) * dpr;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(0, -r*0.4, 0, -r); // curved stem
+  ctx.stroke();
+
+  // leaves (appear after sprout)
+  if (g > 0.25){
+    const leafC = themeColor(p.theme, 'leaf');
+    ctx.fillStyle = leafC;
+    for (let i=0;i<2;i++){
+      const side = i===0? -1 : 1;
+      const y = -r*0.6 + i* (r*0.25);
+      leaf(ctx, side* (8+g*20)*dpr, y, r*0.35, side);
+    }
+  }
+
+  // bud/flower
+  const flowerC = themeColor(p.theme, 'flower');
+  if (g < 0.6){
+    // bud
+    ctx.fillStyle = flowerC;
+    ctx.beginPath();
+    ctx.arc(0, -r-6*dpr, 4*dpr + g*2*dpr, 0, Math.PI*2);
+    ctx.fill();
+  } else {
+    // petals
+    const petals = 6;
+    const petalR = 7*dpr + g*6*dpr;
+    for(let i=0;i<petals;i++){
+      const a = (i/petals)*Math.PI*2 + sway*0.01;
+      const px = Math.cos(a) * (petalR+4*dpr);
+      const py = -r-6*dpr + Math.sin(a) * (petalR+2*dpr);
+      petal(ctx, px, py, petalR, flowerC);
+    }
+    // center
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath(); ctx.arc(0, -r-6*dpr, (4.5+g*1.8)*dpr, 0, Math.PI*2); ctx.fill();
+  }
+
+  ctx.restore();
+}
+function leaf(ctx, x, y, len, side){
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(side * 0.3);
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.quadraticCurveTo(len*0.3, -len*0.2, len, 0);
+  ctx.quadraticCurveTo(len*0.3, len*0.2, 0,0);
+  ctx.fill();
+  ctx.restore();
+}
+function petal(ctx, x, y, r, c){
+  ctx.save(); ctx.translate(x,y);
+  const grd = ctx.createRadialGradient(0,0,1, 0,0,r);
+  grd.addColorStop(0, c);
+  grd.addColorStop(1, 'rgba(255,255,255,0.08)');
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.ellipse(0,0,r*0.8,r,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+/* ---------- HIT TEST & WATER ---------- */
+function pick(mx,my){
+  let hit=null, best=1e9;
+  const dpr = Math.min(devicePixelRatio||1,2);
+  for (const p of plants){
+    const g = growth(p);
+    const r = plantRadius(g)*dpr*0.9;
+    const dx = mx - p.x, dy = my - p.y + r*0.3; // lenient
+    const d = Math.hypot(dx,dy);
+    if (d < r && d < best){ best=d; hit=p; }
+  }
+  return hit;
+}
+canvas.addEventListener('pointermove', ()=>{
+  mouse.over = pick(mouse.x, mouse.y);
+  if (mouse.over){
+    tip.innerHTML = `<strong>${esc(mouse.over.name||'Someone')}</strong>: ${esc(mouse.over.text)}`;
+    tip.style.left = (mouse.x / (devicePixelRatio||1)) + 'px';
+    tip.style.top  = (mouse.y / (devicePixelRatio||1)) + 'px';
+    tip.classList.add('show');
+  } else {
+    tip.classList.remove('show');
+  }
+});
+canvas.addEventListener('click', ()=>{
+  const p = pick(mouse.x, mouse.y);
+  if (p){
+    p.water = (p.water||0) + 1;
+    savePlants(plants);
+    makeRipple(p.x, p.y);
+    toast('You watered a plant 💧');
+    refreshHUD();
+  }
+});
+
+/* ---------- PARTICLES / RIPPLES ---------- */
+let ripples = [];
+function makeRipple(x,y){
+  ripples.push({x,y,t:0});
+}
+function drawRipples(dpr){
+  for (let i=ripples.length-1; i>=0; i--){
+    const r = ripples[i];
+    r.t += 0.02;
+    const rad = (30 + 90*r.t) * dpr;
+    const a = Math.max(0, 0.25 - r.t*0.25);
+    ctx.save();
+    ctx.strokeStyle = `rgba(96,165,250,${a})`;
+    ctx.lineWidth = 2*dpr;
+    ctx.beginPath(); ctx.arc(r.x, r.y, rad, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+    if (r.t >= 1) ripples.splice(i,1);
+  }
+}
+
+/* ---------- RENDER LOOP ---------- */
+function moodName(){
+  if (!plants.length) return 'early spring';
+  // rough mood = most common theme
+  const tally = {};
+  plants.forEach(p=>{ const k=p.theme||'mixed'; tally[k]=(tally[k]||0)+1; });
+  const top = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0][0];
+  return (top==='mixed') ? 'mixed' : top.toLowerCase();
+}
+function refreshHUD(){
+  const ct = document.getElementById('countTotal');
+  const md = document.getElementById('moodNow');
+  const n = plants.length;
+  if (ct) ct.textContent = `${n} ${n===1?'plant':'plants'}`;
+  if (md) md.textContent = `season: ${moodName()}`;
+}
+refreshHUD();
+
+let last = performance.now();
+function tick(t){
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const dt = t - last; last = t;
+  windT += dt;
+
+  // subtle trails
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = 'rgba(6,9,19,0.18)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  drawBackground(dpr);
+
+  // draw plants back-to-front by y (depth)
+  plants.sort((a,b)=>a.y-b.y).forEach(p=> drawPlant(p, dpr, t));
+  drawRipples(dpr);
+
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+/* ---------- COMPOSER ---------- */
+const msg   = document.getElementById('msg');
+const nameI = document.getElementById('name');
+const theme = document.getElementById('theme');
+const count = document.getElementById('count');
+const hint  = document.getElementById('hint');
+const plantB= document.getElementById('plantBtn');
+
+const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot'];
+const clean = t => !BADWORDS.some(w => (t||'').toLowerCase().includes(w));
+
+function updateCounter(){
+  const val = (msg.value || '').trim();
+  const len = val.length;
+  count.textContent = `${len}/160`;
+  const enable = len > 0 && len <= 160 && clean(val);
+  plantB.disabled = !enable;
+  if (!clean(val))        hint.textContent = 'Please keep it respectful.';
+  else if (len > 160)     hint.textContent = 'Too long.';
+  else                    hint.textContent = '';
+}
+['input','keyup','change','blur'].forEach(e=> msg.addEventListener(e, updateCounter));
+theme.addEventListener('change', updateCounter);
+setInterval(updateCounter, 500);
+updateCounter();
+
+function toast(text){
+  let el = document.querySelector('.toast');
+  if (!el){ el = document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(()=> el.classList.remove('show'), 1200);
+}
+
+plantB.addEventListener('click', ()=>{
+  const text = (msg.value || '').trim();
+  if (!text || !clean(text)) { updateCounter(); return; }
+
+  const now  = Date.now();
+  const last = Number(localStorage.getItem(RATE_KEY)||0);
+  const wait = 2500 - (now - last);
+  if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
+
+  const pos = placePlant();
+  const p = {
+    id: (crypto.randomUUID ? crypto.randomUUID() : String(now)),
+    text, name: (nameI.value||'').trim(), theme: theme.value || '',
+    x: pos.x, y: pos.y, ts: now, water: 0
+  };
+
+  plants.push(p); savePlants(plants);
+  localStorage.setItem(RATE_KEY, String(now));
+
+  msg.value=''; nameI.value=''; theme.value=''; updateCounter();
+  makeRipple(p.x, p.y);
+  toast('Seed planted 🌱');
+  refreshHUD();
+});
+
+/* ---------- FIRST VISIT SEED (optional) ---------- */
+(function seedOnce(){
+  if (plants.length) return;
+  const w = canvas.width, h = canvas.height;
+  const SEED = [
+    {text:'Kindness is a seed that remembers rain.', theme:'Gratitude', name:'Ava'},
+    {text:'Clarity begins when certainty softens.', theme:'Clarity', name:'D.'},
+    {text:'Be the water, not the weather.', theme:'Resolve'},
   ];
-  const bad = ['fuck','shit','bitch','asshole','cunt','nigger','faggot']; // demo filter
-  const clean = t => !bad.some(w => t.toLowerCase().includes(w));
-
-  function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
-  function save(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
-  function rng(min,max){ return Math.random()*(max-min)+min; }
-
-  function tileEl(tile){
-    const el = document.createElement('article');
-    el.className = 'tile';
-    el.style.setProperty('--rot', (rng(-2.2,2.2)).toFixed(2) + 'deg');
-    el.style.setProperty('--col', tile.col || colors[Math.floor(Math.random()*colors.length)]);
-
-    const t = document.createElement('div');
-    t.className = 'text';
-    t.textContent = tile.text;
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    const left = document.createElement('span');
-    left.innerHTML = (tile.name ? `<span class="name">${escapeHtml(tile.name)}</span>` : '<span class="name">Anonymous</span>')
-                     + ' · ' + new Date(tile.ts).toLocaleString();
-    const tag = document.createElement('span');
-    tag.className = 'tag';
-    tag.textContent = tile.tone || 'Reflection';
-    meta.append(left, tag);
-
-    el.append(t, meta);
-    return el;
-  }
-
-  function render(){
-    const tiles = load().sort((a,b)=>b.ts - a.ts);
-    wall.innerHTML = '';
-    tiles.forEach(t => wall.appendChild(tileEl(t)));
-  }
-
-  function update(){
-    const len = msg.value.trim().length;
-    count.textContent = len + '/160';
-    const can = len>0 && len<=160 && ok.checked && clean(msg.value);
-    post.disabled = !can;
-    hint.textContent = can ? '' : (!ok.checked ? 'Consent required.' : (!clean(msg.value) ? 'Please keep it respectful.' : ''));
-  }
-
-  function escapeHtml(s){
-    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-  }
-
-  msg.addEventListener('input', update);
-  ok.addEventListener('change', update);
-  update(); render();
-
-  // Post + fly animation
-  post.addEventListener('click', ()=>{
-    const text = msg.value.trim();
-    if (!text) return;
-
-    const now = Date.now();
-    const last = Number(localStorage.getItem(RATE_KEY)||0);
-    const wait = MIN_WAIT - (now - last);
-    if (wait > 0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s before posting again.`; return; }
-    if (!clean(text)){ hint.textContent='Please keep it respectful.'; return; }
-
-    const data = {
-      id: crypto.randomUUID(),
-      text,
-      name: nameI.value.trim(),
-      tone: tone.value || '',
-      col: colors[Math.floor(Math.random()*colors.length)],
-      ts: now
-    };
-
-    // Prepend hidden tile to measure target
-    const real = tileEl(data);
-    real.style.visibility = 'hidden';
-    wall.prepend(real);
-    const targetRect = real.getBoundingClientRect();
-
-    // Create flying ghost near composer
-    const compRect = composer.getBoundingClientRect();
-    const fly = document.createElement('div');
-    fly.className = 'fly';
-    fly.style.setProperty('--col', data.col);
-    fly.textContent = text;
-    document.body.appendChild(fly);
-
-    const startX = compRect.left + compRect.width*0.55 - fly.offsetWidth/2;
-    const startY = compRect.top + 12;
-    const endX   = targetRect.left + 8;
-    const endY   = targetRect.top  + 8;
-
-    fly.style.transform = `translate(${startX}px, ${startY}px)`;
-    fly.style.opacity = '0.95';
-
-    fly.animate([
-      { transform:`translate(${startX}px, ${startY}px) scale(1)`, opacity:.95, offset:0 },
-      { transform:`translate(${(startX+endX)/2}px, ${(startY+endY)/2 - 80}px) scale(1.06)`, opacity:1, offset:.6 },
-      { transform:`translate(${endX}px, ${endY}px) scale(1)`, opacity:1, offset:1 }
-    ], { duration: 750, easing:'cubic-bezier(.2,.7,.2,1)' }).onfinish = () => {
-      document.body.removeChild(fly);
-      real.style.visibility = 'visible';
-      real.animate([{transform:'scale(.96)',opacity:.0},{transform:'scale(1)',opacity:1}],{duration:180,easing:'ease-out'});
-
-      // persist
-      const tiles = load(); tiles.push(data); save(tiles);
-      localStorage.setItem(RATE_KEY, String(now));
-
-      // reset
-      msg.value = ''; nameI.value=''; tone.value=''; ok.checked=false; update();
-
-      // keep new tile in view
-      real.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    };
+  const now = Date.now();
+  SEED.forEach((s,i)=>{
+    const pos = placePlant();
+    plants.push({
+      id:'seed_'+i, text:s.text, name:s.name||'', theme:s.theme||'',
+      x:pos.x, y:pos.y, ts: now - (SEED.length-i)*600000, water: i
+    });
   });
+  savePlants(plants);
+  refreshHUD();
+})();
 </script>
 </body>
 </html>
