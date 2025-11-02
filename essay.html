@@ -585,110 +585,145 @@ That’s the new common sense.
   // Update footer year
   document.getElementById('y').textContent = new Date().getFullYear();
 
-  /* === Mini Markdown → HTML renderer === */
-  (function(){
-    const src = document.getElementById('essay-src');
-    const out = document.getElementById('essay');
-    if (!src || !out) return;
+ /* === Mini Markdown to HTML for #essay (headings, paragraphs, quotes, hr) === */
+(function(){
+  const src = document.getElementById('essay-src');
+  const out = document.getElementById('essay');
+  if(!src || !out) return;
 
-    const lines = src.textContent.replace(/\r\n/g, '\n').split('\n');
-    const html = [];
-    let para = [];
+  const lines = src.textContent.replace(/\r\n/g,'\n').split('\n');
+  const html = [];
+  let para = [];
 
-    function escapeHtml(s){
-      return s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  // dropcap control
+  let nextIsDropcap = false;
+  let dropcapUsed   = false;
+
+  // helpers
+  function escapeHtml(s){
+    return s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  }
+  function unescapeAllowedTags(s){
+    // allow safe inline tags only
+    return s.replace(/&lt;(\/?)(em|strong|i|b|u|a|br|code|sup|sub|span)&gt;/gi, '<$1$2>');
+  }
+  function mdInline(s){
+    // markdown emphasis → html
+    let t = s
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // **bold**
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')             // *italic*
+      .replace(/__(.+?)__/g, '<strong>$1</strong>')     // __bold__
+      .replace(/_(.+?)_/g, '<em>$1</em>');              // _italic_
+    t = escapeHtml(t);
+    t = unescapeAllowedTags(t);
+    return t;
+  }
+  function slug(str){
+    return str.toLowerCase().trim()
+      .replace(/[^\w\s-]/g,'')
+      .replace(/\s+/g,'-');
+  }
+
+  function flushPara() {
+    if (!para.length) return;
+    let text = para.join(' ').trim();
+    if (!text) { para = []; return; }
+
+    let cls = '';
+
+    // Inline marker at the start of this paragraph
+    if (!dropcapUsed && text.startsWith('::dropcap::')) {
+      cls = 'dropcap';
+      text = text.replace('::dropcap::','').trim();
+      dropcapUsed = true;
+      nextIsDropcap = false;
     }
-    function unescapeAllowedTags(s){
-      return s.replace(/&lt;(\/?)(em|strong|i|b|u|a|br|code|sup|sub|span)&gt;/gi, '<$1$2>');
-    }
-    function mdInline(s){
-      // Convert Markdown-style emphasis
-      let t = s
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        .replace(/__(.+?)__/g, '<strong>$1</strong>')
-        .replace(/_(.+?)_/g, '<em>$1</em>');
-      t = escapeHtml(t);
-      t = unescapeAllowedTags(t);
-      return t;
-    }
-    function slug(str){
-      return str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
-    }
-    function flushPara(){
-      if (!para.length) return;
-      const text = mdInline(para.join(' ').trim());
-      if (text) html.push('<p class="reveal">' + text + '</p>');
-      para = [];
-    }
-
-    // Parse each line
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) { flushPara(); continue; }
-
-      const h2 = line.match(/^##\s+(.*)$/);
-      if (h2) {
-        flushPara();
-        const text = h2[1].trim();
-        const id = slug(text);
-        html.push(`<h2 id="${id}" class="reveal">${escapeHtml(text)}</h2>`);
-        continue;
-      }
-
-      const bq = line.match(/^>\s?(.*)$/);
-      if (bq) {
-        flushPara();
-        html.push(`<blockquote class="reveal">${mdInline(bq[1])}</blockquote>`);
-        continue;
-      }
-
-      if (/^---+$/.test(line)) {
-        flushPara();
-        html.push('<hr class="reveal" />');
-        continue;
-      }
-
-      const emStart = line.match(/^\*(.+?)\*\.\s*(.*)$/);
-      if (emStart) {
-        flushPara();
-        const lead = `<em>${escapeHtml(emStart[1])}.</em>`;
-        const rest = emStart[2] ? ' ' + mdInline(emStart[2]) : '';
-        html.push(`<p class="reveal">${lead}${rest}</p>`);
-        continue;
-      }
-
-      para.push(line);
-    }
-    flushPara();
-    out.innerHTML = html.join('\n');
-
-    // Build TOC
-    const tocEl = document.getElementById('toc');
-    if (tocEl) {
-      const headings = Array.from(out.querySelectorAll('h2'));
-      tocEl.innerHTML = '';
-      headings.forEach(h => {
-        const a = document.createElement('a');
-        a.href = '#' + h.id;
-        a.textContent = h.textContent;
-        tocEl.appendChild(a);
-      });
+    // Or a standalone marker previously set
+    else if (!dropcapUsed && nextIsDropcap) {
+      cls = 'dropcap';
+      nextIsDropcap = false;
+      dropcapUsed = true;
     }
 
-    // Reveal animations
-    const rev = document.querySelectorAll('.reveal');
-    const io2 = new IntersectionObserver((ents)=>{
-      ents.forEach(en=>{
-        if(en.isIntersecting){
-          en.target.classList.add('visible');
-          io2.unobserve(en.target);
-        }
-      });
-    }, { threshold: 0.12 });
-    rev.forEach(el=>io2.observe(el));
-  })();
+    const rendered = mdInline(text);
+    html.push(`<p class="reveal${cls ? ' ' + cls : ''}">${rendered}</p>`);
+    para = [];
+  }
 
+  // parse each line
+  for (let i=0; i<lines.length; i++) {
+    const raw = lines[i];
+    const line = raw.trim();
+
+    // standalone dropcap marker applies to the NEXT paragraph
+    if (line === '::dropcap::') { nextIsDropcap = true; continue; }
+
+    // blank line => paragraph break
+    if (!line) { flushPara(); continue; }
+
+    // H2 heading: "## Title"
+    const h2 = line.match(/^##\s+(.*)$/);
+    if (h2) {
+      flushPara();
+      const text = h2[1].trim();
+      const id = slug(text);
+      html.push(`<h2 id="${id}" class="reveal">${escapeHtml(text)}</h2>`);
+      continue;
+    }
+
+    // Blockquote: "> text"
+    const bq = line.match(/^>\s?(.*)$/);
+    if (bq) {
+      flushPara();
+      html.push(`<blockquote class="reveal">${mdInline(bq[1])}</blockquote>`);
+      continue;
+    }
+
+    // Horizontal rule: "---"
+    if (/^---+$/.test(line)) {
+      flushPara();
+      html.push('<hr class="reveal" />');
+      continue;
+    }
+
+    // Lead form: "*Lead.* rest of paragraph"
+    const emStart = line.match(/^\*(.+?)\*\.\s*(.*)$/);
+    if (emStart) {
+      flushPara();
+      const lead = `<em>${escapeHtml(emStart[1])}.</em>`;
+      const rest = emStart[2] ? ' ' + mdInline(emStart[2]) : '';
+      html.push(`<p class="reveal">${lead}${rest}</p>`);
+      continue;
+    }
+
+    // normal paragraph accumulation
+    para.push(line);
+  }
+  flushPara();
+
+  // inject HTML
+  out.innerHTML = html.join('\n');
+
+  // Build TOC from generated <h2> nodes
+  const tocEl = document.getElementById('toc');
+  if (tocEl) {
+    const headings = Array.from(out.querySelectorAll('h2'));
+    tocEl.innerHTML = '';
+    headings.forEach(h=>{
+      const a = document.createElement('a');
+      a.href = '#'+h.id;
+      a.textContent = h.textContent;
+      tocEl.appendChild(a);
+    });
+  }
+
+  // Reveal animations for inserted nodes
+  const rev = document.querySelectorAll('.reveal');
+  const io2 = new IntersectionObserver((ents)=>{
+    ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('visible'); io2.unobserve(en.target);} });
+  }, { threshold: 0.12 });
+  rev.forEach(el=>io2.observe(el));
+})();
   // Reading time (approx 225 wpm)
   (function(){
     const text = document.getElementById('essay').innerText || '';
