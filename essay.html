@@ -599,6 +599,22 @@ That’s the new common sense.
 
 
 </script> <!-- end #essay-src -->
+
+<script>
+(function(){
+  const btn = document.getElementById('tocBtn');
+  const toc = document.querySelector('aside.toc');
+  if (!btn || !toc) return;
+
+  // keep existing styling; just toggle the 'open' class + aria
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    const isOpen = toc.classList.toggle('open');
+    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+})();
+</script>
+
   </div>
 </main>
 
