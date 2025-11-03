@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The Lightwall — Aim the Light</title>
-<meta name="description" content="Share one word or phrase the world needs more of this week. Add your light to unlock the wall." />
+<meta name="description" content="Add your light: share one word or phrase the world needs more of this week." />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
 
@@ -15,9 +15,7 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
-
-  a{color:var(--accent);text-decoration:none}
-  a:hover{text-decoration:underline}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
   .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
 
   /* Header (match essay) */
@@ -32,10 +30,9 @@
   nav.links{display:flex;gap:.9rem}
   nav.links a{color:var(--accent);font-weight:500;text-decoration:none}
 
-  /* Hero */
+  /* Hero (no extra description) */
   .hero{padding:56px 0 18px;border-bottom:1px solid #1b2742;text-align:center}
-  .hero h1{margin:.2rem 0 .4rem;font-size:clamp(1.9rem,1.2rem + 2vw,2.6rem);font-weight:800}
-  .hero p{color:var(--muted);max-width:760px;margin:.3rem auto 0}
+  .hero h1{margin:.2rem 0 .2rem;font-size:clamp(1.9rem,1.2rem + 2vw,2.6rem);font-weight:800}
 
   /* Panel (prompt + form) */
   .panel{margin:26px auto 8px;max-width:920px;border:1px solid var(--border);
@@ -45,7 +42,7 @@
   .prompt small{color:#cbd5e1}
   .prompt .key{color:#ffe8a6;font-weight:700}
 
-  .form{flex:1 1 560px; min-width:0; display:flex; gap:10px; align-items:center;}
+  .form{flex:1 1 560px; min-width:0; display:flex; gap:10px; align-items:flex-end;}
   .form label{font-weight:700; color:var(--accent); font-size:.95rem; display:block; margin-bottom:.25rem}
   .input-col{flex:1 1 100%; min-width:0}
   input[type="text"]{
@@ -141,10 +138,27 @@
   body.revealed .board .chip { animation: chipIn .42s ease forwards; animation-delay: var(--d, 0s); }
   @keyframes chipIn { to { opacity:1; transform:none; } }
 
+  /* Gold flash + +1 bubble on submitted chip */
+  .chip.flash { animation: flashGold 1.1s ease; position: relative; z-index: 1; }
+  @keyframes flashGold {
+    0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.9), 0 6px 18px rgba(0,0,0,.24); transform: scale(1.02); }
+    45%  { box-shadow: 0 0 28px 10px rgba(251,191,36,.35), 0 10px 22px rgba(0,0,0,.28); }
+    100% { box-shadow: 0 6px 18px rgba(0,0,0,.24); transform: none; }
+  }
+  .chip .pop {
+    position:absolute; right:-12px; top:-6px;
+    background:var(--accent); color:#0b0b0b; font-weight:800; font-size:.8rem;
+    padding:.05rem .35rem; border-radius:999px; box-shadow:0 4px 12px rgba(251,191,36,.35);
+    animation: floatUp 900ms ease forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity:0; transform: translateY(8px) scale(.9); }
+    30%{ opacity:1; transform: translateY(0)   scale(1); }
+    100%{ opacity:0; transform: translateY(-22px) scale(.98); }
+  }
+
   /* LOCK/UNLOCK STATES */
   #wallSection[aria-hidden="true"] { pointer-events:none }
-
-  /* Optional subtle hint while locked */
   #lockedHint{color:#aeb8ce; text-align:center; font-size:.95rem; margin:10px 0 0 0}
 
   footer{padding:48px 0;border-top:1px solid #1c2742;text-align:center;color:#97a3b8;margin-top:34px}
@@ -166,7 +180,7 @@
   <section class="hero">
     <div class="container">
       <h1>The Lightwall</h1>
-      <p>Share one word or phrase the world needs more of this week. <br/>Add your light to unlock the wall.</p>
+      <!-- intentionally no descriptive paragraph below the title -->
     </div>
   </section>
 
@@ -368,6 +382,7 @@
     list.forEach(({term,count,firstName}, idx)=>{
       const chip = document.createElement('div');
       chip.className = 'chip';
+      chip.dataset.term = term; // for flash targeting
 
       const { bg, tone } = chipStyle(term);
       chip.style.background = bg;
@@ -398,6 +413,27 @@
       if (p < 1) requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
+  }
+
+  function flashChip(term){
+    const chips = document.querySelectorAll('.board .chip');
+    let target = null;
+    chips.forEach(ch => {
+      if ((ch.dataset.term || '').toLowerCase() === term.toLowerCase()) target = ch;
+    });
+    if (!target) return;
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    target.classList.add('flash');
+
+    // +1 bubble
+    const bub = document.createElement('span');
+    bub.className = 'pop';
+    bub.textContent = '+1';
+    target.appendChild(bub);
+    setTimeout(()=>{ bub.remove(); }, 950);
+
+    setTimeout(()=> target.classList.remove('flash'), 1300);
   }
 
   async function refresh(){
@@ -445,6 +481,7 @@
       setTimeout(()=>{
         document.body.classList.add('revealed');
         ws.classList.remove('unveil');
+        flashChip(term); // highlight the submitted one
       }, 250);
     } catch(err){
       console.error(err);
