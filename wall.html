@@ -3,535 +3,326 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Idea Garden — Aim the Light</title>
-<meta name="description" content="Plant a seed. Nurture the garden. Watch ideas grow." />
+<title>Empathy Wall — Aim the Light</title>
+<meta name="description" content="A living pulse of what we need more of right now — add your word, see the wall breathe." />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b1020; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24;
-    --card:#111827; --soft:#1f2937; --grass:#0e3120; --soil:#2b1f15;
-    --max:1200px;
+    --bg:#0b1020; --ink:#f8fafc; --muted:#97a3b8; --accent:#fbbf24; --soft:#142038;
+    --border:#23314f; --max:1100px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
   a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
+  header{
+    position:sticky;top:0;z-index:50;
+    background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));
+    backdrop-filter:saturate(120%) blur(6px);
+    border-bottom:1px solid rgba(31,39,55,.35);
+  }
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:8px 0;min-height:56px}
+  header .container{padding:0 1.1rem}
+  .brand a{white-space:nowrap;font-weight:800;font-size:1.05rem;color:inherit}
+  nav.links{display:flex;gap:.9rem}
+  nav.links a{color:var(--accent);font-weight:500}
+  .hero{padding:48px 0 12px;border-bottom:1px solid #1b2742;text-align:center}
+  .hero h1{margin:.2rem 0 .4rem;font-size:clamp(1.8rem,1.2rem + 2vw,2.6rem);font-weight:800}
+  .hero p{color:var(--muted);max-width:760px;margin:.3rem auto 0}
 
-  header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));backdrop-filter:saturate(120%) blur(6px)}
-  .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
-  .brand{font-weight:800}
-  .nav a.btn{background:var(--accent);color:#0b0b0b;padding:.45rem .75rem;border-radius:10px;font-weight:600}
+  /* Prompt + form */
+  .panel{margin:24px auto 8px;max-width:820px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#0e1830,#0b1428)}
+  .panel .row{display:flex;flex-wrap:wrap;gap:12px;padding:14px}
+  .prompt{flex:1 1 280px;background:#0c162a;border:1px dashed #2b3b65;border-radius:10px;padding:10px 12px}
+  .prompt small{color:#cbd5e1}
+  .prompt .key{color:#ffe8a6;font-weight:700}
+  .form{flex:1 1 420px;display:flex;gap:10px;align-items:center}
+  input[type="text"]{flex:1 1 auto;background:#0c162a;border:1px solid #2a3a64;border-radius:10px;color:#e7eefb;padding:.7rem .8rem;font-size:1rem;outline:none}
+  input[type="text"]::placeholder{color:#93a0bd}
+  .name{max-width:200px}
+  button{background:var(--accent);border:none;color:#101010;font-weight:800;border-radius:12px;padding:.7rem 1rem;cursor:pointer}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .meta-row{display:flex;justify-content:space-between;align-items:center;padding:8px 14px 14px;color:#aeb8ce}
+  .meta-row .count{font-variant-numeric:tabular-nums}
+  .err{color:#ff9393;font-weight:600}
+  .ok{color:#99ffcc}
 
-  .hero{display:grid;place-items:center;text-align:center;min-height:22vh;border-bottom:1px solid #1f2737;position:relative;isolation:isolate}
-  .hero::before{
-    content:"";position:absolute;inset:0;z-index:-1;
-    background:
-      radial-gradient(900px 420px at 70% 0%, rgba(251,191,36,.18), transparent 60%),
-      radial-gradient(700px 400px at 10% 30%, rgba(96,165,250,.12), transparent 60%);
-  }
-  .hero h1{font-size:clamp(2rem,1.3rem + 2vw,3rem);margin:.2rem 0 .2rem;font-weight:800}
-  .hero p{color:var(--muted);max-width:760px;margin:.2rem auto}
+  /* Two views */
+  .views{display:flex;gap:10px;justify-content:center;margin:18px 0}
+  .views button{background:transparent;color:#e7eefb;border:1px solid #334160}
+  .views button.active{background:rgba(251,191,36,.12);border-color:var(--accent);color:#ffe8a6}
 
-  /* Scene */
-  .scene-wrap{position:relative}
-  #garden {
-    display:block; width:100vw;
-    background:
-      linear-gradient(180deg, #0a1327 0%, #0a1732 40%, #0b1a1d 60%, #0f1f12 100%);
-  }
+  /* Leaderboard + Board */
+  .grid{display:grid;grid-template-columns: 2fr 3fr;gap:16px;align-items:start}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
 
-  /* Composer HUD */
-  .hud{
-    position:fixed; left:50%; transform:translateX(-50%);
-    bottom:18px; z-index:10; width:min(100%, var(--max)); padding:0 16px;
-  }
-  .composer{
-    display:grid; gap:10px; grid-template-columns: 1fr 280px;
-    background:linear-gradient(180deg, rgba(17,24,39,.85), rgba(12,19,34,.9));
-    border:1px solid #243044; border-radius:16px; padding:12px;
-    backdrop-filter: blur(4px); box-shadow:0 10px 30px rgba(0,0,0,.35);
-  }
-  @media (max-width:860px){ .composer{grid-template-columns:1fr} }
-  textarea,input,select{
-    width:100%; border:1px solid #2b3a52; border-radius:12px; background:#0c1322;
-    color:#e5e7eb; padding:10px 12px; font-size:1rem; outline:none;
-  }
-  textarea{min-height:84px;resize:vertical}
-  .rightcol{display:grid; gap:10px; grid-template-columns:1fr}
-  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  .chip{display:inline-flex;align-items:center;gap:.35rem;border:1px solid #344155;background:rgba(17,24,39,.5);padding:.35rem .6rem;border-radius:999px;color:var(--ink);font-weight:600}
-  .btn{background:var(--accent);color:#0b0b0b;padding:.55rem .95rem;border-radius:12px;border:none;font-weight:800;cursor:pointer}
-  .btn[disabled]{opacity:.5;cursor:not-allowed}
-  .muted{color:var(--muted);font-size:.9rem}
-  .counter{font-variant-numeric:tabular-nums}
+  .card{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#101a30,#0b1222);box-shadow:0 10px 24px rgba(0,0,0,.28)}
+  .card h3{margin:0;padding:12px 14px;border-bottom:1px solid #1c2640;font-size:1rem}
+  .card .body{padding:12px}
 
-  /* Tooltip bubble */
-  .tip{
-    position:fixed; pointer-events:none; z-index:9;
-    background:rgba(15,23,42,.95); border:1px solid #243044; color:#f8fafc;
-    padding:8px 10px; border-radius:10px; font-size:.95rem; max-width:240px;
-    box-shadow:0 10px 30px rgba(0,0,0,.35);
-    transform:translate(-50%,-110%); white-space:normal;
-    opacity:0; transition:opacity .12s ease;
-  }
-  .tip.show{opacity:1}
+  .leaderboard ol{list-style:decimal;margin:0;padding-left:22px}
+  .leaderboard li{padding:6px 0;border-bottom:1px dashed #23314f}
+  .leaderboard li:last-child{border-bottom:none}
+  .leaderboard .count{color:#ffe8a6;font-weight:700;margin-left:8px}
 
-  /* Top-right garden HUD */
-  #hudTop {
-    position:fixed; right:12px; top:62px; z-index:9;
-    background:rgba(17,24,39,.75); border:1px solid #243044; border-radius:12px;
-    padding:10px 12px; font-weight:600; color:#f8fafc; backdrop-filter:blur(4px);
+  .board{display:flex;flex-wrap:wrap;gap:10px;min-height:160px}
+  .tile{
+    --scale:1;
+    transform:scale(var(--scale));
+    transition:transform .25s ease, box-shadow .25s ease, background-color .25s ease;
+    padding:.55rem .7rem;border-radius:12px;
+    background:rgba(251,191,36,.08);color:#ffe8a6;border:1px solid rgba(251,191,36,.4);
+    box-shadow:0 0 12px rgba(251,191,36,.18);
+    font-weight:700; letter-spacing:.2px;
   }
-  #moodNow{ font-size:.9rem; color:#94a3b8 }
-  footer{padding:42px 0;border-top:1px solid #1f2737;text-align:center;color:var(--muted)}
-  .toast {
-    position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%);
-    background: rgba(17,24,39,.9); border: 1px solid #243044; color: #f8fafc;
-    padding: 10px 14px; border-radius: 12px; font-weight: 600;
-    box-shadow: 0 10px 30px rgba(0,0,0,.35); z-index: 100; opacity: 0;
-    transition: opacity .2s ease, transform .2s ease;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+  .tile:hover{box-shadow:0 0 18px rgba(251,191,36,.34)}
+  .tile .small{font-weight:600;color:#d7e3ff;margin-left:6px;opacity:.85}
+
+  footer{padding:48px 0;border-top:1px solid #1c2742;text-align:center;color:#97a3b8;margin-top:30px}
 </style>
 </head>
 <body>
-<header>
-  <div class="nav">
-    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Aim the Light</a></div>
-    <nav class="links" aria-label="Primary">
-      <a class="muted" href="index.html#mission">Mission</a>
-      &nbsp;·&nbsp;<a class="muted" href="essay.html">Essay</a>
-      &nbsp;·&nbsp;<a class="muted" href="hub.html">Hub</a>
-      &nbsp;·&nbsp;<a class="muted" href="garden.html">Garden</a>
-    </nav>
-    <a class="btn" href="index.html#join">Join</a>
-  </div>
-</header>
+  <!-- Header (match essay) -->
+  <header>
+    <div class="nav container">
+      <div class="brand"><a href="index.html">Aim the Light</a></div>
+      <nav class="links" aria-label="Primary">
+        <a href="index.html#mission">Mission</a>
+        <a href="index.html#approach">Approach</a>
+        <a href="essay.html">Essay</a>
+        <a href="index.html#volunteer">Volunteer</a>
+      </nav>
+    </div>
+  </header>
 
-<section class="hero">
-  <h1>The Idea Garden</h1>
-  <p>Plant a seed. Water others. Return to see what your idea becomes.</p>
-</section>
+  <section class="hero">
+    <div class="container">
+      <h1>The Empathy Wall</h1>
+      <p>Add one word that we need more of this week. Watch the wall breathe as others echo it.</p>
+    </div>
+  </section>
 
-<div class="scene-wrap">
-  <canvas id="garden"></canvas>
-</div>
-
-<!-- Garden HUD -->
-<div id="hudTop">
-  <div id="countTotal">0 plants</div>
-  <div id="moodNow">season: early spring</div>
-</div>
-
-<!-- Tooltip -->
-<div id="tip" class="tip"></div>
-
-<!-- Composer -->
-<div class="hud">
-  <div class="composer">
-    <textarea id="msg" maxlength="160" placeholder="Plant a seed… (max 160)"></textarea>
-    <div class="rightcol">
-      <input id="name" type="text" placeholder="Name (optional)" />
-      <select id="theme">
-        <option value="">Choose a theme (optional)</option>
-        <option>Hope</option><option>Resolve</option><option>Gratitude</option>
-        <option>Clarity</option><option>Action</option>
-      </select>
+  <main class="container">
+    <!-- Prompt + form -->
+    <div class="panel">
       <div class="row">
-        <span class="chip counter" id="count">0/160</span>
-        <span class="muted" id="hint"></span>
-        <div style="flex:1"></div>
-        <button class="btn" id="plantBtn" disabled>Plant Seed 🌱</button>
+        <div class="prompt">
+          <strong>Prompt of the week</strong><br/>
+          <div style="margin-top:6px">What do we need more of right now?</div>
+          <small>Week: <span class="key" id="weekKey">…</span></small>
+        </div>
+
+        <form class="form" id="entryForm" autocomplete="off">
+          <input id="term" type="text" placeholder="Your word (max 30 chars)" maxlength="30" required />
+          <input id="name" class="name" type="text" placeholder="Name (optional)" maxlength="40" />
+          <button id="submitBtn" type="submit">Add to the Light</button>
+        </form>
+      </div>
+      <div class="meta-row">
+        <div id="msg" aria-live="polite"></div>
+        <div class="count"><span id="total">0</span> echoes this week</div>
       </div>
     </div>
-  </div>
-</div>
 
-<footer>
-  <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
-</footer>
+    <!-- Views -->
+    <div class="views">
+      <button id="viewBoard" class="active" type="button">Board</button>
+      <button id="viewStars" type="button" disabled title="Coming soon">Stars</button>
+    </div>
 
-<script>
-/* ---------- UTIL / STORAGE ---------- */
-document.getElementById('y').textContent = new Date().getFullYear();
+    <!-- Data -->
+    <div class="grid">
+      <div class="card leaderboard">
+        <h3>Top words</h3>
+        <div class="body">
+          <ol id="topList"></ol>
+        </div>
+      </div>
 
-const STORE_KEY = 'atl_garden_plants_v1';
-const RATE_KEY  = 'atl_garden_last_ms';
+      <div class="card">
+        <h3>This week’s wall</h3>
+        <div class="body">
+          <div id="board" class="board"></div>
+        </div>
+      </div>
+    </div>
+  </main>
 
-const THEMES = {
-  Hope:      { flower:'#fbbf24', leaf:'#22c55e' },
-  Resolve:   { flower:'#ef4444', leaf:'#16a34a' },
-  Gratitude: { flower:'#22c55e', leaf:'#10b981' },
-  Clarity:   { flower:'#60a5fa', leaf:'#22d3ee' },
-  Action:    { flower:'#a78bfa', leaf:'#34d399' }
-};
-function themeColor(theme, part){
-  const t = THEMES[theme] || {flower:'#ffe8a6', leaf:'#39d353'};
-  return t[part];
-}
-function loadPlants(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch{ return []; } }
-function savePlants(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
-function esc(s){
-  return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))
-                 .replace(/'/g,'&#39;');
-}
+  <footer>
+    © <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a>
+  </footer>
 
-/* ---------- CANVAS SETUP ---------- */
-const canvas = document.getElementById('garden');
-const ctx    = canvas.getContext('2d');
-function calcSceneHeight(){
-  const reserve = (window.innerWidth < 860) ? 220 : 160;
-  const heroH   = Math.max(140, window.innerHeight * 0.22);
-  return Math.floor(Math.max(360, window.innerHeight - heroH - reserve));
-}
-function sizeCanvas(){
-  const w = window.innerWidth;
-  const h = calcSceneHeight();
-  const dpr = Math.min(devicePixelRatio || 1, 2);
-  canvas.style.width = w + 'px';
-  canvas.style.height = h + 'px';
-  canvas.width = Math.floor(w * dpr);
-  canvas.height = Math.floor(h * dpr);
-}
-sizeCanvas(); window.addEventListener('resize', sizeCanvas);
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  // ---------- Config ----------
+  const SUPABASE_URL = "https://rksoyinnfwdstzgjgegv.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrc295aW5uZndkc3R6Z2pnZWd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMzMyNzUsImV4cCI6MjA3NzcwOTI3NX0.EbBGdjGNi4idankMWFM5tHeA_51beQ7ybCTKb8WeCwo";
+  const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
 
-/* ---------- WORLD ---------- */
-let plants = loadPlants();
-const tip = document.getElementById('tip');
-let mouse = {x:0, y:0, over:null};
-canvas.addEventListener('pointermove',(e)=>{
-  const r = canvas.getBoundingClientRect();
-  mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
-  mouse.y = (e.clientY - r.top)  * (canvas.height / r.height);
-});
-canvas.addEventListener('pointerleave', ()=> { mouse.over=null; tip.classList.remove('show'); });
+  // ---------- Utilities ----------
+  document.getElementById('y').textContent = new Date().getFullYear();
 
-/* simple Poisson-ish placement to avoid clumping */
-function placePlant(){
-  const w = canvas.width, h = canvas.height;
-  for (let tries=0; tries<80; tries++){
-    const x = (Math.random()*0.85 + 0.075) * w;
-    const y = (Math.random()*0.35 + 0.55)  * h; // bottom half
-    let ok = true;
-    for (const p of plants){
-      const dx = (x - p.x), dy = (y - p.y);
-      if (Math.hypot(dx,dy) < 80) { ok=false; break; }
-    }
-    if (ok) return {x,y};
+  function isoWeekKey(d=new Date()){
+    // returns e.g. "2025-W45"
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayNum = (date.getUTCDay() + 6) % 7;
+    date.setUTCDate(date.getUTCDate() - dayNum + 3);
+    const firstThu = new Date(Date.UTC(date.getUTCFullYear(),0,4));
+    const week = 1 + Math.round(((date - firstThu) / 86400000 - 3 + ((firstThu.getUTCDay()+6)%7)) / 7);
+    return `${date.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
   }
-  // fallback
-  return { x: (0.2+Math.random()*0.6)*w, y: (0.58+Math.random()*0.35)*h };
-}
+  const PROMPT_KEY = isoWeekKey();
+  document.getElementById('weekKey').textContent = PROMPT_KEY;
 
-/* ---------- GROWTH MODEL ---------- */
-function growth(p){
-  // Age in hours + water bonus. Tuned for “visible growth in minutes”.
-  const ageHrs = (Date.now() - p.ts) / (1000*60*20); // 20 min == 1 “hour”
-  const wtr    = p.water || 0;
-  // 0..1 stage factor
-  let g = Math.min(1, (ageHrs*0.55) + (wtr*0.10));
-  return g; // 0 seed, 0.2 sprout, 0.5 leaf, 0.8 bud, 1 bloom
-}
-function plantRadius(g){ return 12 + g*42; }
-
-/* ---------- DRAW ---------- */
-let windT = 0;
-function drawBackground(dpr){
-  const w = canvas.width, h = canvas.height;
-
-  // stars/ fireflies subtly
-  ctx.save();
-  ctx.globalAlpha = 0.05;
-  ctx.fillStyle = '#ffffff';
-  for(let i=0;i<120;i++){
-    const sx = (Math.sin(i*12.33 + windT*0.05)*0.5+0.5) * w;
-    const sy = (Math.cos(i*7.71  + windT*0.05)*0.5+0.5) * h*0.6;
-    const s  = (Math.sin(i*3.1 + windT*0.25)*0.5+0.5) * 1.6 + 0.3;
-    ctx.fillRect(sx, sy, s, s);
-  }
-  ctx.restore();
-
-  // horizon glow
-  const sky = ctx.createLinearGradient(0, 0, 0, h);
-  sky.addColorStop(0, 'rgba(96,165,250,0.08)');
-  sky.addColorStop(0.5, 'rgba(20,50,90,0.12)');
-  sky.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = sky; ctx.fillRect(0,0,w,h);
-
-  // distant hills
-  ctx.fillStyle = '#0c1b14';
-  ctx.beginPath();
-  ctx.moveTo(0, h*0.68);
-  for(let x=0; x<=w; x+=40){
-    const y = h*0.68 + Math.sin((x*0.004)+windT*0.002)*8;
-    ctx.lineTo(x, y);
-  }
-  ctx.lineTo(w, h); ctx.lineTo(0,h); ctx.closePath(); ctx.fill();
-
-  // ground/soil
-  const ground = ctx.createLinearGradient(0, h*0.65, 0, h);
-  ground.addColorStop(0, '#0e2718');
-  ground.addColorStop(1, '#102412');
-  ctx.fillStyle = ground; ctx.fillRect(0, h*0.65, w, h);
-
-  // soil line
-  ctx.strokeStyle = 'rgba(251,191,36,0.22)';
-  ctx.lineWidth = 1*dpr;
-  ctx.beginPath();
-  ctx.moveTo(0, h*0.65);
-  ctx.lineTo(w, h*0.65);
-  ctx.stroke();
-}
-
-function drawPlant(p, dpr, t){
-  const g = growth(p);
-  const r = plantRadius(g) * dpr;
-  const sway = Math.sin(t*0.0015 + (p.x+p.y)*0.0002)* (4 + g*6) * dpr;
-
-  // stem
-  ctx.save();
-  ctx.translate(p.x, p.y);
-  ctx.rotate(sway*0.002);
-  ctx.strokeStyle = '#1f8a44';
-  ctx.lineWidth = Math.max(2, 2.5*g) * dpr;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.quadraticCurveTo(0, -r*0.4, 0, -r); // curved stem
-  ctx.stroke();
-
-  // leaves (appear after sprout)
-  if (g > 0.25){
-    const leafC = themeColor(p.theme, 'leaf');
-    ctx.fillStyle = leafC;
-    for (let i=0;i<2;i++){
-      const side = i===0? -1 : 1;
-      const y = -r*0.6 + i* (r*0.25);
-      leaf(ctx, side* (8+g*20)*dpr, y, r*0.35, side);
-    }
-  }
-
-  // bud/flower
-  const flowerC = themeColor(p.theme, 'flower');
-  if (g < 0.6){
-    // bud
-    ctx.fillStyle = flowerC;
-    ctx.beginPath();
-    ctx.arc(0, -r-6*dpr, 4*dpr + g*2*dpr, 0, Math.PI*2);
-    ctx.fill();
-  } else {
-    // petals
-    const petals = 6;
-    const petalR = 7*dpr + g*6*dpr;
-    for(let i=0;i<petals;i++){
-      const a = (i/petals)*Math.PI*2 + sway*0.01;
-      const px = Math.cos(a) * (petalR+4*dpr);
-      const py = -r-6*dpr + Math.sin(a) * (petalR+2*dpr);
-      petal(ctx, px, py, petalR, flowerC);
-    }
-    // center
-    ctx.fillStyle = '#fef08a';
-    ctx.beginPath(); ctx.arc(0, -r-6*dpr, (4.5+g*1.8)*dpr, 0, Math.PI*2); ctx.fill();
-  }
-
-  ctx.restore();
-}
-function leaf(ctx, x, y, len, side){
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(side * 0.3);
-  ctx.beginPath();
-  ctx.moveTo(0,0);
-  ctx.quadraticCurveTo(len*0.3, -len*0.2, len, 0);
-  ctx.quadraticCurveTo(len*0.3, len*0.2, 0,0);
-  ctx.fill();
-  ctx.restore();
-}
-function petal(ctx, x, y, r, c){
-  ctx.save(); ctx.translate(x,y);
-  const grd = ctx.createRadialGradient(0,0,1, 0,0,r);
-  grd.addColorStop(0, c);
-  grd.addColorStop(1, 'rgba(255,255,255,0.08)');
-  ctx.fillStyle = grd;
-  ctx.beginPath();
-  ctx.ellipse(0,0,r*0.8,r,0,0,Math.PI*2);
-  ctx.fill();
-  ctx.restore();
-}
-
-/* ---------- HIT TEST & WATER ---------- */
-function pick(mx,my){
-  let hit=null, best=1e9;
-  const dpr = Math.min(devicePixelRatio||1,2);
-  for (const p of plants){
-    const g = growth(p);
-    const r = plantRadius(g)*dpr*0.9;
-    const dx = mx - p.x, dy = my - p.y + r*0.3; // lenient
-    const d = Math.hypot(dx,dy);
-    if (d < r && d < best){ best=d; hit=p; }
-  }
-  return hit;
-}
-canvas.addEventListener('pointermove', ()=>{
-  mouse.over = pick(mouse.x, mouse.y);
-  if (mouse.over){
-    tip.innerHTML = `<strong>${esc(mouse.over.name||'Someone')}</strong>: ${esc(mouse.over.text)}`;
-    tip.style.left = (mouse.x / (devicePixelRatio||1)) + 'px';
-    tip.style.top  = (mouse.y / (devicePixelRatio||1)) + 'px';
-    tip.classList.add('show');
-  } else {
-    tip.classList.remove('show');
-  }
-});
-canvas.addEventListener('click', ()=>{
-  const p = pick(mouse.x, mouse.y);
-  if (p){
-    p.water = (p.water||0) + 1;
-    savePlants(plants);
-    makeRipple(p.x, p.y);
-    toast('You watered a plant 💧');
-    refreshHUD();
-  }
-});
-
-/* ---------- PARTICLES / RIPPLES ---------- */
-let ripples = [];
-function makeRipple(x,y){
-  ripples.push({x,y,t:0});
-}
-function drawRipples(dpr){
-  for (let i=ripples.length-1; i>=0; i--){
-    const r = ripples[i];
-    r.t += 0.02;
-    const rad = (30 + 90*r.t) * dpr;
-    const a = Math.max(0, 0.25 - r.t*0.25);
-    ctx.save();
-    ctx.strokeStyle = `rgba(96,165,250,${a})`;
-    ctx.lineWidth = 2*dpr;
-    ctx.beginPath(); ctx.arc(r.x, r.y, rad, 0, Math.PI*2); ctx.stroke();
-    ctx.restore();
-    if (r.t >= 1) ripples.splice(i,1);
-  }
-}
-
-/* ---------- RENDER LOOP ---------- */
-function moodName(){
-  if (!plants.length) return 'early spring';
-  // rough mood = most common theme
-  const tally = {};
-  plants.forEach(p=>{ const k=p.theme||'mixed'; tally[k]=(tally[k]||0)+1; });
-  const top = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0][0];
-  return (top==='mixed') ? 'mixed' : top.toLowerCase();
-}
-function refreshHUD(){
-  const ct = document.getElementById('countTotal');
-  const md = document.getElementById('moodNow');
-  const n = plants.length;
-  if (ct) ct.textContent = `${n} ${n===1?'plant':'plants'}`;
-  if (md) md.textContent = `season: ${moodName()}`;
-}
-refreshHUD();
-
-let last = performance.now();
-function tick(t){
-  const dpr = Math.min(devicePixelRatio || 1, 2);
-  const dt = t - last; last = t;
-  windT += dt;
-
-  // subtle trails
-  ctx.setTransform(1,0,0,1,0,0);
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = 'rgba(6,9,19,0.18)';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  drawBackground(dpr);
-
-  // draw plants back-to-front by y (depth)
-  plants.sort((a,b)=>a.y-b.y).forEach(p=> drawPlant(p, dpr, t));
-  drawRipples(dpr);
-
-  requestAnimationFrame(tick);
-}
-requestAnimationFrame(tick);
-
-/* ---------- COMPOSER ---------- */
-const msg   = document.getElementById('msg');
-const nameI = document.getElementById('name');
-const theme = document.getElementById('theme');
-const count = document.getElementById('count');
-const hint  = document.getElementById('hint');
-const plantB= document.getElementById('plantBtn');
-
-const BADWORDS  = ['fuck','shit','bitch','asshole','cunt','nigger','faggot'];
-const clean = t => !BADWORDS.some(w => (t||'').toLowerCase().includes(w));
-
-function updateCounter(){
-  const val = (msg.value || '').trim();
-  const len = val.length;
-  count.textContent = `${len}/160`;
-  const enable = len > 0 && len <= 160 && clean(val);
-  plantB.disabled = !enable;
-  if (!clean(val))        hint.textContent = 'Please keep it respectful.';
-  else if (len > 160)     hint.textContent = 'Too long.';
-  else                    hint.textContent = '';
-}
-['input','keyup','change','blur'].forEach(e=> msg.addEventListener(e, updateCounter));
-theme.addEventListener('change', updateCounter);
-setInterval(updateCounter, 500);
-updateCounter();
-
-function toast(text){
-  let el = document.querySelector('.toast');
-  if (!el){ el = document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
-  el.textContent = text;
-  el.classList.add('show');
-  setTimeout(()=> el.classList.remove('show'), 1200);
-}
-
-plantB.addEventListener('click', ()=>{
-  const text = (msg.value || '').trim();
-  if (!text || !clean(text)) { updateCounter(); return; }
-
-  const now  = Date.now();
-  const last = Number(localStorage.getItem(RATE_KEY)||0);
-  const wait = 2500 - (now - last);
-  if (wait>0){ hint.textContent = `Please wait ${Math.ceil(wait/1000)}s…`; return; }
-
-  const pos = placePlant();
-  const p = {
-    id: (crypto.randomUUID ? crypto.randomUUID() : String(now)),
-    text, name: (nameI.value||'').trim(), theme: theme.value || '',
-    x: pos.x, y: pos.y, ts: now, water: 0
+  const msg = (t, cls='ok')=>{
+    const el = document.getElementById('msg');
+    el.className = cls;
+    el.textContent = t;
+    if (t) setTimeout(()=>{ el.textContent=''; el.className=''; }, 2200);
   };
 
-  plants.push(p); savePlants(plants);
-  localStorage.setItem(RATE_KEY, String(now));
+  // Simple profanity gate (expand later)
+  const BAD = ['fuck','shit','bitch','cunt','nigger','fag','retard'];
+  const hasBad = s => BAD.some(x => s.includes(x));
 
-  msg.value=''; nameI.value=''; theme.value=''; updateCounter();
-  makeRipple(p.x, p.y);
-  toast('Seed planted 🌱');
-  refreshHUD();
-});
+  // ---------- Local fallback (if no Supabase) ----------
+  const localKey = `empathywall_${PROMPT_KEY}`;
+  function readLocal(){
+    try{ return JSON.parse(localStorage.getItem(localKey)||'[]'); }catch{ return []; }
+  }
+  function writeLocal(arr){
+    localStorage.setItem(localKey, JSON.stringify(arr));
+  }
 
-/* ---------- FIRST VISIT SEED (optional) ---------- */
-(function seedOnce(){
-  if (plants.length) return;
-  const w = canvas.width, h = canvas.height;
-  const SEED = [
-    {text:'Kindness is a seed that remembers rain.', theme:'Gratitude', name:'Ava'},
-    {text:'Clarity begins when certainty softens.', theme:'Clarity', name:'D.'},
-    {text:'Be the water, not the weather.', theme:'Resolve'},
-  ];
-  const now = Date.now();
-  SEED.forEach((s,i)=>{
-    const pos = placePlant();
-    plants.push({
-      id:'seed_'+i, text:s.text, name:s.name||'', theme:s.theme||'',
-      x:pos.x, y:pos.y, ts: now - (SEED.length-i)*600000, water: i
+  // ---------- Data I/O ----------
+  async function insertEntry(term, name){
+    const row = { term, name, prompt_key: PROMPT_KEY };
+    if (!supabase){
+      const arr = readLocal();
+      arr.push({ ...row, created_at: new Date().toISOString() });
+      writeLocal(arr);
+      return { data: row };
+    }
+    const { data, error } = await supabase.from('entries').insert(row).select().single();
+    if (error) throw error;
+    return { data };
+  }
+
+  async function fetchWeek(){
+    if (!supabase){
+      return readLocal();
+    }
+    const { data, error } = await supabase
+      .from('entries')
+      .select('term,name,created_at')
+      .eq('prompt_key', PROMPT_KEY)
+      .order('created_at', { ascending: false })
+      .limit(2000);
+    if (error) throw error;
+    return data || [];
+  }
+
+  // ---------- Aggregation + Rendering ----------
+  function aggregate(rows){
+    const map = new Map();
+    rows.forEach(r=>{
+      const t = (r.term||'').toLowerCase().trim();
+      if (!t) return;
+      map.set(t, (map.get(t)||0) + 1);
     });
+    const list = Array.from(map.entries()).map(([term,count])=>({term,count}));
+    list.sort((a,b)=> b.count - a.count || a.term.localeCompare(b.term));
+    return { total: rows.length, list };
+  }
+
+  function renderLeaderboard(list){
+    const top = list.slice(0,10);
+    const ol = document.getElementById('topList');
+    ol.innerHTML = '';
+    top.forEach(({term,count})=>{
+      const li = document.createElement('li');
+      li.innerHTML = `${escapeHtml(title(term))} <span class="count">×${count}</span>`;
+      ol.appendChild(li);
+    });
+  }
+
+  function renderBoard(list){
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    if (list.length === 0){
+      board.textContent = 'Be the first to add a word.';
+      return;
+    }
+    const max = Math.max(...list.map(x=>x.count));
+    list.forEach(({term,count}, i)=>{
+      const d = document.createElement('div');
+      d.className = 'tile';
+      const scale = 0.9 + 0.6 * Math.sqrt(count / max);
+      d.style.setProperty('--scale', scale.toFixed(3));
+      d.style.opacity = 0.85 + 0.15 * (count/max);
+      d.textContent = title(term);
+      const small = document.createElement('span');
+      small.className = 'small';
+      small.textContent = `×${count}`;
+      d.appendChild(small);
+      d.style.transitionDelay = (i * 0.01) + 's';
+      board.appendChild(d);
+    });
+  }
+
+  // ---------- Form ----------
+  const form = document.getElementById('entryForm');
+  const termEl = document.getElementById('term');
+  const nameEl = document.getElementById('name');
+  const btn = document.getElementById('submitBtn');
+  const totalEl = document.getElementById('total');
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    let term = (termEl.value||'').trim();
+    let name = (nameEl.value||'').trim();
+    if (!term) return msg('Please enter a word.', 'err');
+    if (term.length > 30) return msg('Keep it to 30 characters.', 'err');
+    if (hasBad(term.toLowerCase()) || hasBad(name.toLowerCase())) return msg('Please choose a kinder word.', 'err');
+
+    term = term.replace(/\s+/g,' ').toLowerCase();
+
+    btn.disabled = true;
+    try{
+      await insertEntry(term, name || null);
+      termEl.value = ''; nameEl.value = '';
+      msg('Added ✓','ok');
+      await refresh();
+    } catch(err){
+      console.error(err);
+      msg('Could not add right now. Try again.', 'err');
+    } finally {
+      btn.disabled = false;
+      termEl.focus();
+    }
   });
-  savePlants(plants);
-  refreshHUD();
-})();
-</script>
+
+  // ---------- Refresh loop ----------
+  async function refresh(){
+    const rows = await fetchWeek();
+    const { total, list } = aggregate(rows);
+    totalEl.textContent = String(total);
+    renderLeaderboard(list);
+    renderBoard(list);
+  }
+
+  function title(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+  (async function(){
+    await refresh();
+    setInterval(refresh, 20000);
+  })();
+  </script>
 </body>
 </html>
