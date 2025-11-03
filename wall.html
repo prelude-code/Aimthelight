@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Empathy Wall — Aim the Light</title>
-<meta name="description" content="Add one word we need more of right now. Watch the wall breathe as others echo it." />
+<title>The Lightwall — Aim the Light</title>
+<meta name="description" content="Add one word we need more of this week. Unlock the wall and see what others shared." />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
 
@@ -28,9 +28,9 @@
     border-bottom:1px solid rgba(31,39,55,.35);
   }
   .nav{display:flex;justify-content:space-between;align-items:center;padding:8px 0;min-height:56px}
-  .brand a{white-space:nowrap;font-weight:800;font-size:1.05rem;color:inherit}
+  .brand a{white-space:nowrap;font-weight:800;font-size:1.05rem;color:inherit;text-decoration:none}
   nav.links{display:flex;gap:.9rem}
-  nav.links a{color:var(--accent);font-weight:500}
+  nav.links a{color:var(--accent);font-weight:500;text-decoration:none}
 
   /* Hero */
   .hero{padding:56px 0 18px;border-bottom:1px solid #1b2742;text-align:center}
@@ -45,9 +45,7 @@
   .prompt small{color:#cbd5e1}
   .prompt .key{color:#ffe8a6;font-weight:700}
 
-  .form{
-    flex:1 1 560px; min-width:0; display:flex; gap:10px; align-items:center;
-  }
+  .form{flex:1 1 560px; min-width:0; display:flex; gap:10px; align-items:center;}
   input[type="text"]{
     width:100%; min-width:0; background:#0c162a; border:1px solid #2a3a64; border-radius:10px;
     color:#e7eefb; padding:.7rem .8rem; font-size:1rem; outline:none;
@@ -90,7 +88,7 @@
   .leaderboard li:last-child{border-bottom:none}
   .leaderboard .count{color:#ffe8a6;font-weight:700;margin-left:8px}
 
-  /* NEW WALL: airy, mosaic, no overlaps */
+  /* WALL */
   .wall-wrap{
     position:relative; border:1px solid var(--border); border-radius:16px; overflow:hidden;
     background:
@@ -101,10 +99,9 @@
   }
   .wall-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #1c2640}
   .wall-body{padding:18px 14px 26px}
-
   .board{
     display:flex; flex-wrap:wrap; gap:12px 12px;
-    min-height:620px;               /* large canvas feel */
+    min-height:620px;
   }
   @media (max-width:900px){ .board{min-height:420px} }
 
@@ -114,20 +111,24 @@
     color:#0a0a0a; background:#ffe8a6; border:1px solid rgba(255,255,255,.18);
     box-shadow:0 6px 18px rgba(0,0,0,.24), inset 0 0 0 1px rgba(255,255,255,.08);
     line-height:1.15; font-weight:800; letter-spacing:.2px;
-    white-space:nowrap;              /* avoid multi-line mashing */
-    max-width: 100%;
+    white-space:nowrap; max-width:100%;
+    transition:box-shadow .25s ease, transform .25s ease;
   }
   .chip .count{font-weight:700; opacity:.9}
   .chip[data-tone="light"]{ color:#0c0c0c }
   .chip[data-tone="dark"] { color:#f8fafc }
+  .chip:hover{ box-shadow:0 10px 22px rgba(251,191,36,.28), inset 0 0 0 1px rgba(251,191,36,.5); transform:translateY(-1px) }
 
-  /* gold ring on hover */
-  .chip:hover{ box-shadow:0 10px 22px rgba(251,191,36,.28), inset 0 0 0 1px rgba(251,191,36,.5) }
+  /* LOCK/UNLOCK STATES */
+  #wallSection{opacity:0; visibility:hidden; transform:translateY(8px); transition:opacity .5s ease, transform .5s ease, visibility .5s}
+  body.unlocked #wallSection{opacity:1; visibility:visible; transform:none}
+  /* Optional subtle hint while locked */
+  #lockedHint{color:#aeb8ce; text-align:center; font-size:.95rem; margin:10px 0 0 0}
 
   footer{padding:48px 0;border-top:1px solid #1c2742;text-align:center;color:#97a3b8;margin-top:34px}
 </style>
 </head>
-<body>
+<body class="locked">
   <header>
     <div class="nav container">
       <div class="brand"><a href="index.html">Aim the Light</a></div>
@@ -142,8 +143,8 @@
 
   <section class="hero">
     <div class="container">
-      <h1>The Empathy Wall</h1>
-      <p>Add one word that we need more of this week. See what others add, and watch themes rise.</p>
+      <h1>The Lightwall</h1>
+      <p>Share one word the world needs more of this week. <br/>Add your light to unlock the wall.</p>
     </div>
   </section>
 
@@ -167,33 +168,35 @@
         <div id="msg" aria-live="polite"></div>
         <div class="count"><span id="total">0</span> echoes this week</div>
       </div>
+      <div id="lockedHint">The wall appears after you submit your word. ✨</div>
     </div>
 
-    <!-- Views -->
-    <div class="views">
-      <button id="viewBoard" class="active" type="button">Board</button>
-      <button id="viewStars" type="button" disabled title="Coming soon">Stars</button>
-    </div>
-
-    <!-- Data -->
-    <div class="grid">
-      <div class="card leaderboard">
-        <h3>Top words</h3>
-        <div class="body">
-          <ol id="topList"></ol>
-        </div>
+    <!-- Hidden until unlocked -->
+    <section id="wallSection" aria-hidden="true">
+      <div class="views">
+        <button id="viewBoard" class="active" type="button">Board</button>
+        <button id="viewStars" type="button" disabled title="Coming soon">Stars</button>
       </div>
 
-      <div class="wall-wrap">
-        <div class="wall-head">
-          <h3 style="margin:0;font-size:1rem">This week’s wall</h3>
-          <div style="color:#cbd5e1;font-size:.95rem">Live • updates every 20s</div>
+      <div class="grid">
+        <div class="card leaderboard">
+          <h3>Top words</h3>
+          <div class="body">
+            <ol id="topList"></ol>
+          </div>
         </div>
-        <div class="wall-body">
-          <div id="board" class="board" aria-live="polite"></div>
+
+        <div class="wall-wrap">
+          <div class="wall-head">
+            <h3 style="margin:0;font-size:1rem">This week’s wall</h3>
+            <div style="color:#cbd5e1;font-size:.95rem">Live • updates every 20s</div>
+          </div>
+          <div class="wall-body">
+            <div id="board" class="board" aria-live="polite"></div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   </main>
 
   <footer>
@@ -222,7 +225,10 @@
     return `${date.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
   }
   const PROMPT_KEY = isoWeekKey();
-  document.getElementById('weekKey').textContent = PROMPT_KEY;
+  const localUnlockKey = `lightwall_unlocked_${PROMPT_KEY}`;
+
+  const BAD = ['fuck','shit','bitch','cunt','nigger','fag','retard'];
+  const hasBad = s => BAD.some(x => s.includes(x));
 
   const msg = (t, cls='ok')=>{
     const el = document.getElementById('msg');
@@ -231,15 +237,23 @@
     if (t) setTimeout(()=>{ el.textContent=''; el.className=''; }, 2200);
   };
 
-  const BAD = ['fuck','shit','bitch','cunt','nigger','fag','retard'];
-  const hasBad = s => BAD.some(x => s.includes(x));
+  // Lock/Unlock helpers
+  function isUnlocked(){ return localStorage.getItem(localUnlockKey) === '1'; }
+  function unlockWall(){
+    document.body.classList.add('unlocked');
+    document.getElementById('wallSection').setAttribute('aria-hidden','false');
+    localStorage.setItem(localUnlockKey, '1');
+  }
+  function lockWall(){
+    document.body.classList.remove('unlocked');
+    document.getElementById('wallSection').setAttribute('aria-hidden','true');
+    localStorage.removeItem(localUnlockKey);
+  }
 
-  // Local fallback
-  const localKey = `empathywall_${PROMPT_KEY}`;
-  function readLocal(){ try{ return JSON.parse(localStorage.getItem(localKey)||'[]'); }catch{ return []; } }
-  function writeLocal(arr){ localStorage.setItem(localKey, JSON.stringify(arr)); }
+  // Data (Supabase with local fallback)
+  function readLocal(){ try{ return JSON.parse(localStorage.getItem('lightwall_'+PROMPT_KEY)||'[]'); }catch{ return []; } }
+  function writeLocal(arr){ localStorage.setItem('lightwall_'+PROMPT_KEY, JSON.stringify(arr)); }
 
-  // Data
   async function insertEntry(term, name){
     const row = { term, name, prompt_key: PROMPT_KEY };
     if (!supabase){
@@ -275,30 +289,24 @@
     return { total: rows.length, list };
   }
 
-  // ----- Visual helpers -----
+  // Visuals
   function hashHue(str){
-    // stable 0–360 hue from string
-    let h = 0;
-    for (let i=0; i<str.length; i++) h = (h*31 + str.charCodeAt(i)) >>> 0;
+    let h = 0; for (let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0;
     return h % 360;
   }
   function chipStyle(term){
     const h = hashHue(term);
     const s = 78; const l1 = 64, l2 = 42;
     const bg = `linear-gradient(135deg, hsl(${h} ${s}% ${l1}%) 0%, hsl(${(h+30)%360} ${s}% ${l2}%) 100%)`;
-    // pick tone for contrast
     const tone = l2 < 48 ? 'light' : 'dark';
     return { bg, tone };
   }
-
   function sizeFromCount(count, max){
-    // Sizes in rem; gentle curve, no “tubes”
     const min = 0.95, maxF = 1.9;
-    const t = Math.sqrt(count / max);
+    const t = Math.sqrt(count / max || 1);
     return min + (maxF - min) * t;
   }
 
-  // Render
   function renderLeaderboard(list){
     const top = list.slice(0,12);
     const ol = document.getElementById('topList');
@@ -309,12 +317,10 @@
       ol.appendChild(li);
     });
   }
-
   function renderBoard(list){
     const board = document.getElementById('board');
     board.innerHTML = '';
     if (list.length === 0){ board.textContent = 'Be the first to add a word.'; return; }
-
     const max = Math.max(...list.map(x=>x.count));
     list.forEach(({term,count}, idx)=>{
       const chip = document.createElement('div');
@@ -322,21 +328,19 @@
       const { bg, tone } = chipStyle(term);
       chip.style.background = bg;
       chip.setAttribute('data-tone', tone);
-
       chip.style.fontSize = sizeFromCount(count, max).toFixed(2) + 'rem';
       chip.style.transitionDelay = (idx * 0.01) + 's';
-
       chip.textContent = cap(term);
       const cnt = document.createElement('span');
       cnt.className = 'count';
       cnt.textContent = `×${count}`;
       chip.appendChild(cnt);
-
       board.appendChild(chip);
     });
   }
 
-  // Form
+  // Form + loop
+  document.getElementById('weekKey').textContent = PROMPT_KEY;
   const form = document.getElementById('entryForm');
   const termEl = document.getElementById('term');
   const nameEl = document.getElementById('name');
@@ -347,7 +351,6 @@
     e.preventDefault();
     let term = (termEl.value||'').trim();
     let name = (nameEl.value||'').trim();
-
     if (!term) return msg('Please enter a word.', 'err');
     if (term.length > 30) return msg('Keep it to 30 characters.', 'err');
     if (hasBad(term.toLowerCase()) || hasBad(name.toLowerCase())) return msg('Please choose a kinder word.', 'err');
@@ -359,7 +362,13 @@
       await insertEntry(term, name || null);
       termEl.value = ''; nameEl.value = '';
       msg('Added ✓','ok');
-      await refresh();
+
+      // Unlock and reveal wall
+      unlockWall();
+      await refresh(); // ensure their word is visible immediately
+      // Scroll to wall header for a satisfying reveal
+      const ws = document.getElementById('wallSection');
+      ws.scrollIntoView({ behavior:'smooth', block:'start' });
     } catch(err){
       console.error(err);
       msg('Could not add right now. Try again.', 'err');
@@ -369,21 +378,30 @@
     }
   });
 
-  // Loop
   async function refresh(){
     const rows = await fetchWeek();
     const { total, list } = aggregate(rows);
     totalEl.textContent = String(total);
-    renderLeaderboard(list);
-    renderBoard(list);
+    if (isUnlocked()) {
+      renderLeaderboard(list);
+      renderBoard(list);
+    }
   }
 
   function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
   function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
-  (async function(){
+  (async function init(){
+    // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
+
+    // If user already unlocked this week, show wall on load
+    if (isUnlocked()) unlockWall();
+
+    // Load data (will render only if unlocked)
     await refresh();
+
+    // Keep fresh
     setInterval(refresh, 20000);
   })();
   </script>
