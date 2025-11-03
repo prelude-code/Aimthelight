@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The Lightwall — Aim the Light</title>
-<meta name="description" content="Add one word we need more of this week. Unlock the wall and see what others shared." />
+<meta name="description" content="Share one word or phrase the world needs more of this week. Add your light to unlock the wall." />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
 
@@ -46,6 +46,8 @@
   .prompt .key{color:#ffe8a6;font-weight:700}
 
   .form{flex:1 1 560px; min-width:0; display:flex; gap:10px; align-items:center;}
+  .form label{font-weight:700; color:var(--accent); font-size:.95rem; display:block; margin-bottom:.25rem}
+  .input-col{flex:1 1 100%; min-width:0}
   input[type="text"]{
     width:100%; min-width:0; background:#0c162a; border:1px solid #2a3a64; border-radius:10px;
     color:#e7eefb; padding:.7rem .8rem; font-size:1rem; outline:none;
@@ -113,15 +115,35 @@
     line-height:1.15; font-weight:800; letter-spacing:.2px;
     white-space:nowrap; max-width:100%;
     transition:box-shadow .25s ease, transform .25s ease;
+    opacity:0; transform:translateY(6px); /* start hidden for wave */
   }
   .chip .count{font-weight:700; opacity:.9}
   .chip[data-tone="light"]{ color:#0c0c0c }
   .chip[data-tone="dark"] { color:#f8fafc }
   .chip:hover{ box-shadow:0 10px 22px rgba(251,191,36,.28), inset 0 0 0 1px rgba(251,191,36,.5); transform:translateY(-1px) }
 
+  /* --- Unlock "reveal" sequence --- */
+  #wallSection { opacity:0; visibility:hidden; transform:translateY(8px); transition:opacity .5s ease, transform .5s ease, visibility .5s; }
+  body.unlocked #wallSection { opacity:1; visibility:visible; transform:none; }
+
+  #wallSection.unveil .card,
+  #wallSection.unveil .wall-wrap {
+    opacity:0; transform:translateY(24px); filter:blur(8px);
+  }
+  body.unlocked #wallSection.unveil .card,
+  body.unlocked #wallSection.unveil .wall-wrap {
+    animation: riseIn .9s ease forwards;
+  }
+  body.unlocked #wallSection.unveil .wall-wrap { animation-delay:.12s; }
+
+  @keyframes riseIn { to { opacity:1; transform:none; filter:blur(0); } }
+
+  body.revealed .board .chip { animation: chipIn .42s ease forwards; animation-delay: var(--d, 0s); }
+  @keyframes chipIn { to { opacity:1; transform:none; } }
+
   /* LOCK/UNLOCK STATES */
-  #wallSection{opacity:0; visibility:hidden; transform:translateY(8px); transition:opacity .5s ease, transform .5s ease, visibility .5s}
-  body.unlocked #wallSection{opacity:1; visibility:visible; transform:none}
+  #wallSection[aria-hidden="true"] { pointer-events:none }
+
   /* Optional subtle hint while locked */
   #lockedHint{color:#aeb8ce; text-align:center; font-size:.95rem; margin:10px 0 0 0}
 
@@ -144,7 +166,7 @@
   <section class="hero">
     <div class="container">
       <h1>The Lightwall</h1>
-      <p>Share one word the world needs more of this week. <br/>Add your light to unlock the wall.</p>
+      <p>Share one word or phrase the world needs more of this week. <br/>Add your light to unlock the wall.</p>
     </div>
   </section>
 
@@ -159,7 +181,10 @@
         </div>
 
         <form class="form" id="entryForm" autocomplete="off">
-          <input id="term" type="text" placeholder="Your word (max 30 chars)" maxlength="30" required />
+          <div class="input-col">
+            <label for="term">Share one word or phrase</label>
+            <input id="term" type="text" placeholder="Enter a word or short phrase…" maxlength="60" required />
+          </div>
           <input id="name" class="name" type="text" placeholder="Name (optional)" maxlength="40" />
           <button id="submitBtn" type="submit">Add to the Light</button>
         </form>
@@ -168,7 +193,7 @@
         <div id="msg" aria-live="polite"></div>
         <div class="count"><span id="total">0</span> echoes this week</div>
       </div>
-      <div id="lockedHint">The wall appears after you submit your word. ✨</div>
+      <div id="lockedHint">The wall appears after you submit your word or phrase. ✨</div>
     </div>
 
     <!-- Hidden until unlocked -->
@@ -250,7 +275,7 @@
     localStorage.removeItem(localUnlockKey);
   }
 
-  // Data (Supabase with local fallback)
+  // Local fallback store
   function readLocal(){ try{ return JSON.parse(localStorage.getItem('lightwall_'+PROMPT_KEY)||'[]'); }catch{ return []; } }
   function writeLocal(arr){ localStorage.setItem('lightwall_'+PROMPT_KEY, JSON.stringify(arr)); }
 
@@ -271,7 +296,7 @@
       .from('entries')
       .select('term,name,created_at')
       .eq('prompt_key', PROMPT_KEY)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })  // oldest first so we can identify first contributor
       .limit(2000);
     if (error) throw error;
     return data || [];
@@ -280,16 +305,29 @@
   function aggregate(rows){
     const map = new Map();
     rows.forEach(r=>{
-      const t = (r.term||'').toLowerCase().trim();
-      if (!t) return;
-      map.set(t, (map.get(t)||0) + 1);
+      const term = (r.term||'').toLowerCase().trim();
+      if (!term) return;
+      const name = (r.name||'').trim();
+      const who  = name || 'Anonymous';
+      const at   = r.created_at ? new Date(r.created_at).getTime() : 0;
+
+      const entry = map.get(term);
+      if (!entry) {
+        map.set(term, { count:1, firstName: who, firstAt: at });
+      } else {
+        entry.count += 1;
+        if (at && (entry.firstAt === 0 || at < entry.firstAt)) {
+          entry.firstAt   = at;
+          entry.firstName = who;
+        }
+      }
     });
-    const list = Array.from(map.entries()).map(([term,count])=>({term,count}));
+    const list = Array.from(map.entries()).map(([term, info]) => ({ term, ...info }));
     list.sort((a,b)=> b.count - a.count || a.term.localeCompare(b.term));
     return { total: rows.length, list };
   }
 
-  // Visuals
+  // Visual helpers
   function hashHue(str){
     let h = 0; for (let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0;
     return h % 360;
@@ -306,53 +344,86 @@
     const t = Math.sqrt(count / max || 1);
     return min + (maxF - min) * t;
   }
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
   function renderLeaderboard(list){
     const top = list.slice(0,12);
     const ol = document.getElementById('topList');
     ol.innerHTML = '';
-    top.forEach(({term,count})=>{
+    top.forEach(({term,count,firstName})=>{
       const li = document.createElement('li');
       li.innerHTML = `${escapeHtml(cap(term))} <span class="count">×${count}</span>`;
+      li.title = `first by ${firstName || 'Anonymous'}`;
       ol.appendChild(li);
     });
   }
+
   function renderBoard(list){
     const board = document.getElementById('board');
     board.innerHTML = '';
     if (list.length === 0){ board.textContent = 'Be the first to add a word.'; return; }
+
     const max = Math.max(...list.map(x=>x.count));
-    list.forEach(({term,count}, idx)=>{
+    list.forEach(({term,count,firstName}, idx)=>{
       const chip = document.createElement('div');
       chip.className = 'chip';
+
       const { bg, tone } = chipStyle(term);
       chip.style.background = bg;
       chip.setAttribute('data-tone', tone);
+
       chip.style.fontSize = sizeFromCount(count, max).toFixed(2) + 'rem';
-      chip.style.transitionDelay = (idx * 0.01) + 's';
+      chip.style.setProperty('--d', (idx * 0.02) + 's');  // wave delay
+
       chip.textContent = cap(term);
       const cnt = document.createElement('span');
       cnt.className = 'count';
       cnt.textContent = `×${count}`;
       chip.appendChild(cnt);
+
+      chip.title = `${cap(term)} — first by ${firstName || 'Anonymous'}`;
+
       board.appendChild(chip);
     });
   }
 
-  // Form + loop
+  function animateCount(el, to, dur=700){
+    const from = Number(el.textContent) || 0;
+    if (to === from) return;
+    const start = performance.now();
+    function tick(now){
+      const p = Math.min(1, (now - start) / dur);
+      el.textContent = String(Math.floor(from + (to - from) * p));
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  async function refresh(){
+    const rows = await fetchWeek();
+    const { total, list } = aggregate(rows);
+    animateCount(document.getElementById('total'), total);
+
+    if (isUnlocked()) {
+      renderLeaderboard(list);
+      renderBoard(list);
+    }
+  }
+
+  // Form + flow
   document.getElementById('weekKey').textContent = PROMPT_KEY;
   const form = document.getElementById('entryForm');
   const termEl = document.getElementById('term');
   const nameEl = document.getElementById('name');
   const btn = document.getElementById('submitBtn');
-  const totalEl = document.getElementById('total');
 
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
     let term = (termEl.value||'').trim();
     let name = (nameEl.value||'').trim();
-    if (!term) return msg('Please enter a word.', 'err');
-    if (term.length > 30) return msg('Keep it to 30 characters.', 'err');
+    if (!term) return msg('Please enter a word or short phrase.', 'err');
+    if (term.length > 60) return msg('Keep it to 60 characters.', 'err');
     if (hasBad(term.toLowerCase()) || hasBad(name.toLowerCase())) return msg('Please choose a kinder word.', 'err');
 
     term = term.replace(/\s+/g,' ').toLowerCase();
@@ -363,12 +434,18 @@
       termEl.value = ''; nameEl.value = '';
       msg('Added ✓','ok');
 
-      // Unlock and reveal wall
+      // Unlock + unveil sequence
       unlockWall();
-      await refresh(); // ensure their word is visible immediately
-      // Scroll to wall header for a satisfying reveal
       const ws = document.getElementById('wallSection');
+      ws.classList.add('unveil');
+
+      await refresh(); // populate before reveal
       ws.scrollIntoView({ behavior:'smooth', block:'start' });
+
+      setTimeout(()=>{
+        document.body.classList.add('revealed');
+        ws.classList.remove('unveil');
+      }, 250);
     } catch(err){
       console.error(err);
       msg('Could not add right now. Try again.', 'err');
@@ -377,19 +454,6 @@
       termEl.focus();
     }
   });
-
-  async function refresh(){
-    const rows = await fetchWeek();
-    const { total, list } = aggregate(rows);
-    totalEl.textContent = String(total);
-    if (isUnlocked()) {
-      renderLeaderboard(list);
-      renderBoard(list);
-    }
-  }
-
-  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
-  function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
   (async function init(){
     // Footer year
