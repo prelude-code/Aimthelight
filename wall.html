@@ -3,24 +3,24 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Lightwall — Aim the Light</title>
-<meta name="description" content="Share a word, unlock the wall, and see what we value—together." />
+<title>The Lightwall — Aim the Light</title>
+<meta name="description" content="Add your light: share one word or phrase the world needs more of this week." />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
 
 <style>
   :root{
-    --bg:#0b1020; --ink:#f8fafc; --muted:#9fb0cc; --accent:#fbbf24; --border:#23314f;
-    --card:#0f1830; --soft:#0b1222; --max:1100px;
+    --bg:#0b1020; --ink:#f8fafc; --muted:#97a3b8; --accent:#fbbf24;
+    --border:#23314f; --max:1200px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.65}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
   a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
   .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
 
-  /* Header (match your essay/index styling) */
+  /* Header (match essay) */
   header{
-    position:sticky; top:0; z-index:50;
+    position:sticky;top:0;z-index:50;
     background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));
     backdrop-filter:saturate(120%) blur(6px);
     border-bottom:1px solid rgba(31,39,55,.35);
@@ -30,116 +30,143 @@
   nav.links{display:flex;gap:.9rem}
   nav.links a{color:var(--accent);font-weight:500;text-decoration:none}
 
-  .hero{padding:46px 0 10px;border-bottom:1px solid #1b2742;text-align:center}
-  .hero h1{margin:.2rem 0 .2rem;font-size:clamp(1.8rem,1.2rem + 2vw,2.4rem);font-weight:800}
-  .hero .sub{color:var(--muted);font-size:.98rem}
+  /* Hero (no extra description) */
+  .hero{padding:56px 0 18px;border-bottom:1px solid #1b2742;text-align:center}
+  .hero h1{margin:.2rem 0 .2rem;font-size:clamp(1.9rem,1.2rem + 2vw,2.6rem);font-weight:800}
 
-  /* Toggle buttons */
-  .view-toggle{display:flex;gap:.5rem;align-items:center;justify-content:center;margin:1rem auto .5rem}
-  .viewbtn{
-    background:rgba(17,24,39,.5); border:1px solid #334160; color:#eef3fa; border-radius:10px;
-    padding:.45rem .7rem; cursor:pointer; font-weight:700; font-size:.95rem;
-    transition:background .25s ease, border-color .25s ease, color .25s ease;
+  /* Panel (prompt + form) */
+  .panel{margin:26px auto 8px;max-width:920px;border:1px solid var(--border);
+         border-radius:14px;background:linear-gradient(180deg,#0e1830,#0b1428);overflow:hidden}
+  .panel .row{display:flex;flex-wrap:wrap;gap:12px;padding:14px;align-items:stretch}
+  .prompt{flex:1 1 260px;background:#0c162a;border:1px dashed #2b3b65;border-radius:10px;padding:10px 12px}
+  .prompt small{color:#cbd5e1}
+  .prompt .key{color:#ffe8a6;font-weight:700}
+
+  .form{flex:1 1 560px; min-width:0; display:flex; gap:10px; align-items:flex-end;}
+  .form label{font-weight:700; color:var(--accent); font-size:.95rem; display:block; margin-bottom:.25rem}
+  .input-col{flex:1 1 100%; min-width:0}
+  input[type="text"]{
+    width:100%; min-width:0; background:#0c162a; border:1px solid #2a3a64; border-radius:10px;
+    color:#e7eefb; padding:.7rem .8rem; font-size:1rem; outline:none;
   }
-  .viewbtn:hover{border-color:var(--accent); color:var(--accent)}
-  .viewbtn.active{background:rgba(251,191,36,.12); border-color:var(--accent); color:#ffe8a6}
-  .viewbtn[disabled]{opacity:.6; cursor:not-allowed}
+  input::placeholder{color:#93a0bd}
+  .name{max-width:260px}
+  button{
+    background:var(--accent); border:none; color:#101010; font-weight:800;
+    border-radius:12px; padding:.7rem 1rem; cursor:pointer; white-space:nowrap;
+  }
+  button:disabled{opacity:.55;cursor:not-allowed}
 
-  /* Board layout */
+  .meta-row{display:flex;justify-content:space-between;align-items:center;padding:8px 14px 14px;color:#aeb8ce}
+  .meta-row .count{font-variant-numeric:tabular-nums}
+  .err{color:#ff9393;font-weight:600}
+  .ok{color:#99ffcc}
+
+  @media (max-width:900px){
+    .form{flex-wrap:wrap}
+    .name{flex:1 1 100%;max-width:none}
+    button#submitBtn{flex:1 1 100%}
+  }
+
+  /* Views */
+  .views{display:flex;gap:10px;justify-content:center;margin:18px 0}
+  .views button{background:transparent;color:#e7eefb;border:1px solid #334160;border-radius:10px;padding:.5rem .75rem}
+  .views button.active{background:rgba(251,191,36,.12);border-color:var(--accent);color:#ffe8a6}
+
+  /* Layout: leaderboard + wall */
+  .grid{display:grid;grid-template-columns: 1fr 2.2fr;gap:18px;align-items:start}
+  @media (max-width:1000px){.grid{grid-template-columns:1fr}}
+
+  .card{border:1px solid var(--border);border-radius:16px;overflow:hidden;
+        background:linear-gradient(180deg,#101a30,#0b1222);box-shadow:0 10px 24px rgba(0,0,0,.28)}
+  .card h3{margin:0;padding:12px 14px;border-bottom:1px solid #1c2640;font-size:1rem}
+  .card .body{padding:12px}
+
+  .leaderboard ol{list-style:decimal;margin:0;padding-left:22px}
+  .leaderboard li{padding:6px 0;border-bottom:1px dashed #23314f}
+  .leaderboard li:last-child{border-bottom:none}
+  .leaderboard .count{color:#ffe8a6;font-weight:700;margin-left:8px}
+
+  /* WALL */
+  .wall-wrap{
+    position:relative; border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    background:
+      radial-gradient(1200px 400px at 20% -10%, rgba(251,191,36,.08), transparent 60%),
+      radial-gradient(900px 500px at 120% 10%, rgba(147,197,253,.08), transparent 60%),
+      linear-gradient(180deg,#0f1830,#0b1222 60%, #0b1222);
+    box-shadow:0 14px 28px rgba(0,0,0,.35);
+  }
+  .wall-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #1c2640}
+  .wall-body{padding:18px 14px 26px}
   .board{
-    display:grid; gap:1.2rem; grid-template-columns: 1fr; align-items:start;
-    margin: 0 auto 48px;
+    display:flex; flex-wrap:wrap; gap:10px 10px;
+    min-height:660px;
   }
-  @media (min-width: 980px){
-    .board{ grid-template-columns: 420px 1fr; }
-  }
+  @media (max-width:900px){ .board{min-height:440px} }
 
-  .card{
-    border:1px solid var(--border); border-radius:16px; overflow:hidden;
-    background:linear-gradient(180deg,var(--card),var(--soft));
-    box-shadow:0 10px 24px rgba(0,0,0,.28);
+  /* Refined, editorial chips */
+  .chip{
+    display:inline-flex; align-items:center; gap:.35rem;
+    padding:.45rem .65rem; border-radius:10px;
+    font-weight:600; letter-spacing:.15px; line-height:1.2;
+    white-space:nowrap; max-width:100%;
+    opacity:0; transform:translateY(6px);
+    transition:box-shadow .25s ease, transform .25s ease, background .25s ease, color .25s ease;
   }
-  .card .head{padding:14px 16px; border-bottom:1px solid #1b2742; font-weight:800}
-  .card .body{padding:16px}
-
-  /* Submit */
-  .row{display:flex; gap:.6rem; align-items:stretch; margin:.6rem 0}
-  .row.stack{flex-direction:column}
-  .in{
-    background:#0d162c; color:#eef3fa; border:1px solid #2a3a5f; border-radius:12px;
-    padding:.65rem .8rem; outline:none; flex:1; font-size:1rem;
-  }
-  .in::placeholder{color:#7f95b8}
-  .btn{
-    background:var(--accent); color:#111; border:0; border-radius:12px; padding:.65rem .9rem;
-    font-weight:800; cursor:pointer;
+  .chip[data-tone="light"]{ color:#eef3fa }
+  .chip[data-tone="dark"] { color:#f9fafb }
+  .chip:hover{
+    transform:translateY(-2px);
     box-shadow:0 8px 20px rgba(251,191,36,.18);
   }
-  .hint{color:#a7b8d8; font-size:.9rem}
-  .meta{display:flex;justify-content:space-between;align-items:center;color:#9fb0cc;font-size:.9rem;margin-top:.4rem}
+  .chip .count{font-weight:700; opacity:.9}
 
-  /* Leaderboard */
-  .lb{display:grid; grid-template-columns: 1fr auto; gap:.5rem .75rem}
-  .lb div{padding:.35rem .4rem; border-bottom:1px dashed #203155}
-  .lb .t{color:#dbe6fb}
-  .lb .c{color:#ffe8a6; font-weight:800}
+  /* Unlock / reveal sequence */
+  #wallSection { opacity:0; visibility:hidden; transform:translateY(8px); transition:opacity .5s ease, transform .5s ease, visibility .5s; }
+  body.unlocked #wallSection { opacity:1; visibility:visible; transform:none; }
 
-  /* Wall */
-  .wall{
-    position:relative; min-height:420px; border:1px dashed #223156; border-radius:14px;
-    overflow:hidden; background:
-      radial-gradient(1000px 400px at 10% -10%, rgba(251,191,36,.05), transparent 60%),
-      radial-gradient(900px 500px at 120% 0%, rgba(147,197,253,.05), transparent 60%),
-      linear-gradient(180deg,#0f1830,#0b1222 60%, #0b1222);
+  #wallSection.unveil .card,
+  #wallSection.unveil .wall-wrap {
+    opacity:0; transform:translateY(24px); filter:blur(8px);
   }
-  .wall.locked{filter:saturate(.5) blur(.5px)}
-  .wall .overlay{
-    position:absolute; inset:0; display:grid; place-items:center; background:rgba(11,18,34,.6);
-    color:#dbe6fb; text-align:center; padding:1.2rem;
+  body.unlocked #wallSection.unveil .card,
+  body.unlocked #wallSection.unveil .wall-wrap {
+    animation: riseIn .9s ease forwards;
   }
-  .tag{
-    position:absolute; white-space:nowrap;
-    font-weight:800; letter-spacing:.2px;
-    color:#eaf2ff; opacity:.92;
-    text-shadow:0 1px 0 rgba(0,0,0,.4);
-    pointer-events:auto; cursor:default; user-select:none;
-  }
-  .tag:hover{opacity:1}
-  .tag .count{color:#ffe8a6; margin-left:.35rem}
+  body.unlocked #wallSection.unveil .wall-wrap { animation-delay:.12s; }
 
-  /* Stars stage (hidden until used) */
-  .stars-stage{
-    position:relative; width:100%; height:65vh; min-height:520px;
-    border:1px solid #1b2742; border-radius:16px; overflow:hidden;
-    background:
-      radial-gradient(1200px 400px at 20% -10%, rgba(251,191,36,.06), transparent 60%),
-      radial-gradient(900px 500px at 120% 10%, rgba(147,197,253,.06), transparent 60%),
-      linear-gradient(180deg,#0f1830,#0b1222 60%, #0b1222);
-  }
-  canvas#starsCanvas{display:block; width:100%; height:100%}
-  .stars-overlay{
-    position:absolute; top:10px; left:12px; right:12px; display:flex; justify-content:space-between; pointer-events:none; color:#dbe6fb; font-size:.95rem;
-  }
-  .stars-overlay .left, .stars-overlay .right{pointer-events:auto}
-  .badge{
-    display:inline-block; background:rgba(251,191,36,.14); color:#ffe8a6; border:1px solid rgba(251,191,36,.35);
-    padding:.18rem .5rem; border-radius:999px; font-size:.8rem; margin-left:.5rem
-  }
-  .tooltip{
-    position:absolute; z-index:10; transform:translate(-50%, -140%);
-    background:rgba(10,16,30,.92); color:#f8fafc; border:1px solid #334160; border-radius:10px;
-    padding:.5rem .6rem; font-size:.9rem; pointer-events:none; white-space:nowrap;
-    box-shadow: 0 10px 24px rgba(0,0,0,.35);
-  }
-  .tooltip .ct{color:#ffe8a6; font-weight:700; margin-left:.35rem}
-  .tooltip .by{color:#cbd5e1; font-size:.85rem; margin-left:.4rem}
-  .hide{opacity:0; visibility:hidden; transition:opacity .2s ease, visibility .2s ease}
-  .show{opacity:1; visibility:visible}
+  @keyframes riseIn { to { opacity:1; transform:none; filter:blur(0); } }
 
-  footer{padding:40px 0; text-align:center; color:#9fb0cc}
+  body.revealed .board .chip { animation: chipIn .42s ease forwards; animation-delay: var(--d, 0s); }
+  @keyframes chipIn { to { opacity:1; transform:none; } }
+
+  /* Gold flash + +1 bubble on submitted chip */
+  .chip.flash { animation: flashGold 1.1s ease; position: relative; z-index: 1; }
+  @keyframes flashGold {
+    0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.9), 0 6px 18px rgba(0,0,0,.24); transform: scale(1.02); }
+    45%  { box-shadow: 0 0 28px 10px rgba(251,191,36,.35), 0 10px 22px rgba(0,0,0,.28); }
+    100% { box-shadow: 0 6px 18px rgba(0,0,0,.24); transform: none; }
+  }
+  .chip .pop {
+    position:absolute; right:-12px; top:-6px;
+    background:var(--accent); color:#0b0b0b; font-weight:800; font-size:.8rem;
+    padding:.05rem .35rem; border-radius:999px; box-shadow:0 4px 12px rgba(251,191,36,.35);
+    animation: floatUp 900ms ease forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity:0; transform: translateY(8px) scale(.9); }
+    30%{ opacity:1; transform: translateY(0)   scale(1); }
+    100%{ opacity:0; transform: translateY(-22px) scale(.98); }
+  }
+
+  /* Lock/Unlock states */
+  #wallSection[aria-hidden="true"] { pointer-events:none }
+  #lockedHint{color:#aeb8ce; text-align:center; font-size:.95rem; margin:10px 0 0 0}
+
+  footer{padding:48px 0;border-top:1px solid #1c2742;text-align:center;color:#97a3b8;margin-top:34px}
 </style>
 </head>
-<body>
+<body class="locked">
   <header>
     <div class="nav container">
       <div class="brand"><a href="index.html">Aim the Light</a></div>
@@ -154,550 +181,337 @@
 
   <section class="hero">
     <div class="container">
-      <h1>Lightwall</h1>
-      <div class="sub">Share <em>one word or phrase</em> that you believe we need more of right now. Post once to unlock the wall.</div>
+      <h1>The Lightwall</h1>
+      <!-- intentionally no descriptive paragraph below the title -->
     </div>
   </section>
 
-  <div class="container">
-    <!-- View toggle -->
-    <div class="view-toggle">
-      <button id="btnBoard" class="viewbtn active" type="button">Board</button>
-      <button id="btnStars" class="viewbtn" type="button" disabled title="Post once to unlock Stars">Stars</button>
+  <main class="container">
+    <!-- Prompt + form -->
+    <div class="panel">
+      <div class="row">
+        <div class="prompt">
+          <strong>Prompt of the week</strong><br/>
+          <div style="margin-top:6px">What do we need more of right now?</div>
+          <small>Week: <span class="key" id="weekKey">…</span></small>
+        </div>
+
+        <form class="form" id="entryForm" autocomplete="off">
+          <div class="input-col">
+            <label for="term">Share one word or phrase</label>
+            <input id="term" type="text" placeholder="Enter a word or short phrase…" maxlength="60" required />
+          </div>
+          <input id="name" class="name" type="text" placeholder="Name (optional)" maxlength="40" />
+          <button id="submitBtn" type="submit">Add to the Light</button>
+        </form>
+      </div>
+      <div class="meta-row">
+        <div id="msg" aria-live="polite"></div>
+        <div class="count"><span id="total">0</span> echoes this week</div>
+      </div>
+      <div id="lockedHint">The wall appears after you submit your word or phrase. ✨</div>
     </div>
 
-    <!-- BOARD VIEW -->
-    <section id="boardView" class="board">
-      <!-- Submit panel (always visible) -->
-      <div class="card">
-        <div class="head">Add to the Light</div>
-        <div class="body">
-          <label class="hint">Your word or phrase (140 max)</label>
-          <div class="row">
-            <input id="term" class="in" maxlength="140" placeholder="e.g., Empathy, Listening, Humility" />
-          </div>
-          <div class="row stack">
-            <input id="who" class="in" maxlength="60" placeholder="Your name (optional)" />
-            <button id="add" class="btn" type="button">Add to Light</button>
-          </div>
-          <div class="meta">
-            <span id="msg">Share one word or phrase and press “Add”.</span>
-            <span><span id="chars">0</span>/140</span>
-          </div>
-        </div>
+    <!-- Hidden until unlocked -->
+    <section id="wallSection" aria-hidden="true">
+      <div class="views">
+        <button id="viewBoard" class="active" type="button">Board</button>
+        <button id="viewStars" type="button" disabled title="Coming soon">Stars</button>
       </div>
 
-      <!-- Leaderboard + Wall (HIDDEN until user contributes) -->
-      <div id="boardExtras" hidden>
-        <!-- Leaderboard -->
-        <div class="card">
-          <div class="head">This Week’s Top</div>
+      <div class="grid">
+        <div class="card leaderboard">
+          <h3>Top words</h3>
           <div class="body">
-            <div id="lb" class="lb" aria-live="polite" aria-busy="true"></div>
+            <ol id="topList"></ol>
           </div>
         </div>
 
-        <!-- Wall -->
-        <div class="card" style="grid-column: 1 / -1;">
-          <div class="head">The Wall</div>
-          <div class="body">
-            <div id="wall" class="wall locked" aria-live="polite">
-              <div id="wallLock" class="overlay">
-                <div>
-                  <div style="font-weight:800;font-size:1.05rem;margin-bottom:.25rem">Post once to unlock</div>
-                  <div class="hint">Add your word above to reveal this week’s living wall.</div>
-                </div>
-              </div>
-            </div>
-            <div class="hint" style="margin-top:.6rem">Tap a word to see its tally.</div>
+        <div class="wall-wrap">
+          <div class="wall-head">
+            <h3 style="margin:0;font-size:1rem">This week’s wall</h3>
+            <div style="color:#cbd5e1;font-size:.95rem">Live • updates every 20s</div>
+          </div>
+          <div class="wall-body">
+            <div id="board" class="board" aria-live="polite"></div>
           </div>
         </div>
       </div>
     </section>
+  </main>
 
-    <!-- STARS VIEW (also gated; stays hidden until posted) -->
-    <section id="starsView" hidden>
-      <div class="stars-stage" id="starsStage">
-        <div class="stars-overlay">
-          <div class="left">Week <span id="starsWeek" class="badge">…</span></div>
-          <div class="right">
-            <button type="button" id="starsFocus" class="viewbtn">Focus top word</button>
-            <button type="button" id="starsReset" class="viewbtn active">Reset view</button>
-          </div>
-        </div>
-        <div id="starsTip" class="tooltip hide"></div>
-        <canvas id="starsCanvas"></canvas>
-      </div>
-    </section>
-  </div>
+  <footer>
+    © <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a>
+  </footer>
 
-  <footer>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></footer>
-
-  <!-- Only Supabase is loaded upfront -->
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
-  // ---------- Basic ----------
-  document.getElementById('y').textContent = new Date().getFullYear();
-
-  // ---------- Supabase config ----------
+  // ---------- Config ----------
   const SUPABASE_URL = "https://rksoyinnfwdstzgjgegv.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrc295aW5uZndkc3R6Z2pnZWd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMzMyNzUsImV4cCI6MjA3NzcwOTI3NX0.EbBGdjGNi4idankMWFM5tHeA_51beQ7ybCTKb8WeCwo";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
 
-  // ---------- Week key ----------
+  // ---------- Utils ----------
+  document.getElementById('y').textContent = new Date().getFullYear();
+
   function isoWeekKey(d=new Date()){
     const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    const dayNum = (date.getUTCDay()+6) % 7;
+    const dayNum = (date.getUTCDay() + 6) % 7;
     date.setUTCDate(date.getUTCDate() - dayNum + 3);
     const firstThu = new Date(Date.UTC(date.getUTCFullYear(),0,4));
-    const week = 1 + Math.round(((date-firstThu)/86400000 - 3 + ((firstThu.getUTCDay()+6)%7)) / 7);
+    const week = 1 + Math.round(((date - firstThu) / 86400000 - 3 + ((firstThu.getUTCDay()+6)%7)) / 7);
     return `${date.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
   }
-  const WEEK = isoWeekKey();
-  const starsWeekEl = document.getElementById('starsWeek'); if (starsWeekEl) starsWeekEl.textContent = WEEK;
+  const PROMPT_KEY = isoWeekKey();
+  const localUnlockKey = `lightwall_unlocked_${PROMPT_KEY}`;
 
-  // ---------- Gate: require a personal post before showing anything but Submit ----------
-  const REQUIRE_POST_TO_UNLOCK = true;
-  const CONTRIBUTION_KEY = 'lt_posted_' + WEEK;
+  const BAD = ['fuck','shit','bitch','cunt','nigger','fag','retard'];
+  const hasBad = s => BAD.some(x => s.includes(x));
 
-  function hasContributed(){ return localStorage.getItem(CONTRIBUTION_KEY) === '1'; }
-  function markContributed(){ localStorage.setItem(CONTRIBUTION_KEY,'1'); }
+  const msg = (t, cls='ok')=>{
+    const el = document.getElementById('msg');
+    el.className = cls;
+    el.textContent = t;
+    if (t) setTimeout(()=>{ el.textContent=''; el.className=''; }, 2200);
+  };
 
-  const boardExtrasEl = document.getElementById('boardExtras');
-  const btnBoard  = document.getElementById('btnBoard');
-  const btnStars  = document.getElementById('btnStars');
-  const boardView = document.getElementById('boardView');
-  const starsView = document.getElementById('starsView');
-
-  function hideExtras(){ if (boardExtrasEl) boardExtrasEl.hidden = true; }
-  function showExtras(){ if (boardExtrasEl) boardExtrasEl.hidden = false; }
-  function lockWall(){
-    const wallEl = document.getElementById('wall');
-    const wallLockEl = document.getElementById('wallLock');
-    if (wallEl) wallEl.classList.add('locked');
-    if (wallLockEl) wallLockEl.style.display = '';
-  }
+  // Lock/Unlock helpers
+  function isUnlocked(){ return localStorage.getItem(localUnlockKey) === '1'; }
   function unlockWall(){
-    const wallEl = document.getElementById('wall');
-    const wallLockEl = document.getElementById('wallLock');
-    if (wallEl) wallEl.classList.remove('locked');
-    if (wallLockEl) wallLockEl.style.display = 'none';
+    document.body.classList.add('unlocked');
+    document.getElementById('wallSection').setAttribute('aria-hidden','false');
+    localStorage.setItem(localUnlockKey, '1');
+  }
+  function lockWall(){
+    document.body.classList.remove('unlocked');
+    document.getElementById('wallSection').setAttribute('aria-hidden','true');
+    localStorage.removeItem(localUnlockKey);
   }
 
-  // ---------- Elements ----------
-  const termEl = document.getElementById('term');
-  const nameEl = document.getElementById('who');
-  const addEl  = document.getElementById('add');
-  const charsEl= document.getElementById('chars');
-  const msgEl  = document.getElementById('msg');
-  const lbEl   = document.getElementById('lb');
-  const wallEl = document.getElementById('wall');
+  // Local fallback store
+  function readLocal(){ try{ return JSON.parse(localStorage.getItem('lightwall_'+PROMPT_KEY)||'[]'); }catch{ return []; } }
+  function writeLocal(arr){ localStorage.setItem('lightwall_'+PROMPT_KEY, JSON.stringify(arr)); }
 
-  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
-  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
-  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
-  function updateCount(){ charsEl.textContent = (termEl.value||'').length; }
-  termEl.addEventListener('input', updateCount); updateCount();
+  async function insertEntry(term, name){
+    const row = { term, name, prompt_key: PROMPT_KEY };
+    if (!supabase){
+      const arr = readLocal(); arr.push({ ...row, created_at: new Date().toISOString() }); writeLocal(arr);
+      return { data: row };
+    }
+    const { data, error } = await supabase.from('entries').insert(row).select().single();
+    if (error) throw error;
+    return { data };
+  }
 
-  // ---------- Data ----------
   async function fetchWeek(){
+    if (!supabase) return readLocal();
     const { data, error } = await supabase
-      .from('entries')             // table name
+      .from('entries')
       .select('term,name,created_at')
-      .eq('prompt_key', WEEK)
-      .order('created_at', { ascending: true })
-      .limit(5000);
-    if (error) { console.warn(error); return []; }
+      .eq('prompt_key', PROMPT_KEY)
+      .order('created_at', { ascending: true })  // oldest first for first contributor
+      .limit(2000);
+    if (error) throw error;
     return data || [];
   }
+
   function aggregate(rows){
     const map = new Map();
     rows.forEach(r=>{
-      const term = (r.term||'').toLowerCase().trim(); if(!term) return;
-      const who  = (r.name||'').trim() || 'Anonymous';
-      const at   = r.created_at? new Date(r.created_at).getTime() : 0;
-      const v    = map.get(term);
-      if (!v) map.set(term, { count:1, firstName: who, firstAt: at });
-      else {
-        v.count++;
-        if (at && (v.firstAt===0 || at < v.firstAt)){ v.firstAt = at; v.firstName = who; }
+      const term = (r.term||'').toLowerCase().trim();
+      if (!term) return;
+      const name = (r.name||'').trim();
+      const who  = name || 'Anonymous';
+      const at   = r.created_at ? new Date(r.created_at).getTime() : 0;
+
+      const entry = map.get(term);
+      if (!entry) {
+        map.set(term, { count:1, firstName: who, firstAt: at });
+      } else {
+        entry.count += 1;
+        if (at && (entry.firstAt === 0 || at < entry.firstAt)) {
+          entry.firstAt   = at;
+          entry.firstName = who;
+        }
       }
     });
-    const list = Array.from(map.entries()).map(([term,info])=>({term,...info}));
+    const list = Array.from(map.entries()).map(([term, info]) => ({ term, ...info }));
     list.sort((a,b)=> b.count - a.count || a.term.localeCompare(b.term));
-    return list;
+    return { total: rows.length, list };
   }
 
-  // ---------- Leaderboard ----------
+  // Visual helpers
+  function hashHue(str){
+    let h = 0; for (let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0;
+    return h % 360;
+  }
+  // Muted, professional palette
+  function chipStyle(term){
+    const h = hashHue(term);
+    const s = 35;            // lower saturation for subtlety
+    const l1 = 24, l2 = 18;  // darker tones
+    const bg = `linear-gradient(145deg, hsl(${h} ${s}% ${l1}%) 0%, hsl(${(h+25)%360} ${s}% ${l2}%) 100%)`;
+    const tone = 'light';    // light text on dark bg
+    return { bg, tone };
+  }
+  // Smaller overall scaling
+  function sizeFromCount(count, max){
+    const min = 0.8, maxF = 1.4;
+    const t = Math.sqrt(count / max || 1);
+    return min + (maxF - min) * t;
+  }
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
   function renderLeaderboard(list){
-    if (!lbEl) return;
-    lbEl.innerHTML = '';
-    if (!list.length){
-      lbEl.setAttribute('aria-busy','false');
-      lbEl.innerHTML = '<div class="t">Be the first this week.</div><div class="c">×0</div>';
-      return;
-    }
-    list.slice(0,24).forEach(it=>{
-      const t = document.createElement('div'); t.className='t'; t.textContent = cap(it.term);
-      const c = document.createElement('div'); c.className='c'; c.textContent = '×' + it.count;
-      lbEl.appendChild(t); lbEl.appendChild(c);
-    });
-    lbEl.setAttribute('aria-busy','false');
-  }
-
-  // ---------- Wall ----------
-  const wallState = { width:0, height:0, tags:[] };
-
-  function resizeWall(){
-    if (!wallEl) return;
-    const rect = wallEl.getBoundingClientRect();
-    wallState.width = rect.width;
-    wallState.height = Math.max(420, rect.width * 0.55);
-    wallEl.style.minHeight = wallState.height + 'px';
-  }
-  window.addEventListener('resize', ()=>{ resizeWall(); layoutTags(); });
-
-  function layoutTags(){
-    const padding = 16;
-    wallState.tags.forEach(tag=>{
-      const x = clamp(tag.nx * (wallState.width  - 140) + padding, padding, wallState.width  - 140);
-      const y = clamp(tag.ny * (wallState.height -  48) + padding, padding, wallState.height -  48);
-      tag.el.style.left = x + 'px';
-      tag.el.style.top  = y + 'px';
+    const top = list.slice(0,12);
+    const ol = document.getElementById('topList');
+    ol.innerHTML = '';
+    top.forEach(({term,count,firstName})=>{
+      const li = document.createElement('li');
+      li.innerHTML = `${escapeHtml(cap(term))} <span class="count">×${count}</span>`;
+      li.title = `first by ${firstName || 'Anonymous'}`;
+      ol.appendChild(li);
     });
   }
 
-  function hash(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=(h*16777619)>>>0;} return h>>>0; }
-  function hueFromWord(term){ return hash(term) % 360; }
-  function colorFromWord(term){ return `hsl(${hueFromWord(term)} 35% 78%)`; }
-
-  function buildWall(list){
-    if (!wallEl) return;
-    wallEl.querySelectorAll('.tag').forEach(n=>n.remove());
-    wallState.tags = [];
-    if (!list.length) return;
+  function renderBoard(list){
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    if (list.length === 0){ board.textContent = 'Be the first to add a word.'; return; }
 
     const max = Math.max(...list.map(x=>x.count));
-    list.forEach(it=>{
-      const el = document.createElement('div');
-      el.className = 'tag';
-      el.style.fontSize = (12 + Math.sqrt(it.count/max)*16).toFixed(1) + 'px';
-      el.style.color = colorFromWord(it.term);
-      el.innerHTML = `${escapeHtml(cap(it.term))}<span class="count">×${it.count}</span>`;
-      wallEl.appendChild(el);
+    list.forEach(({term,count,firstName}, idx)=>{
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.dataset.term = term; // for flash targeting
 
-      const nx = Math.random(), ny = Math.random();
-      wallState.tags.push({ nx, ny, el, data:it });
+      const { bg, tone } = chipStyle(term);
+      chip.style.background = bg;
+      chip.setAttribute('data-tone', tone);
 
-      el.addEventListener('click', ()=>{
-        msgEl.innerHTML = `<strong>${escapeHtml(cap(it.term))}</strong> currently at ×${it.count}.`;
-      });
+      chip.style.fontSize = sizeFromCount(count, max).toFixed(2) + 'rem';
+      chip.style.setProperty('--d', (idx * 0.02) + 's');  // wave delay
+
+      chip.textContent = cap(term);
+      const cnt = document.createElement('span');
+      cnt.className = 'count';
+      cnt.textContent = `×${count}`;
+      chip.appendChild(cnt);
+
+      chip.title = `${cap(term)} — first by ${firstName || 'Anonymous'}`;
+
+      board.appendChild(chip);
     });
-
-    resizeWall(); layoutTags();
   }
 
-  // ---------- Submit ----------
-  async function submit(){
-    const term = (termEl.value||'').trim();
-    if (!term){ msgEl.textContent = 'Please enter a word or phrase.'; termEl.focus(); return; }
-    const name = (nameEl.value||'').trim();
-    addEl.disabled = true;
-
-    const row = { term, name: name || null, prompt_key: WEEK };
-    const { error } = await supabase.from('entries').insert(row);
-    if (error){
-      console.warn(error);
-      msgEl.textContent = 'Sorry—could not save right now.';
-      addEl.disabled = false;
-      return;
+  function animateCount(el, to, dur=700){
+    const from = Number(el.textContent) || 0;
+    if (to === from) return;
+    const start = performance.now();
+    function tick(now){
+      const p = Math.min(1, (now - start) / dur);
+      el.textContent = String(Math.floor(from + (to - from) * p));
+      if (p < 1) requestAnimationFrame(tick);
     }
-
-    msgEl.textContent = 'Added. Thank you.';
-    termEl.value = ''; updateCount();
-
-    // Unlock everything for this user
-    markContributed();
-    showExtras();
-    unlockWall();
-    btnStars.disabled = false; btnStars.title = '';
-
-    await refresh();
-    addEl.disabled = false;
+    requestAnimationFrame(tick);
   }
-  document.getElementById('add').addEventListener('click', submit);
 
-  // ---------- Fetch & render (but respect the gate on visibility) ----------
+  function flashChip(term){
+    const chips = document.querySelectorAll('.board .chip');
+    let target = null;
+    chips.forEach(ch => {
+      if ((ch.dataset.term || '').toLowerCase() === term.toLowerCase()) target = ch;
+    });
+    if (!target) return;
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    target.classList.add('flash');
+
+    // +1 bubble
+    const bub = document.createElement('span');
+    bub.className = 'pop';
+    bub.textContent = '+1';
+    target.appendChild(bub);
+    setTimeout(()=>{ bub.remove(); }, 950);
+
+    setTimeout(()=> target.classList.remove('flash'), 1300);
+  }
+
   async function refresh(){
     const rows = await fetchWeek();
-    const list = aggregate(rows);
-    renderLeaderboard(list);
-    buildWall(list);
+    const { total, list } = aggregate(rows);
+    animateCount(document.getElementById('total'), total);
+
+    if (isUnlocked()) {
+      renderLeaderboard(list);
+      renderBoard(list);
+    }
   }
 
-  // ---------- Initial boot: fetch data but keep hidden until user posts ----------
-  (async function boot(){
-    await refresh();               // prepare data in the background
+  // Form + flow
+  document.getElementById('weekKey').textContent = PROMPT_KEY;
+  const form = document.getElementById('entryForm');
+  const termEl = document.getElementById('term');
+  const nameEl = document.getElementById('name');
+  const btn = document.getElementById('submitBtn');
 
-    if (REQUIRE_POST_TO_UNLOCK && !hasContributed()){
-      hideExtras();                // keep leaderboard + wall hidden
-      lockWall();
-      btnStars.disabled = true;    // gate Stars too
-      btnStars.title = 'Post once to unlock Stars';
-    } else {
-      showExtras();
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    let term = (termEl.value||'').trim();
+    let name = (nameEl.value||'').trim();
+    if (!term) return msg('Please enter a word or short phrase.', 'err');
+    if (term.length > 60) return msg('Keep it to 60 characters.', 'err');
+
+    const tLower = term.toLowerCase();
+    if (hasBad(tLower) || hasBad(name.toLowerCase())) return msg('Please choose a kinder word.', 'err');
+
+    term = term.replace(/\s+/g,' ').toLowerCase();
+
+    btn.disabled = true;
+    try{
+      await insertEntry(term, name || null);
+      termEl.value = ''; nameEl.value = '';
+      msg('Added ✓','ok');
+
+      // Unlock + unveil sequence
       unlockWall();
-      btnStars.disabled = false; btnStars.title = '';
-    }
-  })();
+      const ws = document.getElementById('wallSection');
+      ws.classList.add('unveil');
 
-  // ---------- View toggle with lazy-loaded Stars ----------
-  const stage  = document.getElementById('starsStage');
-  const canvas = document.getElementById('starsCanvas');
-  const tip    = document.getElementById('starsTip');
-  const btnFocus = document.getElementById('starsFocus');
-  const btnReset = document.getElementById('starsReset');
+      await refresh(); // populate before reveal
+      ws.scrollIntoView({ behavior:'smooth', block:'start' });
 
-  btnBoard.addEventListener('click', () => {
-    btnBoard.classList.add('active'); btnStars.classList.remove('active');
-    starsView.hidden = true; boardView.hidden = false;
-  });
-
-  btnStars.addEventListener('click', async () => {
-    if (REQUIRE_POST_TO_UNLOCK && !hasContributed()){
-      msgEl.textContent = 'Post once to unlock Stars.';
-      return;
-    }
-    btnStars.disabled = true;
-    const original = btnStars.textContent;
-    btnStars.textContent = 'Loading…';
-
-    try {
-      await ensureStarsLibs();        // load libs only once
-      await initStarsOnce();          // create scene once
-      btnStars.classList.add('active'); btnBoard.classList.remove('active');
-      boardView.hidden = true; starsView.hidden = false;
-    } catch (e){
-      console.error(e);
-      alert('Graphics could not initialize on this device/browser.');
+      setTimeout(()=>{
+        document.body.classList.add('revealed');
+        ws.classList.remove('unveil');
+        flashChip(term); // highlight the submitted one
+      }, 250);
+    } catch(err){
+      console.error(err);
+      msg('Could not add right now. Try again.', 'err');
     } finally {
-      btnStars.disabled = false;
-      btnStars.textContent = original;
+      btn.disabled = false;
+      termEl.focus();
     }
   });
 
-  // Load external scripts on demand (from CDNs)
-  function loadScriptOnce(id, src){
-    return new Promise((resolve, reject)=>{
-      if (document.getElementById(id)) return resolve();
-      const s = document.createElement('script');
-      s.id = id; s.src = src; s.async = true;
-      s.onload = resolve; s.onerror = () => reject(new Error('Failed: ' + src));
-      document.head.appendChild(s);
-    });
-  }
-  async function ensureStarsLibs(){
-    await loadScriptOnce('threejs',         'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js');
-    await loadScriptOnce('three-orbit',     'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.min.js');
-    await loadScriptOnce('postprocessing',  'https://cdn.jsdelivr.net/npm/postprocessing@6.35.2/build/postprocessing.min.js');
-    await loadScriptOnce('gsap',            'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js');
-  }
+  (async function init(){
+    // Footer year
+    document.getElementById('y').textContent = new Date().getFullYear();
 
-  // -------- Stars scene (created once) --------
-  let starsReady = false, THREE_, POST_, gsap_, scene, camera, renderer, composer, controls, points, positions;
+    // If user already unlocked this week, show wall on load
+    if (isUnlocked()) unlockWall();
 
-  function showTip(x,y, html){ tip.innerHTML = html; tip.style.left = x+'px'; tip.style.top = y+'px'; tip.classList.remove('hide'); tip.classList.add('show'); }
-  function hideTip(){ tip.classList.remove('show'); tip.classList.add('hide'); }
+    // Load data (will render only if unlocked)
+    await refresh();
 
-  function fibonacciSphere(n, radius){
-    const pts = new Float32Array(n*3);
-    const offset = 2 / n, inc = Math.PI * (3 - Math.sqrt(5));
-    for (let i=0;i<n;i++){
-      const y = i*offset - 1 + (offset/2), r = Math.sqrt(1 - y*y), phi = i * inc;
-      pts[i*3+0] = Math.cos(phi) * r * radius;
-      pts[i*3+1] = y * radius;
-      pts[i*3+2] = Math.sin(phi) * r * radius;
-    }
-    return pts;
-  }
-  function hashWord(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=(h*16777619)>>>0;} return h>>>0; }
-  function hueFromWord3(term){ return hashWord(term) % 360; }
-  function colorFromWord3(term){ const c=new THREE.Color(); c.setHSL((hueFromWord3(term)/360), .38, .64); return c; }
-  function sizeFromCount(count, max){ const min=1.2, maxF=3.6; const t=Math.sqrt(count/(max||1)); return min+(maxF-min)*t; }
-
-  async function initStarsOnce(){
-    if (starsReady) { await refreshStars(); return; }
-
-    THREE_ = window.THREE;
-    POST_  = window.POSTPROCESSING;
-    gsap_  = window.gsap;
-
-    renderer = new THREE_.WebGLRenderer({canvas, antialias:false, powerPreference:'high-performance'});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-    renderer.setSize(stage.clientWidth, stage.clientHeight, false);
-
-    scene = new THREE_.Scene();
-    scene.background = new THREE_.Color(0x0b1222);
-
-    camera = new THREE_.PerspectiveCamera(60, stage.clientWidth/stage.clientHeight, 0.1, 2000);
-    camera.position.set(0,0,62);
-
-    controls = new THREE_.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor=.045; controls.enablePan=false;
-    controls.minDistance=20; controls.maxDistance=160;
-
-    const hemi = new THREE_.HemisphereLight(0x334466, 0x0b0b12, 0.6); scene.add(hemi);
-
-    composer = new POST_.EffectComposer(renderer);
-    const renderPass = new POST_.RenderPass(scene, camera); composer.addPass(renderPass);
-    const fxaa  = new POST_.FXAAEffect();
-
-    let useBloom = true;
-    try {
-      const gl = renderer.getContext(); const ext = gl.getExtension('EXT_color_buffer_float');
-      if (!ext || (window.matchMedia('(prefers-reduced-motion: reduce)').matches)) useBloom = false;
-    } catch {}
-    const bloom = new POST_.BloomEffect({ intensity:.9, luminanceThreshold:.2, luminanceSmoothing:.08, mipmapBlur:true, radius:.9 });
-    const effects = useBloom ? new POST_.EffectPass(camera, fxaa, bloom)
-                             : new POST_.EffectPass(camera, fxaa);
-    effects.renderToScreen = true; composer.addPass(effects);
-
-    function onResize(){
-      const w=stage.clientWidth, h=stage.clientHeight;
-      camera.aspect=w/h; camera.updateProjectionMatrix();
-      renderer.setSize(w,h,false); composer.setSize(w,h);
-      if (points && points.material && points.material.uniforms){
-        points.material.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio,2);
-      }
-    }
-    window.addEventListener('resize', onResize);
-
-    const ray = new THREE_.Raycaster(); ray.params.Points = { threshold: 1.5 };
-
-    stage.addEventListener('mousemove', (e)=>{
-      if (!points) return hideTip();
-      const rect = renderer.domElement.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      const mouse = new THREE_.Vector2(x, y);
-      ray.setFromCamera(mouse, camera);
-      const inter = ray.intersectObject(points, true);
-      if (inter.length){
-        const idx = inter[0].index;
-        const list = points.userData.list;
-        const it = list[idx];
-        const html = `<strong>${escapeHtml(cap(it.term))}</strong><span class="ct">×${it.count}</span> <span class="by">first by ${escapeHtml(it.firstName||'Anonymous')}</span>`;
-        showTip(e.clientX, e.clientY, html);
-      } else { hideTip(); }
-    });
-    stage.addEventListener('mouseleave', hideTip);
-
-    btnReset?.addEventListener('click', ()=>{
-      gsap_.to(camera.position, { x:0, y:0, z:62, duration:.9, ease:'power2.out' });
-      gsap_.to(controls.target, { x:0, y:0, z:0, duration:.9, ease:'power2.out' });
-    });
-    btnFocus?.addEventListener('click', ()=>{
-      if (!points) return;
-      const list = points.userData.list; if (!list.length) return;
-      const idx=0; // top word (sorted)
-      const px=positions[idx*3], py=positions[idx*3+1], pz=positions[idx*3+2];
-      const dir=new THREE_.Vector3(px,py,pz).normalize();
-      const target=new THREE_.Vector3(px,py,pz); const camPos=dir.multiplyScalar(18);
-      gsap_.to(camera.position, { x:camPos.x, y:camPos.y, z:camPos.z, duration:.9, ease:'power2.out' });
-      gsap_.to(controls.target, { x:target.x, y:target.y, z:target.z, duration:.9, ease:'power2.out' });
-    });
-
-    let t0 = performance.now();
-    (function loop(){
-      const t = (performance.now() - t0)/1000;
-      if (points && points.material && points.material.uniforms){
-        points.material.uniforms.uTime.value = t;
-      }
-      controls.update();
-      composer.render();
-      requestAnimationFrame(loop);
-    })();
-
-    starsReady = true;
-    await refreshStars();
-  }
-
-  function fibonacciShufflePositions(N, radius){
-    const offset = 2 / N, inc = Math.PI * (3 - Math.sqrt(5));
-    const pts = new Float32Array(N*3);
-    for (let i=0;i<N;i++){
-      const y = i*offset - 1 + (offset/2), r = Math.sqrt(1 - y*y), phi = i * inc;
-      pts[i*3+0] = Math.cos(phi) * r * radius;
-      pts[i*3+1] = y * radius;
-      pts[i*3+2] = Math.sin(phi) * r * radius;
-    }
-    return pts;
-  }
-
-  function createStars(list){
-    const THREE = window.THREE;
-    const N = Math.max(list.length, 1);
-    const radius = 34 + Math.min(20, Math.log2(N+4));
-    positions = fibonacciShufflePositions(N, radius);
-
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-    const max = Math.max(...list.map(x=>x.count));
-    const sizes  = new Float32Array(N);
-    const colors = new Float32Array(N*3);
-    for (let i=0;i<N;i++){
-      const { term, count } = list[i];
-      sizes[i] = (1.2 + Math.sqrt(count/(max||1)) * 2.4);
-      const c = colorFromWord3(term);
-      colors[i*3+0]=c.r; colors[i*3+1]=c.g; colors[i*3+2]=c.b;
-    }
-    geom.setAttribute('size',  new THREE.BufferAttribute(sizes, 1));
-    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-    const material = new THREE.ShaderMaterial({
-      transparent:true, depthWrite:false, vertexColors:true,
-      uniforms:{ uTime:{value:0}, uPixelRatio:{value:Math.min(window.devicePixelRatio,2)} },
-      vertexShader: `
-        attribute float size; varying vec3 vColor;
-        uniform float uPixelRatio; uniform float uTime;
-        void main(){
-          vColor = color;
-          vec3 pos = position;
-          float s = sin(uTime * 0.06 + pos.x*0.035 + pos.z*0.021);
-          pos += normalize(pos) * (s * 0.08);
-          vec4 mv = modelViewMatrix * vec4(pos,1.0);
-          gl_Position = projectionMatrix * mv;
-          float dist = length(mv.xyz);
-          float atten = clamp(18.0 / dist, 0.5, 1.8);
-          gl_PointSize = size * uPixelRatio * 3.0 * atten;
-        }`,
-      fragmentShader: `
-        varying vec3 vColor;
-        void main(){
-          vec2 uv = gl_PointCoord * 2.0 - 1.0;
-          float d = dot(uv, uv);
-          float alpha = smoothstep(1.0, 0.35, d);
-          gl_FragColor = vec4(vColor, alpha);
-        }`
-    });
-
-    if (points){ scene.remove(points); points.geometry.dispose(); points.material.dispose(); }
-    points = new THREE.Points(geom, material);
-    points.userData.list = list;
-    scene.add(points);
-  }
-
-  async function refreshStars(){
-    const rows = await fetchWeek();
-    let list = aggregate(rows);
-    if (!list.length){
-      const demo = ['empathy','grace','patience','civility','truth','courage','mercy','listening','trust','wisdom','hope','humility','kindness','forgiveness'];
-      list = demo.map((t,i)=>({ term:t, count: Math.round(8 + (demo.length - i)*2), firstName: 'Anonymous', firstAt: 0 }));
-    }
-    createStars(list);
-  }
+    // Keep fresh
+    setInterval(refresh, 20000);
+  })();
   </script>
 </body>
 </html>
