@@ -70,7 +70,7 @@
 
   /* Views */
   .views{display:flex;gap:10px;justify-content:center;margin:18px 0}
-  .views button{background:transparent;color:#e7eefb;border:1px solid #334160}
+  .views button{background:transparent;color:#e7eefb;border:1px solid #334160;border-radius:10px;padding:.5rem .75rem}
   .views button.active{background:rgba(251,191,36,.12);border-color:var(--accent);color:#ffe8a6}
 
   /* Layout: leaderboard + wall */
@@ -99,27 +99,29 @@
   .wall-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #1c2640}
   .wall-body{padding:18px 14px 26px}
   .board{
-    display:flex; flex-wrap:wrap; gap:12px 12px;
-    min-height:620px;
+    display:flex; flex-wrap:wrap; gap:10px 10px;
+    min-height:660px;
   }
-  @media (max-width:900px){ .board{min-height:420px} }
+  @media (max-width:900px){ .board{min-height:440px} }
 
+  /* Refined, editorial chips */
   .chip{
-    display:inline-flex; align-items:center; gap:.4rem;
-    padding:.55rem .76rem; border-radius:14px;
-    color:#0a0a0a; background:#ffe8a6; border:1px solid rgba(255,255,255,.18);
-    box-shadow:0 6px 18px rgba(0,0,0,.24), inset 0 0 0 1px rgba(255,255,255,.08);
-    line-height:1.15; font-weight:800; letter-spacing:.2px;
+    display:inline-flex; align-items:center; gap:.35rem;
+    padding:.45rem .65rem; border-radius:10px;
+    font-weight:600; letter-spacing:.15px; line-height:1.2;
     white-space:nowrap; max-width:100%;
-    transition:box-shadow .25s ease, transform .25s ease;
-    opacity:0; transform:translateY(6px); /* start hidden for wave */
+    opacity:0; transform:translateY(6px);
+    transition:box-shadow .25s ease, transform .25s ease, background .25s ease, color .25s ease;
+  }
+  .chip[data-tone="light"]{ color:#eef3fa }
+  .chip[data-tone="dark"] { color:#f9fafb }
+  .chip:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(251,191,36,.18);
   }
   .chip .count{font-weight:700; opacity:.9}
-  .chip[data-tone="light"]{ color:#0c0c0c }
-  .chip[data-tone="dark"] { color:#f8fafc }
-  .chip:hover{ box-shadow:0 10px 22px rgba(251,191,36,.28), inset 0 0 0 1px rgba(251,191,36,.5); transform:translateY(-1px) }
 
-  /* --- Unlock "reveal" sequence --- */
+  /* Unlock / reveal sequence */
   #wallSection { opacity:0; visibility:hidden; transform:translateY(8px); transition:opacity .5s ease, transform .5s ease, visibility .5s; }
   body.unlocked #wallSection { opacity:1; visibility:visible; transform:none; }
 
@@ -157,7 +159,7 @@
     100%{ opacity:0; transform: translateY(-22px) scale(.98); }
   }
 
-  /* LOCK/UNLOCK STATES */
+  /* Lock/Unlock states */
   #wallSection[aria-hidden="true"] { pointer-events:none }
   #lockedHint{color:#aeb8ce; text-align:center; font-size:.95rem; margin:10px 0 0 0}
 
@@ -310,7 +312,7 @@
       .from('entries')
       .select('term,name,created_at')
       .eq('prompt_key', PROMPT_KEY)
-      .order('created_at', { ascending: true })  // oldest first so we can identify first contributor
+      .order('created_at', { ascending: true })  // oldest first for first contributor
       .limit(2000);
     if (error) throw error;
     return data || [];
@@ -346,15 +348,18 @@
     let h = 0; for (let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0;
     return h % 360;
   }
+  // Muted, professional palette
   function chipStyle(term){
     const h = hashHue(term);
-    const s = 78; const l1 = 64, l2 = 42;
-    const bg = `linear-gradient(135deg, hsl(${h} ${s}% ${l1}%) 0%, hsl(${(h+30)%360} ${s}% ${l2}%) 100%)`;
-    const tone = l2 < 48 ? 'light' : 'dark';
+    const s = 35;            // lower saturation for subtlety
+    const l1 = 24, l2 = 18;  // darker tones
+    const bg = `linear-gradient(145deg, hsl(${h} ${s}% ${l1}%) 0%, hsl(${(h+25)%360} ${s}% ${l2}%) 100%)`;
+    const tone = 'light';    // light text on dark bg
     return { bg, tone };
   }
+  // Smaller overall scaling
   function sizeFromCount(count, max){
-    const min = 0.95, maxF = 1.9;
+    const min = 0.8, maxF = 1.4;
     const t = Math.sqrt(count / max || 1);
     return min + (maxF - min) * t;
   }
@@ -460,7 +465,9 @@
     let name = (nameEl.value||'').trim();
     if (!term) return msg('Please enter a word or short phrase.', 'err');
     if (term.length > 60) return msg('Keep it to 60 characters.', 'err');
-    if (hasBad(term.toLowerCase()) || hasBad(name.toLowerCase())) return msg('Please choose a kinder word.', 'err');
+
+    const tLower = term.toLowerCase();
+    if (hasBad(tLower) || hasBad(name.toLowerCase())) return msg('Please choose a kinder word.', 'err');
 
     term = term.replace(/\s+/g,' ').toLowerCase();
 
