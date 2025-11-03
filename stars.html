@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stars — Aim the Light</title>
+<meta name="description" content="A cinematic starfield of this week’s shared words." />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --bg:#0b1020; --ink:#f8fafc; --accent:#fbbf24; --muted:#9fb0cc; --border:#23314f;
+    --max:1200px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
+
+  /* Header (match essay/index) */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));
+    backdrop-filter:saturate(120%) blur(6px);
+    border-bottom:1px solid rgba(31,39,55,.35);
+  }
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:8px 0;min-height:56px}
+  .brand a{white-space:nowrap;font-weight:800;font-size:1.05rem;color:inherit;text-decoration:none}
+  nav.links{display:flex;gap:.9rem}
+  nav.links a{color:var(--accent);font-weight:500;text-decoration:none}
+
+  .hero{padding:46px 0 10px;border-bottom:1px solid #1b2742;text-align:center}
+  .hero h1{margin:.2rem 0 .2rem;font-size:clamp(1.8rem,1.2rem + 2vw,2.4rem);font-weight:800}
+  .hero .sub{color:var(--muted);font-size:.98rem}
+
+  /* Canvas container */
+  .stage{
+    position:relative;
+    height: calc(100vh - 180px); /* below header+hero; adjust if needed */
+    min-height:520px;
+    border-bottom:1px solid #1b2742;
+    background:
+      radial-gradient(1200px 400px at 20% -10%, rgba(251,191,36,.06), transparent 60%),
+      radial-gradient(900px 500px at 120% 10%, rgba(147,197,253,.06), transparent 60%),
+      linear-gradient(180deg,#0f1830,#0b1222 60%, #0b1222);
+  }
+  canvas#starsCanvas{display:block; width:100%; height:100%}
+
+  /* Top overlay (Week + view toggle) */
+  .overlay{
+    position:absolute; top:10px; left:12px; right:12px; display:flex; justify-content:space-between; pointer-events:none;
+    color:#dbe6fb; font-size:.95rem;
+  }
+  .overlay .left{pointer-events:auto}
+  .overlay .right{pointer-events:auto}
+  .badge{
+    display:inline-block; background:rgba(251,191,36,.14); color:#ffe8a6; border:1px solid rgba(251,191,36,.35);
+    padding:.18rem .5rem; border-radius:999px; font-size:.8rem; margin-left:.5rem
+  }
+  .viewbtn{
+    background:rgba(17,24,39,.5); border:1px solid #334160; color:#eef3fa; border-radius:10px;
+    padding:.4rem .65rem; margin-left:.4rem; cursor:pointer; font-weight:600;
+  }
+  .viewbtn.active{background:rgba(251,191,36,.12); border-color:var(--accent); color:#ffe8a6}
+
+  /* Tooltip */
+  .tooltip{
+    position:absolute; z-index:10; transform:translate(-50%, -140%);
+    background:rgba(10,16,30,.92); color:#f8fafc; border:1px solid #334160; border-radius:10px;
+    padding:.5rem .6rem; font-size:.9rem; pointer-events:none; white-space:nowrap;
+    box-shadow:0 10px 24px rgba(0,0,0,.35);
+  }
+  .tooltip .ct{color:#ffe8a6; font-weight:700; margin-left:.35rem}
+  .tooltip .by{color:#cbd5e1; font-size:.85rem; margin-left:.4rem}
+  .hide{opacity:0; visibility:hidden; transition:opacity .2s ease, visibility .2s ease}
+  .show{opacity:1; visibility:visible}
+
+  footer{padding:36px 0;text-align:center;color:#9fb0cc}
+</style>
+</head>
+<body>
+  <header>
+    <div class="nav container">
+      <div class="brand"><a href="index.html">Aim the Light</a></div>
+      <nav class="links" aria-label="Primary">
+        <a href="index.html#mission">Mission</a>
+        <a href="index.html#approach">Approach</a>
+        <a href="essay.html">Essay</a>
+        <a href="index.html#volunteer">Volunteer</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Stars</h1>
+      <div class="sub">Each word becomes a light; together they form a sky.</div>
+    </div>
+  </section>
+
+  <section class="stage container" id="stage">
+    <div class="overlay">
+      <div class="left">Week <span id="wk" class="badge">…</span></div>
+      <div class="right">
+        <button type="button" id="btnFocus" class="viewbtn">Focus top word</button>
+        <button type="button" id="btnReset" class="viewbtn active">Reset view</button>
+      </div>
+    </div>
+    <div id="tooltip" class="tooltip hide"></div>
+    <canvas id="starsCanvas"></canvas>
+  </section>
+
+  <footer>
+    © <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a>
+  </footer>
+
+  <!-- libs -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/postprocessing@6.35.2/build/postprocessing.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+  <script>
+  // --------- Config ----------
+  document.getElementById('y').textContent = new Date().getFullYear();
+
+  const SUPABASE_URL = "https://rksoyinnfwdstzgjgegv.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrc295aW5uZndkc3R6Z2pnZWd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMzMyNzUsImV4cCI6MjA3NzcwOTI3NX0.EbBGdjGNi4idankMWFM5tHeA_51beQ7ybCTKb8WeCwo";
+  const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+  // ISO week key (same as Lightwall)
+  function isoWeekKey(d=new Date()){
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayNum = (date.getUTCDay()+6) % 7;
+    date.setUTCDate(date.getUTCDate() - dayNum + 3);
+    const firstThu = new Date(Date.UTC(date.getUTCFullYear(),0,4));
+    const week = 1 + Math.round(((date-firstThu)/86400000 - 3 + ((firstThu.getUTCDay()+6)%7)) / 7);
+    return `${date.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
+  }
+  const WEEK = isoWeekKey();
+  document.getElementById('wk').textContent = WEEK;
+
+  // --------- Data fetch & aggregate ----------
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+  async function fetchWeek(){
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from('entries')
+      .select('term,name,created_at')
+      .eq('prompt_key', WEEK)
+      .order('created_at', { ascending: true })
+      .limit(5000);
+    if (error) { console.warn(error); return []; }
+    return data || [];
+  }
+
+  function aggregate(rows){
+    const map = new Map();
+    rows.forEach(r=>{
+      const term=(r.term||'').toLowerCase().trim(); if(!term) return;
+      const who=(r.name||'').trim()||'Anonymous';
+      const at=r.created_at?new Date(r.created_at).getTime():0;
+      const v=map.get(term);
+      if(!v) map.set(term,{count:1,firstName:who,firstAt:at});
+      else {
+        v.count+=1;
+        if(at && (v.firstAt===0 || at < v.firstAt)){ v.firstAt=at; v.firstName=who; }
+      }
+    });
+    const list = Array.from(map.entries()).map(([term,info])=>({term,...info}));
+    list.sort((a,b)=> b.count - a.count || a.term.localeCompare(b.term));
+    return list;
+  }
+
+  // --------- Three.js scene ----------
+  const stage = document.getElementById('stage');
+  const canvas = document.getElementById('starsCanvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:false, powerPreference:'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(stage.clientWidth, stage.clientHeight, false);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0b1222);
+
+  const camera = new THREE.PerspectiveCamera(60, stage.clientWidth/stage.clientHeight, 0.1, 2000);
+  camera.position.set(0, 0, 62);
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.045;
+  controls.enablePan = false;
+  controls.minDistance = 20;
+  controls.maxDistance = 160;
+
+  // Lights (subtle rim)
+  const hemi = new THREE.HemisphereLight(0x334466, 0x0b0b12, 0.6);
+  scene.add(hemi);
+
+  // Post-processing (Bloom + FXAA)
+  const composer = new POSTPROCESSING.EffectComposer(renderer);
+  const renderPass = new POSTPROCESSING.RenderPass(scene, camera);
+  composer.addPass(renderPass);
+
+  // FXAA for crisp points
+  const fxaa = new POSTPROCESSING.FXAAEffect();
+  const bloom = new POSTPROCESSING.BloomEffect({
+    intensity: 0.9,
+    luminanceThreshold: 0.2,
+    luminanceSmoothing: 0.08,
+    mipmapBlur: true,
+    radius: 0.9
+  });
+
+  // Degrade bloom on low-end
+  let useBloom = true;
+  try {
+    const gl = renderer.getContext();
+    const ext = gl.getExtension('EXT_color_buffer_float');
+    if (!ext || (window.matchMedia('(prefers-reduced-motion: reduce)').matches)) useBloom = false;
+  } catch {}
+  const effectPass = new POSTPROCESSING.EffectPass(camera, fxaa, ...(useBloom ? [bloom] : []));
+  effectPass.renderToScreen = true;
+  composer.addPass(effectPass);
+
+  // Tooltip
+  const tip = document.getElementById('tooltip');
+  function showTip(x,y, html){
+    tip.innerHTML = html;
+    tip.style.left = x+'px';
+    tip.style.top = y+'px';
+    tip.classList.remove('hide'); tip.classList.add('show');
+  }
+  function hideTip(){ tip.classList.remove('show'); tip.classList.add('hide'); }
+
+  // Hash & color
+  function hash(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=(h*16777619)>>>0;} return h>>>0; }
+  function hueFromWord(term){ return hash(term) % 360; }
+
+  // Palette: muted deep tones; star color is lightened for bloom
+  function colorFromWord(term){
+    const h = hueFromWord(term);
+    const s = 38, l = 64; // light text-like glow
+    const c = new THREE.Color(); c.setHSL(h/360, s/100, l/100);
+    return c;
+  }
+
+  // Fibonacci sphere positions (nice even distribution)
+  function fibonacciSphere(n, radius){
+    const pts = new Float32Array(n*3);
+    const offset = 2 / n;
+    const inc = Math.PI * (3 - Math.sqrt(5));
+    for (let i=0;i<n;i++){
+      const y = i*offset - 1 + (offset/2);
+      const r = Math.sqrt(1 - y*y);
+      const phi = i * inc;
+      const x = Math.cos(phi) * r;
+      const z = Math.sin(phi) * r;
+      pts[i*3+0] = x * radius;
+      pts[i*3+1] = y * radius;
+      pts[i*3+2] = z * radius;
+    }
+    return pts;
+  }
+
+  // Build starfield from list
+  let points, positions, sizes, colors, basePositions;
+  const raycaster = new THREE.Raycaster();
+  raycaster.params.Points = { threshold: 1.5 }; // picking threshold
+
+  // Size curve (smaller overall for editorial look)
+  function sizeFromCount(count, max){
+    const min = 1.2, maxF = 3.6;
+    const t = Math.sqrt(count / max || 1);
+    return min + (maxF - min) * t;
+  }
+
+  function createStars(list){
+    const N = Math.max(list.length, 1);
+    const radius = 34 + Math.min(20, Math.log2(N+4)); // scale radius with crowd
+    positions = fibonacciSphere(N, radius);
+    basePositions = positions.slice();
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const max = Math.max(...list.map(x=>x.count));
+    sizes = new Float32Array(N);
+    colors = new Float32Array(N*3);
+
+    for (let i=0;i<N;i++){
+      const { term, count } = list[i];
+      sizes[i] = sizeFromCount(count, max);
+      const c = colorFromWord(term);
+      colors[i*3+0] = c.r;
+      colors[i*3+1] = c.g;
+      colors[i*3+2] = c.b;
+    }
+    geom.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    // ShaderMaterial for crisp, glowing points with per-vertex size & color
+    const material = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      vertexColors: true,
+      uniforms: {
+        uTime: { value: 0 },
+        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+      },
+      vertexShader: `
+        attribute float size;
+        varying vec3 vColor;
+        uniform float uPixelRatio;
+        uniform float uTime;
+
+        void main(){
+          vColor = color;
+
+          // subtle drift using time (gives life)
+          vec3 pos = position;
+          float s = sin(uTime * 0.06 + pos.x*0.035 + pos.z*0.021);
+          pos += normalize(pos) * (s * 0.08);
+
+          vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+
+          float dist = length(mvPosition.xyz);
+          float atten = clamp( 18.0 / dist, 0.5, 1.8 );
+          gl_PointSize = size * uPixelRatio * 3.0 * atten;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        void main(){
+          // soft circle sprite
+          vec2 uv = gl_PointCoord * 2.0 - 1.0;
+          float d = dot(uv, uv);
+          float alpha = smoothstep(1.0, 0.35, d); // soft edge
+          vec3 col = vColor;
+          gl_FragColor = vec4(col, alpha);
+        }
+      `
+    });
+
+    if (points) { scene.remove(points); points.geometry.dispose(); points.material.dispose(); }
+    points = new THREE.Points(geom, material);
+    points.userData.list = list; // store data for picking
+    scene.add(points);
+  }
+
+  // Resize
+  function onResize(){
+    const w = stage.clientWidth, h = stage.clientHeight;
+    camera.aspect = w/h; camera.updateProjectionMatrix();
+    renderer.setSize(w, h, false);
+    composer.setSize(w, h);
+    if (points && points.material && points.material.uniforms) {
+      points.material.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
+    }
+  }
+  window.addEventListener('resize', onResize);
+
+  // Render loop
+  let t0 = performance.now();
+  function animate(){
+    const t = (performance.now() - t0) / 1000;
+    if (points && points.material && points.material.uniforms) {
+      points.material.uniforms.uTime.value = t;
+    }
+    controls.update();
+    composer.render();
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Picking (hover)
+  stage.addEventListener('mousemove', (e)=>{
+    if (!points) return hideTip();
+    const rect = renderer.domElement.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+    const mouse = new THREE.Vector2(x, y);
+    raycaster.setFromCamera(mouse, camera);
+    const inter = raycaster.intersectObject(points, true);
+    if (inter.length){
+      const idx = inter[0].index;
+      const list = points.userData.list;
+      const it = list[idx];
+      const html = `<strong>${escapeHtml(cap(it.term))}</strong><span class="ct">×${it.count}</span> <span class="by">first by ${escapeHtml(it.firstName||'Anonymous')}</span>`;
+      showTip(e.clientX, e.clientY, html);
+    } else {
+      hideTip();
+    }
+  });
+  stage.addEventListener('mouseleave', hideTip);
+
+  // Buttons
+  const btnReset = document.getElementById('btnReset');
+  const btnFocus = document.getElementById('btnFocus');
+  btnReset.addEventListener('click', ()=>{
+    gsap.to(camera.position, { x:0, y:0, z:62, duration:0.9, ease:'power2.out' });
+    gsap.to(controls.target, { x:0, y:0, z:0, duration:0.9, ease:'power2.out' });
+  });
+
+  function focusTopWord(){
+    if (!points) return;
+    const list = points.userData.list;
+    if (!list.length) return;
+    // top word is list[0] (sorted by count desc)
+    const idx = 0;
+    const px = positions[idx*3+0], py = positions[idx*3+1], pz = positions[idx*3+2];
+    const dir = new THREE.Vector3(px,py,pz).normalize();
+    const target = new THREE.Vector3(px,py,pz);
+    const camPos = dir.multiplyScalar(18); // move in close
+    gsap.to(camera.position, { x:camPos.x, y:camPos.y, z:camPos.z, duration:0.9, ease:'power2.out' });
+    gsap.to(controls.target, { x:target.x, y:target.y, z:target.z, duration:0.9, ease:'power2.out' });
+  }
+  btnFocus.addEventListener('click', focusTopWord);
+
+  // Initial load
+  async function init(){
+    const rows = await fetchWeek();
+    let list = aggregate(rows);
+
+    // Fallback demo if empty
+    if (!list.length){
+      const demo = ['empathy','grace','patience','civility','truth','courage','mercy','listening','trust','wisdom','hope','humility','kindness','forgiveness'];
+      list = demo.map((t,i)=>({ term:t, count: Math.round(8 + (demo.length - i)*2), firstName: 'Anonymous', firstAt: 0 }));
+    }
+
+    createStars(list);
+    onResize();
+  }
+  init();
+
+  // Refresh every 30s (light polling)
+  setInterval(async ()=>{
+    const rows = await fetchWeek();
+    const list = aggregate(rows);
+    if (!list.length) return;
+    createStars(list);
+  }, 30000);
+  </script>
+</body>
+</html>
