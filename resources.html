@@ -27,10 +27,9 @@
     .map-wrap{position:relative;overflow:hidden;border-radius:14px;border:1px solid var(--border);background:#0c1426}
     .map-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border)}
     .map-head h2{margin:0;font-size:1.05rem}
-    .map-body{padding:6px}
-    /* Ensure there's vertical space reserved while it loads */
+    .map-body{padding:6px;min-height:440px;display:grid;place-items:center}
     #map-root svg{display:block;width:100%;height:auto}
-    #map-root{min-height:420px}
+    .loading{color:#9fb0cc;font-size:.98rem}
     /* Modal */
     .modal-backdrop{
       position:fixed;inset:0;background:rgba(0,0,0,.55);
@@ -57,10 +56,9 @@
     .btn.primary{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.45);color:#ffe7a1}
     .close{background:transparent;border:0;color:var(--muted);font-size:1.4rem;cursor:pointer}
     .note{margin-top:10px;color:#9fb0cc;font-size:.92rem}
-    /* Accessibility visible focus */
     .focus-ring:focus{outline:3px solid #93c5fd;outline-offset:2px;border-radius:6px}
     footer{padding:28px 0;color:#9fb0cc;text-align:center;border-top:1px solid var(--border);margin-top:22px}
-    .err{padding:10px 12px;margin:10px 0;border:1px solid #7f1d1d;background:#1f0b0b;color:#fecaca;border-radius:8px}
+    .err{padding:10px 12px;margin:10px 0;border:1px solid #7f1d1d;background:#1f0b0b;color:#fecaca;border-radius:8px;display:none}
   </style>
 </head>
 <body>
@@ -83,9 +81,11 @@
           <h2>United States</h2>
           <small style="color:#9fb0cc">Keyboard: Tab to focus a state, Enter to open</small>
         </div>
-        <div id="map-root" class="map-body" aria-live="polite"></div>
+        <div id="map-root" class="map-body" aria-live="polite">
+          <div class="loading">Loading map…</div>
+        </div>
       </div>
-      <div id="map-error" class="err" style="display:none"></div>
+      <div id="map-error" class="err"></div>
       <p class="note">We don’t host deadlines or rules here (they change). Use the official links for the most current guidance.</p>
     </section>
   </main>
@@ -111,7 +111,7 @@
     © <span id="y"></span> Aim the Light
   </footer>
 
-  <!-- React + libs (UMD, no build step) -->
+  <!-- React + libs (UMD) -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/react-simple-maps@3.0.0/dist/index.umd.js"></script>
@@ -120,36 +120,25 @@
     // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // Helpers
-    const POSTAL_BY_NAME = {
-      "Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT",
-      "Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA",
-      "Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI",
-      "Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH",
-      "New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH",
-      "Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",
-      "Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV",
-      "Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC"
-    };
-
-    function linksFor(/*postal*/){
-      return {
-        voteGov: "https://www.vote.gov/",
-        nass: "https://www.nass.org/can-I-vote"
-      };
+    // Error helper
+    function showError(msg, err){
+      const box = document.getElementById('map-error');
+      box.style.display = 'block';
+      box.textContent = msg;
+      if (err) console.error(msg, err);
     }
 
-    // Modal
+    // Modal helpers
     const modal = document.getElementById('modal-root');
     const closeBtn = document.getElementById('closeModal');
     const titleEl = document.getElementById('stateTitle');
     const voteGovEl = document.getElementById('voteGov');
     const nassEl = document.getElementById('nass');
 
-    function openModal(name){
-      const postal = POSTAL_BY_NAME[name] || name;
+    function linksFor(){ return { voteGov: "https://www.vote.gov/", nass: "https://www.nass.org/can-I-vote" }; }
+    function openModal(name, postal){
       const {voteGov, nass} = linksFor(postal);
-      titleEl.textContent = `${name} (${postal})`;
+      titleEl.textContent = `${name}${postal ? ' ('+postal+')' : ''}`;
       voteGovEl.href = voteGov;
       nassEl.href = nass;
       modal.classList.add('open');
@@ -164,25 +153,33 @@
     modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
     document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
 
-    // Render map
-    (function initMap(){
+    // Load TopoJSON explicitly, then render
+    (async function init(){
       try{
         const lib = window['reactSimpleMaps'];
-        if(!lib){
-          throw new Error('react-simple-maps UMD not found. (Global window["reactSimpleMaps"] missing)');
-        }
+        if(!lib){ throw new Error('react-simple-maps UMD not found (window["reactSimpleMaps"] missing).'); }
+
+        // Fetch TopoJSON (unpkg is very permissive with CORS)
+        const geoUrl = "https://unpkg.com/us-atlas@3/states-10m.json";
+        const res = await fetch(geoUrl, { mode: 'cors' });
+        if(!res.ok){ throw new Error('Failed to fetch TopoJSON: ' + res.status + ' ' + res.statusText); }
+        const topology = await res.json(); // pass object directly
+
         const { ComposableMap, Geographies, Geography } = lib;
-        const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
         function USMap(){
-          const onSelect = (geo) => openModal(geo.properties.name);
+          const onSelect = (geo) => {
+            const name = geo.properties.name;
+            const postal = geo.properties.postal || '';
+            openModal(name, postal);
+          };
           const onKey = (e, geo) => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(geo); }
           };
           return React.createElement(
             ComposableMap,
             { projectionConfig: { scale: 850 } },
-            React.createElement(Geographies, { geography: geoUrl }, ({ geographies }) =>
+            React.createElement(Geographies, { geography: topology }, ({ geographies }) =>
               geographies.map(geo =>
                 React.createElement(Geography, {
                   key: geo.rsmKey,
@@ -203,13 +200,11 @@
           );
         }
 
-        ReactDOM.createRoot(document.getElementById('map-root'))
-          .render(React.createElement(USMap));
+        const root = document.getElementById('map-root');
+        root.innerHTML = ""; // clear "Loading…"
+        ReactDOM.createRoot(root).render(React.createElement(USMap));
       }catch(err){
-        const box = document.getElementById('map-error');
-        box.style.display = 'block';
-        box.textContent = 'Map failed to load. Open your browser console for details: ' + err.message;
-        console.error(err);
+        showError('Map failed to load. Open your browser console for details.', err);
       }
     })();
   </script>
