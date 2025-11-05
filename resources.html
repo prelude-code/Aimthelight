@@ -28,8 +28,9 @@
     .map-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border)}
     .map-head h2{margin:0;font-size:1.05rem}
     .map-body{padding:6px}
-    /* Geography styling */
-    .geo{outline:none;cursor:pointer;transition:fill .15s ease}
+    /* Ensure there's vertical space reserved while it loads */
+    #map-root svg{display:block;width:100%;height:auto}
+    #map-root{min-height:420px}
     /* Modal */
     .modal-backdrop{
       position:fixed;inset:0;background:rgba(0,0,0,.55);
@@ -59,6 +60,7 @@
     /* Accessibility visible focus */
     .focus-ring:focus{outline:3px solid #93c5fd;outline-offset:2px;border-radius:6px}
     footer{padding:28px 0;color:#9fb0cc;text-align:center;border-top:1px solid var(--border);margin-top:22px}
+    .err{padding:10px 12px;margin:10px 0;border:1px solid #7f1d1d;background:#1f0b0b;color:#fecaca;border-radius:8px}
   </style>
 </head>
 <body>
@@ -83,6 +85,7 @@
         </div>
         <div id="map-root" class="map-body" aria-live="polite"></div>
       </div>
+      <div id="map-error" class="err" style="display:none"></div>
       <p class="note">We don’t host deadlines or rules here (they change). Use the official links for the most current guidance.</p>
     </section>
   </main>
@@ -99,7 +102,7 @@
           <a id="voteGov" class="btn primary focus-ring" target="_blank" rel="noopener">🗳 Register / Update @ Vote.gov</a>
           <a id="nass" class="btn focus-ring" target="_blank" rel="noopener">🏛 State Election Office (NASS)</a>
         </div>
-        <p class="note">Tip: Have your state ID or driver’s license handy for quickest registration in most states.</p>
+        <p class="note">Tip: Have your state ID or driver’s license handy for fastest registration in most states.</p>
       </div>
     </div>
   </div>
@@ -114,10 +117,10 @@
   <script src="https://unpkg.com/react-simple-maps@3.0.0/dist/index.umd.js"></script>
 
   <script>
-    // Year
+    // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // Minimal name<->postal helpers
+    // Helpers
     const POSTAL_BY_NAME = {
       "Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT",
       "Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA",
@@ -129,7 +132,6 @@
       "Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC"
     };
 
-    // Official hubs (stable): Vote.gov & NASS Can I Vote
     function linksFor(/*postal*/){
       return {
         voteGov: "https://www.vote.gov/",
@@ -137,7 +139,7 @@
       };
     }
 
-    // Modal helpers
+    // Modal
     const modal = document.getElementById('modal-root');
     const closeBtn = document.getElementById('closeModal');
     const titleEl = document.getElementById('stateTitle');
@@ -162,41 +164,54 @@
     modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
     document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
 
-    // Render map via React Simple Maps, loading TopoJSON by URL
-    const { ComposableMap, Geographies, Geography } = window.ReactSimpleMaps;
+    // Render map
+    (function initMap(){
+      try{
+        const lib = window['reactSimpleMaps'];
+        if(!lib){
+          throw new Error('react-simple-maps UMD not found. (Global window["reactSimpleMaps"] missing)');
+        }
+        const { ComposableMap, Geographies, Geography } = lib;
+        const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
-    function USMap(){
-      const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
-      const onSelect = (geo) => openModal(geo.properties.name);
-      const onKey = (e, geo) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(geo); }
-      };
-      return React.createElement(
-        ComposableMap,
-        { projectionConfig: { scale: 850 } },
-        React.createElement(Geographies, { geography: geoUrl }, ({ geographies }) =>
-          geographies.map(geo =>
-            React.createElement(Geography, {
-              key: geo.rsmKey,
-              geography: geo,
-              onClick: ()=>onSelect(geo),
-              onKeyDown: (e)=>onKey(e, geo),
-              tabIndex: 0,
-              role: "button",
-              "aria-label": geo.properties.name,
-              className: "geo focus-ring",
-              style: {
-                default: { fill: "#1f2937", outline: "none" },
-                hover:   { fill: "#334155", outline: "none" },
-                pressed: { fill: "#475569", outline: "none" }
-              }
-            })
-          )
-        )
-      );
-    }
+        function USMap(){
+          const onSelect = (geo) => openModal(geo.properties.name);
+          const onKey = (e, geo) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(geo); }
+          };
+          return React.createElement(
+            ComposableMap,
+            { projectionConfig: { scale: 850 } },
+            React.createElement(Geographies, { geography: geoUrl }, ({ geographies }) =>
+              geographies.map(geo =>
+                React.createElement(Geography, {
+                  key: geo.rsmKey,
+                  geography: geo,
+                  onClick: ()=>onSelect(geo),
+                  onKeyDown: (e)=>onKey(e, geo),
+                  tabIndex: 0,
+                  role: "button",
+                  "aria-label": geo.properties.name,
+                  style: {
+                    default: { fill: "#1f2937", outline: "none" },
+                    hover:   { fill: "#334155", outline: "none" },
+                    pressed: { fill: "#475569", outline: "none" }
+                  }
+                })
+              )
+            )
+          );
+        }
 
-    ReactDOM.createRoot(document.getElementById('map-root')).render(React.createElement(USMap));
+        ReactDOM.createRoot(document.getElementById('map-root'))
+          .render(React.createElement(USMap));
+      }catch(err){
+        const box = document.getElementById('map-error');
+        box.style.display = 'block';
+        box.textContent = 'Map failed to load. Open your browser console for details: ' + err.message;
+        console.error(err);
+      }
+    })();
   </script>
 </body>
 </html>
