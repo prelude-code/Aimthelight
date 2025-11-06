@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>The Overexposed Republic — Aim the Light</title>
   <meta name="description" content="The Overexposed Republic — a modern call to rebuild empathy, reason, and common sense." />
+
   <!-- Open Graph -->
   <meta property="og:title" content="The Overexposed Republic — Aim the Light" />
   <meta property="og:description" content="A modern call to rebuild empathy, reason, and common sense." />
@@ -16,10 +17,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,800;1,400;1,500;1,600;1,800&display=swap" rel="stylesheet">
 
   <style>
-    :root {
+    :root{
       --bg:#0f172a; --ink:#f8fafc; --muted:#94a3b8; --accent:#fbbf24; --card:#111827; --soft:#1f2937;
       --max:1100px; --prose:#e5e7eb; --prose-muted:#cbd5e1;
-      --anchor-offset:120px;
+      --anchor-offset: 120px; /* JS sets this from header height */
     }
     *{box-sizing:border-box}
     html,body{
@@ -31,125 +32,128 @@
     a:hover{text-decoration:underline}
     .container{max-width:var(--max);margin:0 auto;padding:0 1.1rem}
 
-    /* Header */
+    /* Header — matches essay/index look */
     header{
-      position:sticky;top:0;z-index:50;
-      background:linear-gradient(180deg,rgba(15,23,42,.9),rgba(15,23,42,0));
+      position:sticky; top:0; z-index:50;
+      background:linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,0));
       backdrop-filter:saturate(120%) blur(6px);
       border-bottom:1px solid rgba(31,39,55,.35);
     }
     .nav{
-      display:flex;justify-content:space-between;align-items:center;
-      padding:8px 0;min-height:56px;
+      display:flex; justify-content:space-between; align-items:center;
+      padding:8px 0; min-height:56px;
     }
     .brand a{
-      font-weight:800;font-size:1.05rem;color:inherit;text-decoration:none;white-space:nowrap;
+      white-space:nowrap; display:inline-block; line-height:1;
+      font-weight:800; font-size:1.05rem; color:inherit; text-decoration:none;
     }
-    nav.links{
-      display:flex;align-items:center;gap:.9rem;
-    }
+    nav.links{ display:flex; align-items:center; gap:.9rem; }
     nav.links a{
-      color:var(--accent);font-size:.95rem;font-weight:500;text-decoration:none;
-      transition:color .25s ease;
+      color:var(--accent); font-size:.95rem; font-weight:500; line-height:1;
+      text-decoration:none; transition:color .25s ease;
     }
-    nav.links a:hover{color:#ffe8a6}
+    nav.links a:hover{ color:#ffe8a6; }
 
     /* Hero */
     .hero{
-      min-height:46vh;display:grid;place-items:center;text-align:center;
-      position:relative;isolation:isolate;border-bottom:1px solid #1f2737;
+      min-height:46vh; display:grid; place-items:center; text-align:center;
+      position:relative; isolation:isolate; border-bottom:1px solid #1f2737;
     }
     .hero::before{
-      content:"";position:absolute;inset:0;z-index:-2;
-      background:linear-gradient(180deg,rgba(11,16,32,.68),rgba(11,16,32,.82)),
-      url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2000&auto=format&fit=crop");
-      background-size:cover;background-position:center;
+      content:""; position:absolute; inset:0; z-index:-2;
+      background:linear-gradient(180deg, rgba(11,16,32,.68), rgba(11,16,32,.82)),
+                 url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2000&auto=format&fit=crop");
+      background-size:cover; background-position:center;
     }
-    .hero h1{
-      font-size:clamp(2rem,1.4rem+2vw,3rem);
-      margin:.2rem 0 .3rem;font-weight:800;
-    }
-    .meta{color:var(--muted);font-size:.95rem}
+    .hero h1{ font-size:clamp(2rem, 1.4rem + 2vw, 3rem); margin:.2rem 0 .3rem; font-weight:800; }
+    .meta{ color:var(--muted); font-size:.95rem; }
     .badge{
-      display:inline-block;background:rgba(251,191,36,.15);
-      color:#ffe8a6;border:1px solid rgba(251,191,36,.4);
-      padding:.18rem .5rem;border-radius:999px;font-size:.8rem;margin-left:.5rem;
+      display:inline-block; background:rgba(251,191,36,.15); color:#ffe8a6;
+      border:1px solid rgba(251,191,36,.4); padding:.18rem .5rem; border-radius:999px;
+      font-size:.8rem; margin-left:.5rem;
     }
 
-    /* === Essay layout + TOC === */
-    main{padding:40px 0;}
-    aside.toc h3{margin:.1rem 0 .35rem;font-size:.95rem;}
+    /* === Essay layout + TOC (final) === */
+    main{ padding:40px 0; }
+
+    /* Base TOC text (not bright yellow) */
+    aside.toc h3{ margin:.1rem 0 .35rem; font-size:.95rem; }
     aside.toc a{
-      display:block;padding:.18rem 0;font-size:.92rem;text-decoration:none;
-      color:var(--muted)!important;
+      display:block; padding:.18rem 0; font-size:.92rem; text-decoration:none;
+      color: var(--muted) !important;
     }
 
-    @media(min-width:980px){
+    /* Desktop: compact TOC, wide article; button hidden */
+    @media (min-width: 980px){
       .layout{
-        display:grid!important;
-        grid-template-columns:minmax(220px,260px)minmax(0,1fr);
-        gap:1.5rem;align-items:start;
+        display:grid !important;
+        grid-template-columns: 240px minmax(0, 1fr) !important;
+        gap:1.5rem !important; align-items:start !important;
       }
       aside.toc{
-        position:sticky;top:76px;max-height:calc(100vh - 100px);
-        overflow:auto;border:1px solid #1f2937;
-        background:linear-gradient(180deg,var(--card),var(--soft));
-        border-radius:14px;padding:14px;
+        display:block !important;
+        position:sticky !important; top:76px !important;
+        width:240px !important; max-height:calc(100vh - 100px) !important;
+        overflow:auto !important;
+        border:1px solid #1f2937 !important;
+        background:linear-gradient(180deg, var(--card), var(--soft)) !important;
+        border-radius:14px !important; padding:14px !important;
       }
+      #tocBtn{ display:none !important; }
     }
 
-    @media(max-width:979.98px){
+    /* Mobile: TOC hidden until toggled */
+    @media (max-width: 979.98px){
       .layout{
-        display:flex!important;flex-direction:column;
-        gap:1rem;align-items:stretch;
+        display:flex !important; flex-direction:column !important;
+        gap:1rem !important; align-items:stretch !important;
       }
-      aside.toc{position:static;display:none;}
-      aside.toc.open{display:block!important;}
+      aside.toc{ position:static !important; display:none !important; max-height:60vh !important; overflow:auto !important; }
+      aside.toc.open{ display:block !important; }
+      #tocBtn{
+        display:inline-flex !important; align-items:center; gap:.5rem;
+        padding:.5rem .75rem; border-radius:10px;
+        border:1px solid #344155; background:rgba(17,24,39,.5);
+        color:var(--ink); font-weight:600; font-size:.95rem;
+        cursor:pointer; transition:background .25s, border-color .25s;
+      }
+      #tocBtn:hover{ background:rgba(17,24,39,.75); border-color:var(--accent); color:var(--accent); }
     }
 
-    /* TOC Button */
-    button.toc-toggle{
-      display:inline-flex;align-items:center;gap:.5rem;
-      padding:.5rem .75rem;border-radius:10px;
-      border:1px solid #344155;background:rgba(17,24,39,.5);
-      color:var(--ink);font-weight:600;font-size:.95rem;
-      cursor:pointer;transition:background .25s,border-color .25s;
-    }
-    button.toc-toggle:hover{
-      background:rgba(17,24,39,.75);border-color:var(--accent);color:var(--accent);
-    }
-
-    /* Prose styling */
-    .prose{color:var(--prose);font-size:1.05rem;}
-    .prose h2{color:var(--ink);font-size:1.6rem;line-height:1.3;margin:2.2rem 0 .6rem;}
-    .prose p{margin:1rem 0;}
+    /* Prose */
+    .prose{ color:var(--prose); font-size:1.05rem; }
+    .prose h2{ color:var(--ink); font-size:1.6rem; line-height:1.3; margin:2.2rem 0 .6rem; }
+    .prose p{ margin:1rem 0; }
     .prose blockquote{
-      margin:1.2rem 0;padding:.8rem 1rem;border-left:3px solid var(--accent);
-      background:#0c1322;border-radius:6px;color:var(--prose);
+      margin:1.2rem 0; padding:.8rem 1rem; border-left:3px solid var(--accent);
+      background:#0c1322; border-radius:6px; color:var(--prose);
     }
     .prose hr{
-      border:none;height:2px;
-      background:linear-gradient(90deg,transparent,rgba(251,191,36,.8),transparent);
-      border-radius:2px;margin:2.5rem 0;
-      box-shadow:0 0 8px rgba(251,191,36,.4);
+      border:none; height:2px;
+      background:linear-gradient(90deg, transparent, rgba(251,191,36,.8), transparent);
+      border-radius:2px; margin:2.5rem 0; box-shadow:0 0 8px rgba(251,191,36,.4);
     }
-
-    /* Gold underline */
     .prose .goldline{
-      border-bottom:2px solid var(--accent);
-      padding-bottom:2px;
-      box-shadow:0 2px 4px rgba(251,191,36,.3);
+      border-bottom:2px solid var(--accent); padding-bottom:2px; box-shadow:0 2px 4px rgba(251,191,36,.3);
     }
-
     .dropcap::first-letter{
-      float:left;font-size:3rem;line-height:1;font-weight:800;
-      margin-right:.1em;color:var(--accent);
+      float:left; font-size:3rem; line-height:1; font-weight:800;
+      margin-right:.1em; color:var(--accent);
     }
 
-    footer{
-      padding:48px 0;border-top:1px solid #1f2737;
-      text-align:center;color:var(--muted);
+    /* Sticky header offset for anchor jumps (CSS side) */
+    html{ scroll-padding-top: var(--anchor-offset); }
+    #essay h2::before{
+      content:""; display:block; height:var(--anchor-offset);
+      margin-top: calc(var(--anchor-offset) * -1);
     }
+
+    /* Reveal animations */
+    .reveal{ opacity:0; transform:translateY(24px); transition:opacity .6s ease, transform .6s ease; transition-delay:var(--d,0s) }
+    .reveal.visible{ opacity:1; transform:none }
+    @media (prefers-reduced-motion: reduce){ .reveal{ transition:none; opacity:1; transform:none } }
+
+    footer{ padding:48px 0; border-top:1px solid #1f2737; text-align:center; color:var(--muted); }
   </style>
 </head>
 
@@ -166,6 +170,7 @@
     </div>
   </header>
 
+  <!-- Hero -->
   <section class="hero">
     <div class="container">
       <h1 class="reveal">The Overexposed Republic</h1>
@@ -178,38 +183,22 @@
 
   <main>
     <div class="container layout">
-      <!-- TOC Toggle Button -->
-      <button class="toc-toggle" id="tocBtn">☰ Table of contents</button>
+      <!-- Mobile TOC toggle -->
+      <button class="toc-toggle" id="tocBtn" aria-controls="toc" aria-expanded="false">☰ Table of contents</button>
 
-      <!-- Table of Contents Sidebar -->
+      <!-- TOC (auto-filled) -->
       <aside class="toc reveal">
         <h3>On this page</h3>
         <nav id="toc"></nav>
       </aside>
 
-      <!-- Essay Render Target -->
+      <!-- Essay target -->
       <article id="essay" class="prose"></article>
-
-      <script>
-        (function(){
-          const btn=document.getElementById('tocBtn');
-          const toc=document.querySelector('aside.toc');
-          if(!btn||!toc)return;
-          btn.setAttribute('aria-controls','toc');
-          btn.setAttribute('aria-expanded','false');
-          btn.addEventListener('click',function(e){
-            e.preventDefault();
-            const isOpen=toc.classList.toggle('open');
-            btn.setAttribute('aria-expanded',isOpen?'true':'false');
-          });
-        })();
-      </script>
     </div>
   </main>
 
   <!-- YOUR ESSAY TEXT STARTS HERE -->
   <script type="text/plain" id="essay-src">
-
 *Author’s Note*
 
 Two and a half centuries ago, Common Sense helped a young republic find its voice. It didn’t teach Americans what to think; it reminded them that they already knew. That pamphlet wasn’t polished philosophy, it was moral oxygen. It spoke the simple truth that freedom and decency require courage, and that silence, when everything feels broken, is a form of consent.
@@ -632,133 +621,161 @@ That’s the new common sense.
 
 
 
-</script> <!-- end #essay-src -->
+</script>
 
-<!-- Sticky header offset + TOC builder + smooth scroll + mobile toggle -->
+<footer>
+  <div class="container">
+    <p>© <span id="y"></span> Aim the Light • <a href="mailto:info@aimthelight.org">info@aimthelight.org</a></p>
+  </div>
+</footer>
+
 <script>
+/* Footer year */
+document.getElementById('y').textContent = new Date().getFullYear();
+
+/* === Convert plain essay → HTML, build TOC, reveal animations, read-time === */
 (function(){
-  /* 0) Footer year (safe no-op if it doesn't exist) */
-  var y = document.getElementById('y');
-  if (y) y.textContent = new Date().getFullYear();
-
-  /* 1) Compute anchor offset so sticky header doesn't hide H2s */
-  var header = document.querySelector('header');
-  function setAnchorOffset(){
-    var h = header ? Math.round(header.getBoundingClientRect().height) : 96;
-    var tighten = 10; // tweak smaller = headings closer to header
-    var offset = Math.max(0, h - tighten);
-    document.documentElement.style.setProperty('--anchor-offset', offset + 'px');
-  }
-  setAnchorOffset();
-  window.addEventListener('resize', setAnchorOffset);
-
-  /* 2) Convert the plain-text essay into HTML */
-  var src = document.getElementById('essay-src');
-  var out = document.getElementById('essay');
+  const src = document.getElementById('essay-src');
+  const out = document.getElementById('essay');
   if (!src || !out) return;
 
-  var lines = (src.textContent || '').replace(/\r\n/g,'\n').split('\n');
-  var html = [], para = [];
-  var nextIsDropcap = false, dropcapUsed = false;
+  const lines = (src.textContent||'').replace(/\r\n/g,'\n').split('\n');
+  const html = [];
+  let para = [];
 
-  function slug(s){ return s.toLowerCase().trim().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-'); }
-  function mdInline(s){
-    // markdown-lite: **bold**, *italic*, ==gold underline==
-    return s
+  const escapeHtml = s => s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  const slug = s => s.toLowerCase().trim().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-');
+  const mdInline = s => {
+    let t = s
       .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
       .replace(/(?<!\*)\*(?!\*)([^*]+?)(?<!\*)\*(?!\*)/g,'<em>$1</em>')
       .replace(/__(.+?)__/g,'<strong>$1</strong>')
       .replace(/_([^_]+?)_/g,'<em>$1</em>')
       .replace(/==(.+?)==/g,'<span class="goldline">$1</span>');
-  }
+    // allow back any safe inline tags we just inserted
+    t = t.replace(/&lt;(\/?(span|em|strong|b|i|a)(\s+[^<>"]*)?)&gt;/gi,'<$1>');
+    return t;
+  };
   function flush(){
     if (!para.length) return;
-    var text = para.join(' ').trim();
-    if (!text){ para.length = 0; return; }
-    var cls = '';
-    if (!dropcapUsed && text.startsWith('::dropcap::')){
-      cls = 'dropcap';
-      text = text.replace('::dropcap::','').trim();
-      dropcapUsed = true;
-    } else if (!dropcapUsed && nextIsDropcap){
-      cls = 'dropcap'; nextIsDropcap = false; dropcapUsed = true;
-    }
-    html.push('<p class="reveal' + (cls ? ' ' + cls : '') + '">' + mdInline(text) + '</p>');
-    para.length = 0;
+    const text = para.join(' ').trim();
+    if (text) html.push('<p class="reveal">'+ mdInline(text) +'</p>');
+    para = [];
   }
 
-  for (var i=0; i<lines.length; i++){
-    var raw = lines[i], line = raw.trim();
+  for (const raw of lines){
+    const line = raw.trim();
 
-    if (line === '::dropcap::'){ nextIsDropcap = true; continue; }
     if (!line){ flush(); continue; }
 
-    var h2 = line.match(/^##\s+(.*)$/);
-    if (h2){ flush(); html.push('<h2 id="'+slug(h2[1])+'" class="reveal">'+h2[1]+'</h2>'); continue; }
+    const h2 = line.match(/^##\s+(.*)$/);
+    if (h2){ flush(); html.push('<h2 id="'+slug(h2[1])+'" class="reveal">'+ escapeHtml(h2[1]) +'</h2>'); continue; }
 
-    var bq = line.match(/^>\s?(.*)$/);
-    if (bq){ flush(); html.push('<blockquote class="reveal">'+mdInline(bq[1])+'</blockquote>'); continue; }
+    const bq = line.match(/^>\s?(.*)$/);
+    if (bq){ flush(); html.push('<blockquote class="reveal">'+ mdInline(bq[1]) +'</blockquote>'); continue; }
 
     if (/^---+$/.test(line)){ flush(); html.push('<hr class="reveal" />'); continue; }
 
     para.push(line);
   }
   flush();
+
   out.innerHTML = html.join('\n');
 
-  /* 3) Build TOC */
-  var toc = document.getElementById('toc');
+  /* Build TOC */
+  const toc = document.getElementById('toc');
   if (toc){
     toc.innerHTML = '';
-    out.querySelectorAll('h2').forEach(function(h){
-      var a = document.createElement('a');
+    out.querySelectorAll('h2').forEach(h=>{
+      const a = document.createElement('a');
       a.href = '#'+h.id;
       a.textContent = h.textContent;
       toc.appendChild(a);
     });
   }
 
-  /* 4) Reveal animations */
-  var rev = document.querySelectorAll('.reveal');
-  var io2 = new IntersectionObserver(function(ents){
-    ents.forEach(function(en){
+  /* Reveal animations */
+  const rev = document.querySelectorAll('.reveal');
+  const io2 = new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
       if (en.isIntersecting){ en.target.classList.add('visible'); io2.unobserve(en.target); }
     });
-  }, { threshold: 0.12 });
-  rev.forEach(function(el){ io2.observe(el); });
+  },{ threshold:.12 });
+  rev.forEach(el=>io2.observe(el));
 
-  /* 5) Reading time */
-  var rt = document.getElementById('readtime');
+  /* Reading time */
+  const rt = document.getElementById('readtime');
   if (rt){
-    var w = (out.innerText || '').trim().split(/\s+/).length;
-    rt.textContent = Math.max(1, Math.round(w / 225)) + ' min read';
+    const words = (out.innerText||'').trim().split(/\s+/).length;
+    rt.textContent = Math.max(1, Math.round(words/225)) + ' min read';
   }
+})();
+</script>
 
-  /* 6) Smooth scroll for TOC using CSS scroll-margin-top */
-  if (toc){
-    toc.addEventListener('click', function(e){
-      var link = e.target.closest('a[href^="#"]'); if (!link) return;
-      e.preventDefault();
-      var id = link.getAttribute('href').slice(1);
-      var target = document.getElementById(id);
-      if (target) {
-        target.scrollIntoView({ behavior:'smooth', block:'start' });
-        history.replaceState(null, '', '#' + id);
-      }
-    });
+<script>
+/* Compute anchor offset from sticky header so H2s never hide under it */
+(function(){
+  const header = document.querySelector('header');
+  const TIGHTEN_PX = 10; // lower number = tighter (smaller gap)
+  function setAnchorOffset(){
+    const h = header ? Math.round(header.getBoundingClientRect().height) : 96;
+    const offset = Math.max(0, h - TIGHTEN_PX);
+    document.documentElement.style.setProperty('--anchor-offset', offset + 'px');
   }
+  setAnchorOffset();
+  window.addEventListener('resize', setAnchorOffset);
+})();
+</script>
 
-  /* 7) Mobile toggle (desktop unaffected; TOC always visible on desktop) */
-  var btn = document.getElementById('tocBtn');
-  var tocBox = document.querySelector('aside.toc');
-  if (btn && tocBox){
-    btn.setAttribute('aria-controls', 'toc');
-    btn.setAttribute('aria-expanded', 'false');
-    btn.addEventListener('click', function(e){
+<script>
+/* Mobile TOC toggle (desktop always shown; mobile hidden until opened) */
+(function(){
+  const btn = document.getElementById('tocBtn');
+  const toc = document.querySelector('aside.toc');
+  if (!toc) return;
+
+  function applyTOCState(){
+    const isDesktop = window.matchMedia('(min-width: 980px)').matches;
+    if (isDesktop){
+      toc.classList.remove('open');              // desktop: sidebar is visible via CSS
+      if (btn) btn.setAttribute('aria-expanded','false');
+    } else {
+      toc.classList.remove('open');              // mobile default: closed
+      if (btn) btn.setAttribute('aria-expanded','false');
+    }
+  }
+  applyTOCState();
+  window.addEventListener('resize', applyTOCState);
+
+  if (btn){
+    btn.addEventListener('click', e=>{
+      const isDesktop = window.matchMedia('(min-width: 980px)').matches;
+      if (isDesktop) return;                     // no-op on desktop
       e.preventDefault();
-      var open = tocBox.classList.toggle('open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      const opened = toc.classList.toggle('open');
+      btn.setAttribute('aria-expanded', opened ? 'true' : 'false');
     });
   }
 })();
 </script>
+
+<script>
+/* Smooth scroll on TOC clicks; CSS scroll-margin-top handles the offset */
+(function(){
+  const toc = document.getElementById('toc');
+  if (!toc) return;
+  toc.addEventListener('click', e=>{
+    const link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+    e.preventDefault();
+    const id = link.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (!target) return;
+    target.scrollIntoView({ behavior:'smooth', block:'start' });
+    history.replaceState(null, '', '#' + id);
+  });
+})();
+</script>
+
+</body>
+</html>
