@@ -53,42 +53,7 @@
     .badge{display:inline-block;background:rgba(251,191,36,.15);color:#ffe8a6;border:1px solid rgba(251,191,36,.4);
            padding:.18rem .5rem;border-radius:999px;font-size:.8rem;margin-left:.5rem}
 
-    /* === Essay layout & TOC fixes (final) === */
-main{ padding:40px 0; }
-
-/* Desktop: grid with compact TOC (left) and roomy article (right) */
-@media (min-width: 980px) {
-  .layout {
-    display: grid !important;
-    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
-    gap: 1.5rem;
-    align-items: start;
-  }
-  aside.toc {
-    position: sticky;
-    top: 76px;
-    max-height: calc(100vh - 100px);
-    overflow: auto;
-    border: 1px solid #1f2937;
-    background: linear-gradient(180deg, var(--card), var(--soft));
-    border-radius: 14px;
-    padding: 14px;
-  }
-  .toc h3{ margin:.1rem 0 .35rem; font-size:.95rem; }
-  .toc a{ display:block; padding:.18rem 0; font-size:.92rem; text-decoration:none; color:var(--muted); }
-}
-
-/* Mobile: stack, TOC hidden until toggled */
-@media (max-width: 979.98px){
-  .layout{
-    display: flex !important;
-  flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-  aside.toc { position: static; display: none; }
-  aside.toc.open { display: block !important; }
-}
+    
 
    
 
@@ -702,13 +667,46 @@ That’s the new common sense.
 
 
 
-<style>
-/* TOC: sticky on desktop; hidden on mobile unless opened */
-aside.toc { position: sticky; top: 76px; }           /* desktop scrolls nicely */
-@media (max-width: 900px){
-  aside.toc { position: static; display: none; }     /* mobile hidden by default */
-  aside.toc.open { display: block !important; }      /* show only when toggled */
+/* === Essay layout & TOC fixes (final) === */
+main{ padding:40px 0; }
+
+/* Desktop: grid with compact TOC (left) and roomy article (right) */
+@media (min-width: 980px) {
+  .layout {
+    display: grid !important;
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  aside.toc {
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 100px);
+    overflow: auto;
+    border: 1px solid #1f2937;
+    background: linear-gradient(180deg, var(--card), var(--soft));
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .toc h3{ margin:.1rem 0 .35rem; font-size:.95rem; }
+  .toc a{ display:block; padding:.18rem 0; font-size:.92rem; text-decoration:none; color:var(--muted); }
 }
+
+/* Mobile: stack, TOC hidden until toggled */
+@media (max-width: 979.98px){
+  .layout{
+    display: flex !important;
+  flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  aside.toc { position: static; display: none; }
+  aside.toc.open { display: block !important; }
+}
+
+
+
+
 
 /* (Optional) keep your button looking like your theme.
    If your button got “ugly,” you can remove this block or tweak it. */
